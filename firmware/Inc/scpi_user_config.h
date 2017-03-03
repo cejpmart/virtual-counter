@@ -1,0 +1,2 @@
+
+#define USE_DEPRECATED_FUNCTIONS 0
