@@ -54,6 +54,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(measurementController, SIGNAL (instrumentConnected()), this, SLOT (onInstrumentConnected()));
     connect(measurementController, SIGNAL (instrumentInfoSet(QString)), this, SLOT (onInstrumentInfoSet(QString)));
+    connect(measurementController, SIGNAL (instrumentFirmwareVersionSet(QString)), this, SLOT (onInstrumentFirmwareVersionSet(QString)));
     connect(measurementController, SIGNAL (measurementStarted()), this, SLOT (onMeasurementStarted()));
     connect(measurementController, SIGNAL (measurementFinishedCounting(double, double, double, double)),
             this, SLOT (onMeasurementFinishedCounting(double, double, double, double)));

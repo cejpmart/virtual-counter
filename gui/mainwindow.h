@@ -29,6 +29,7 @@ signals:
 
 private slots:
     void onInstrumentConnected();
+    void onInstrumentFirmwareVersionSet(QString text) {}
     void onInstrumentInfoSet(QString text);
     void onMeasurementStarted();
     void onMeasurementFinishedCounting(double frequency, double frequencyError, double period, double periodError);

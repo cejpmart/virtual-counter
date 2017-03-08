@@ -1,5 +1,7 @@
 #include "serialsession.h"
 
+#define VERSION "1.0"
+
 bool SerialSession::open(const char* filename) {
     serialPort.reset(new QSerialPort(filename));
 
@@ -12,6 +14,18 @@ bool SerialSession::open(const char* filename) {
     // Set mode to SCPI
     char modeSet = 0xf2;
     serialPort->write(&modeSet, 1);
+
+    // Check firmware version
+    writeLine("*IDN?");
+    QString reply = readLine();
+    QStringList tokens = reply.split(",");
+
+    if (tokens.size() < 4 || tokens[3] != VERSION) {
+        printf("%d `%s` `%s`\n", tokens.size(), tokens[3].toLatin1().data(), VERSION);
+        emit status((QString) "Firmware version mismatch!");
+        emit finished();
+        return false;
+    }
 
     emit status((QString) "Connected to " + filename);
     //serialPort->setReadBufferSize(1000000);
@@ -28,6 +42,12 @@ QString SerialSession::readLine() {
 
     QByteArray line = serialPort->readLine();
     printf("%s", line.data());
+
+    while (line.size() && isspace(line[line.size() - 1])) {
+        line[line.size() - 1] = 0;      // this is needed, but why?!
+        line.truncate(line.size() - 1);
+    }
+
     return QString::fromLatin1(line);
 }
 

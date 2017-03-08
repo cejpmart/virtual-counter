@@ -137,8 +137,28 @@ int instrumentMeasureFrequency(float* freq_out, int* duty_out) {
 	return 0;
 }
 
+int instrumentMeasurePeriod(unsigned int* period_out, unsigned int* pulse_out) {
+	instrumentSetFreqMode(MODE_RECIPROCAL);
+
+	if (meas_rec_valid && meas_rec_period != 0) {
+		*period_out = meas_rec_period;
+
+		// Max pulse width: 2^31/100 => 447.8 ms @ 48 MHz!
+		*pulse_out = meas_rec_pulseWidth;
+	}
+	else {
+		*period_out = 0;
+		*pulse_out = 0;
+		return -2;
+	}
+
+	// TODO: timeout
+	//meas_rec_valid = 0;
+	return 0;
+}
+
 int instrumentMeasurePhaseAtoB(int* period_out, int* interval_out) {
-	HWSetFreqMode(MODE_TDELTA);
+	instrumentSetFreqMode(MODE_TDELTA);
 	meas_rec_valid = 0;
 
 	// TODO: do this better
@@ -213,9 +233,12 @@ void instrumentProcess(void) {
 }
 
 void instrumentSetFreqMode(int freq_mode) {
+	if (s_freq_mode == freq_mode)
+		return;
+
 	s_freq_mode = freq_mode;
 
-	//HWSetFreqMode(freq_mode);
+	HWSetFreqMode(freq_mode);
 
 	meas_rec_valid = 0;
 	//meas_tdelta_valid = 0;

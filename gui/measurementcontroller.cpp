@@ -2,9 +2,26 @@
 #include "measurementcontroller.h"
 
 static const double F_CPU = 48000000;
+static const double MIN_REASONABLE_FREQUENCY = 0.000001;
+static const double MIN_REASONABLE_PERIOD = 1.0 / F_CPU;
+static const double USB_CLOCK_TOLERANCE = 0.0005;       // assuming USB 2.0
 
 MeasurementController::MeasurementController(MainWindow* view) : view(view)
 {
+}
+
+void MeasurementController::checkFirmwareVersion()
+{
+    if (!session)
+        return;
+
+    session->writeLine("*IDN?");
+    QString reply = session->readLine();
+    QStringList tokens = reply.split(",");
+
+    if (tokens.size() < 4) {
+        return;
+    }
 }
 
 void MeasurementController::doMeasurementCounting(double gateTime)
@@ -40,10 +57,10 @@ void MeasurementController::doMeasurementReciprocal()
 
     emit measurementStarted();
 
-    session->writeLine("SENS:FREQ:MODE REC");
-    session->writeLine("MEAS:FREQ?");
+    //session->writeLine("SENS:FREQ:MODE REC");
+    session->writeLine("MEAS:PER?");
 
-    processMeasurement(reciprocal, 0.0);
+    processMeasurementReciprocal();
 }
 
 void MeasurementController::openInterface(QString path)
@@ -63,15 +80,15 @@ void MeasurementController::openInterface(QString path)
         emit instrumentInfoSet("Connected " + path);
     }
     else {
+        emit instrumentInfoSet("Failed to open " + path);
         session.reset();
     }
+
+    checkFirmwareVersion();
 }
 
 void MeasurementController::processMeasurement(MeasurementMode mode, double gateTime)
 {
-    static const double MIN_REASONABLE_FREQUENCY = 0.000001;
-    static const double USB_CLOCK_TOLERANCE = 0.0005;       // assuming USB 2.0
-
     QString result = session->readLine();
     QStringList freqDuty = result.split(",");
 
@@ -103,6 +120,27 @@ void MeasurementController::processMeasurement(MeasurementMode mode, double gate
     }
 }
 
+void MeasurementController::processMeasurementReciprocal() {
+    QString result = session->readLine();
+    QStringList periodPulse = result.split(",");
+
+    if (periodPulse.size() < 2)
+        return;     // FIXME: error
+
+    const double period = periodPulse[0].toDouble() / F_CPU;
+    const double frequency = (period > MIN_REASONABLE_PERIOD) ? (1.0 / period) : 0.0;
+
+    const double relativeError = USB_CLOCK_TOLERANCE;
+
+    const double periodError = (1 / F_CPU /* quantization error */) + period * relativeError;
+    const double frequencyErrorPoint = qMax(1.0 / (period - periodError), 0.0);
+    const double frequencyError = frequencyErrorPoint - frequency;
+
+    const double duty = periodPulse[1].toDouble() * (100.0 / F_CPU) / period;
+
+    emit measurementFinishedReciprocal(frequency, frequencyError, period, periodError, duty);
+}
+
 void MeasurementController::processPhaseMeasurement()
 {
     QString result = session->readLine();
@@ -112,10 +150,10 @@ void MeasurementController::processPhaseMeasurement()
         return;     // FIXME: error
 
     const double period = freqDuty[0].toDouble() / F_CPU;
-    const double frequency = (period > 1.0 / F_CPU) ? (1.0 / period) : 0.0;
+    const double frequency = (period > MIN_REASONABLE_PERIOD) ? (1.0 / period) : 0.0;
 
     const double interval = freqDuty[1].toDouble() / F_CPU;
-    const double phase = (period > 1.0 / F_CPU) ? (interval / period * 360) : 0.0;
+    const double phase = (period > MIN_REASONABLE_PERIOD) ? (interval / period * 360) : 0.0;
 
     emit measurementFinishedPhase(frequency, period, -interval, phase);
 }

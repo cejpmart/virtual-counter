@@ -7,10 +7,10 @@
 
 #define SCPI_INPUT_BUFFER_LENGTH 256
 #define SCPI_ERROR_QUEUE_SIZE 17
-#define SCPI_IDN1 "MANUFACTURE"
-#define SCPI_IDN2 "INSTR2013"
+#define SCPI_IDN1 "FELCVUT"
+#define SCPI_IDN2 "VINSTRUMENT"
 #define SCPI_IDN3 NULL
-#define SCPI_IDN4 "01-02"
+#define SCPI_IDN4 "1.0"
 
 static char scpi_input_buffer[SCPI_INPUT_BUFFER_LENGTH];
 static scpi_error_t scpi_error_queue_data[SCPI_ERROR_QUEUE_SIZE];
@@ -65,6 +65,7 @@ static scpi_result_t SCPI_Reset(scpi_t * context) {
 
 static scpi_result_t scpi_frequency_mode(scpi_t * context);
 static scpi_result_t scpi_measure_frequency(scpi_t * context);
+static scpi_result_t scpi_measure_period(scpi_t * context);
 static scpi_result_t scpi_measure_phase(scpi_t * context);
 static scpi_result_t scpi_pulse_period(scpi_t * context);
 static scpi_result_t scpi_pulse_phase(scpi_t * context);
@@ -89,10 +90,10 @@ static const scpi_command_t scpi_commands[] = {
     { .pattern = "*OPC?", .callback = SCPI_CoreOpcQ,},
     { .pattern = "*RST", .callback = SCPI_CoreRst,},
     { .pattern = "*SRE", .callback = SCPI_CoreSre,},
-    { .pattern = "*SRE?", .callback = SCPI_CoreSreQ,},
+    /*{ .pattern = "*SRE?", .callback = SCPI_CoreSreQ,},
     { .pattern = "*STB?", .callback = SCPI_CoreStbQ,},
     { .pattern = "*TST?", .callback = SCPI_CoreTstQ,},
-    { .pattern = "*WAI", .callback = SCPI_CoreWai,},
+    { .pattern = "*WAI", .callback = SCPI_CoreWai,},*/
 
     /* Required SCPI commands (SCPI std V1999.0 4.2.1) */
 	// Commented out to save Flash
@@ -110,6 +111,7 @@ static const scpi_command_t scpi_commands[] = {
 	{ .pattern = "SENSe:FREQuency:GATE:TIME", .callback = &scpi_sense_frequency_gate_time, },
 	{ .pattern = "SENSe:FREQuency:MODE", .callback = &scpi_frequency_mode, },
     { .pattern = "MEASure:FREQuency?", .callback = &scpi_measure_frequency, },
+	{ .pattern = "MEASure:PERiod?", .callback = &scpi_measure_period, },
 	{ .pattern = "MEASure:PHASe?", .callback = &scpi_measure_phase, },
 
 	// Output
@@ -164,12 +166,23 @@ static scpi_result_t scpi_measure_frequency(scpi_t* context) {
 	return SCPI_RES_OK;
 }
 
+static scpi_result_t scpi_measure_period(scpi_t* context) {
+	unsigned int period;
+	int duty;
+	instrumentMeasurePeriod(&period, &duty);
+
+	SCPI_ResultUInt32(context, (unsigned int)period);
+	SCPI_ResultUInt32(context, (int)duty);
+
+	return SCPI_RES_OK;
+}
+
 static scpi_result_t scpi_measure_phase(scpi_t* context) {
 	int period, phase;
 	instrumentMeasurePhaseAtoB(&period, &phase);
 
-	SCPI_ResultInt32(context, (unsigned int)(period));
-	SCPI_ResultUInt32(context, (int)(phase));
+	SCPI_ResultUInt32(context, (unsigned int)(period));
+	SCPI_ResultInt32(context, (int)(phase));
 
 	return SCPI_RES_OK;
 }

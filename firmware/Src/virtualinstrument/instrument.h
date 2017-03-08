@@ -55,6 +55,7 @@ void instrumentProcess(void);
 
 void instrumentSetFreqMode(int freq_mode);
 int instrumentMeasureFrequency(float* freq_out, int* duty_out);
+int instrumentMeasurePeriod(unsigned int* period_out, unsigned int* pulse_out);
 int instrumentMeasurePhaseAtoB(int* period_out, int* interval_out);
 int instrumentGetTdelta(int* tdelta_out);
 

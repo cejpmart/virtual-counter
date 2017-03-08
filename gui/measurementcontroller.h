@@ -13,6 +13,7 @@ public:
 
 signals:
     void instrumentConnected();
+    void instrumentFirmwareVersionSet(QString text);
     void instrumentInfoSet(QString text);
 
     void measurementStarted();
@@ -35,7 +36,9 @@ public slots:
 private:
     enum MeasurementMode { counting, reciprocal };
 
+    void checkFirmwareVersion();
     void processMeasurement(MeasurementMode mode, double gateTime);
+    void processMeasurementReciprocal();
     void processPhaseMeasurement();
 
     MainWindow* view;
