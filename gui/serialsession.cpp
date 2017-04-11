@@ -17,7 +17,7 @@ bool SerialSession::open(const char* filename) {
 
     // Check firmware version
     writeLine("*IDN?");
-    QString reply = readLine();
+    QString reply = readLine(1000);
     QStringList tokens = reply.split(",");
 
     if (tokens.size() < 4 || tokens[3] != VERSION) {
@@ -33,9 +33,9 @@ bool SerialSession::open(const char* filename) {
     return true;
 }
 
-QString SerialSession::readLine() {
+QString SerialSession::readLine(int timeout) {
     if (!serialPort->canReadLine())
-        serialPort->waitForReadyRead(11000);
+        serialPort->waitForReadyRead(timeout);
 
     if (!serialPort->canReadLine())
         return "ERROR";

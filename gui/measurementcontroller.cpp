@@ -6,6 +6,9 @@ static const double MIN_REASONABLE_FREQUENCY = 0.000001;
 static const double MIN_REASONABLE_PERIOD = 1.0 / F_CPU;
 static const double USB_CLOCK_TOLERANCE = 0.0005;       // assuming USB 2.0
 
+enum { CONFIG_CMD_TIMEOUT = 1000 };
+enum { READOUT_TIMEOUT = 1000 };
+
 MeasurementController::MeasurementController(MainWindow* view) : view(view)
 {
 }
@@ -16,7 +19,7 @@ void MeasurementController::checkFirmwareVersion()
         return;
 
     session->writeLine("*IDN?");
-    QString reply = session->readLine();
+    QString reply = session->readLine(CONFIG_CMD_TIMEOUT);
     QStringList tokens = reply.split(",");
 
     if (tokens.size() < 4) {
@@ -38,7 +41,7 @@ void MeasurementController::doMeasurementCounting(double gateTime)
     processMeasurement(counting, gateTime);
 }
 
-void MeasurementController::doMeasurementPhase()
+void MeasurementController::doMeasurementPhase(Edge edge)
 {
     if (!session)
         return;
@@ -89,11 +92,13 @@ void MeasurementController::openInterface(QString path)
 
 void MeasurementController::processMeasurement(MeasurementMode mode, double gateTime)
 {
-    QString result = session->readLine();
+    QString result = session->readLine((int)(gateTime * 1000 + READOUT_TIMEOUT));
     QStringList freqDuty = result.split(",");
 
-    if (freqDuty.size() < 2)
-        return;     // FIXME: error
+    if (freqDuty.size() < 2) {
+        emit measurementTimedOut();
+        return;
+    }
 
     const double frequency = freqDuty[0].toDouble() * 0.01;
     const double period = (frequency > MIN_REASONABLE_FREQUENCY) ? (1.0 / frequency) : INFINITY;
@@ -121,11 +126,13 @@ void MeasurementController::processMeasurement(MeasurementMode mode, double gate
 }
 
 void MeasurementController::processMeasurementReciprocal() {
-    QString result = session->readLine();
+    QString result = session->readLine(READOUT_TIMEOUT);
     QStringList periodPulse = result.split(",");
 
-    if (periodPulse.size() < 2)
-        return;     // FIXME: error
+    if (periodPulse.size() < 2) {
+        emit measurementTimedOut();
+        return;
+    }
 
     const double period = periodPulse[0].toDouble() / F_CPU;
     const double frequency = (period > MIN_REASONABLE_PERIOD) ? (1.0 / period) : 0.0;
@@ -143,11 +150,13 @@ void MeasurementController::processMeasurementReciprocal() {
 
 void MeasurementController::processPhaseMeasurement()
 {
-    QString result = session->readLine();
+    QString result = session->readLine(READOUT_TIMEOUT);
     QStringList freqDuty = result.split(",");
 
-    if (freqDuty.size() < 2)
-        return;     // FIXME: error
+    if (freqDuty.size() < 2) {
+        emit measurementTimedOut();
+        return;
+    }
 
     const double period = freqDuty[0].toDouble() / F_CPU;
     const double frequency = (period > MIN_REASONABLE_PERIOD) ? (1.0 / period) : 0.0;

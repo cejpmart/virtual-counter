@@ -22,7 +22,7 @@ public:
 signals:
     void measurementShouldStartCounting(double gateTime);
     void measurementShouldStartReciprocal();
-    void measurementShouldStartPhase();
+    void measurementShouldStartPhase(Edge edge);
     void shouldSetPwmFrequency(double frequency);
     void shouldSetRelativePhase(double phase);
     void shouldOpenInterface(QString path);
@@ -35,6 +35,7 @@ private slots:
     void onMeasurementFinishedCounting(double frequency, double frequencyError, double period, double periodError);
     void onMeasurementFinishedPhase(double channelAFrequency, double channelAPeriod, double interval, double phase);
     void onMeasurementFinishedReciprocal(double frequency, double frequencyError, double period, double periodError, double duty);
+    void onMeasurementTimedOut();
     void onOpenInterfaceTriggered(QAction* action);
     void onPwmFrequencySet(double frequency);
 

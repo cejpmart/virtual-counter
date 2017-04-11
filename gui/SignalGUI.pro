@@ -12,6 +12,8 @@ TARGET = SignalGUI
 TEMPLATE = app
 CONFIG += c++14
 
+QMAKE_CXXFLAGS += -Wno-unused
+
 SOURCES += main.cpp\
         mainwindow.cpp \
     serialsession.cpp \

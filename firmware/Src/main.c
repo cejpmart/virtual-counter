@@ -177,7 +177,7 @@ void start_timeframe(uint32_t duration) {
 
 	//timeframe_finished = 0;
 	TIMEFRAME_TIM->ARR = 65535;
-	TIMEFRAME_TIM->PSC = 48000-1;
+	TIMEFRAME_TIM->PSC = SystemCoreClock / 1000 - 1;
 	TIMEFRAME_TIM->CCR1 = duration / TIMEFRAME_PRESCALER;//-1;
 	TIMEFRAME_TIM->CCMR1 = (0b110 << TIM_CCMR1_OC1M_Pos);
 	TIMEFRAME_TIM->CNT = 0;

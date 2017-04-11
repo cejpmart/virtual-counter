@@ -17,7 +17,7 @@ public:
     bool open(const char* filename);
 
     void writeLine(QString text);
-    QString readLine();
+    QString readLine(int timeout);
 
 signals:
     void finished();

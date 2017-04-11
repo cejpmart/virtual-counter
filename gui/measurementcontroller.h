@@ -5,6 +5,12 @@
 
 class MainWindow;
 
+enum class Edge
+{
+    rising,
+    falling,
+};
+
 class MeasurementController : public QObject
 {
     Q_OBJECT
@@ -20,13 +26,14 @@ signals:
     void measurementFinishedCounting(double frequency, double frequencyError, double period, double periodError);
     void measurementFinishedReciprocal(double frequency, double frequencyError, double period, double periodError, double duty);
     void measurementFinishedPhase(double channelAFrequency, double channelAPeriod, double interval, double phase);
+    void measurementTimedOut();
 
     void pwmFrequencySet(double frequency);
 
 public slots:
     void doMeasurementCounting(double gateTime);
     void doMeasurementReciprocal();
-    void doMeasurementPhase();
+    void doMeasurementPhase(Edge edge);
 
     void setPwmFrequency(double frequency);
     void setRelativePhase(double phase);

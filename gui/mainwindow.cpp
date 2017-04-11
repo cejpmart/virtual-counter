@@ -62,10 +62,11 @@ MainWindow::MainWindow(QWidget *parent) :
             this, SLOT (onMeasurementFinishedReciprocal(double, double, double, double, double)));
     connect(measurementController, SIGNAL (measurementFinishedPhase(double, double, double, double)), this, SLOT (onMeasurementFinishedPhase(double, double, double, double)));
     connect(measurementController, SIGNAL (pwmFrequencySet(double)), this, SLOT (onPwmFrequencySet(double)));
+    connect(measurementController, SIGNAL (measurementTimedOut()), this, SLOT (onMeasurementTimedOut()));
 
     connect(this, SIGNAL (measurementShouldStartCounting(double)), measurementController, SLOT (doMeasurementCounting(double)));
     connect(this, SIGNAL (measurementShouldStartReciprocal()), measurementController, SLOT (doMeasurementReciprocal()));
-    connect(this, SIGNAL (measurementShouldStartPhase()), measurementController, SLOT (doMeasurementPhase()));
+    connect(this, SIGNAL (measurementShouldStartPhase(Edge)), measurementController, SLOT (doMeasurementPhase(Edge)));
     connect(this, SIGNAL (shouldOpenInterface(QString)), measurementController, SLOT (openInterface(QString)));
     connect(this, SIGNAL (shouldSetPwmFrequency(double)), measurementController, SLOT (setPwmFrequency(double)));
     connect(this, SIGNAL (shouldSetRelativePhase(double)), measurementController, SLOT (setRelativePhase(double)));
@@ -150,6 +151,13 @@ void MainWindow::onMeasurementStarted()
         setMeasuredValuesInvalid();
 
     statusString((QString) "Measurement in progress...");
+}
+
+void MainWindow::onMeasurementTimedOut()
+{
+    statusString((QString) "Measurement timed out!");
+
+    afterMeasurement();
 }
 
 void MainWindow::onOpenInterfaceTriggered(QAction* action)
@@ -283,7 +291,7 @@ void MainWindow::on_measureButton_clicked()
         emit measurementShouldStartReciprocal();
     }
     else if (ui->measurementMethodInterval->isChecked()) {
-        emit measurementShouldStartPhase();
+        emit measurementShouldStartPhase(ui->intervalEdgeSelect->currentIndex() == 0 ? Edge::rising : Edge::falling);
     }
 }
 
