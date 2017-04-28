@@ -11,6 +11,8 @@ enum class Edge
     falling,
 };
 
+Q_DECLARE_METATYPE(Edge);
+
 class MeasurementController : public QObject
 {
     Q_OBJECT
@@ -30,6 +32,9 @@ signals:
 
     void pwmFrequencySet(double frequency);
 
+    void status(QString status);
+    void errorSignal(QString err);
+
 public slots:
     void doMeasurementCounting(double gateTime);
     void doMeasurementReciprocal();
@@ -43,10 +48,18 @@ public slots:
 private:
     enum MeasurementMode { counting, reciprocal };
 
-    void checkFirmwareVersion();
-    void processMeasurement(MeasurementMode mode, double gateTime);
-    void processMeasurementReciprocal();
-    void processPhaseMeasurement();
+    bool pollMeasurement(uint8_t* tag_out, uint8_t const** data_out, size_t* length_out);
+    void closeInterface();
+
+    bool awaitMeasurementResult(uint8_t which, uint8_t const** reply_payload_out, size_t* reply_length_out);
+    bool doMeasurement(uint8_t which, const void* request_data, size_t request_length, void* result_data, size_t result_length);
+    bool sendPacketAndAwaitResultCode(uint8_t tag, const uint8_t* data, size_t length, int* rc_out);
+
+    void communicationError();
+    void instrumentStateError();
+    void error(QString&& error);
+
+    bool checkFirmwareVersion();
 
     MainWindow* view;
     std::unique_ptr<SerialSession> session;

@@ -8,7 +8,7 @@ QT       += core gui serialport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = SignalGUI
+TARGET = MeasurementTool
 TEMPLATE = app
 CONFIG += c++14
 
@@ -21,6 +21,7 @@ SOURCES += main.cpp\
 
 HEADERS  += mainwindow.h \
     serialsession.h \
-    measurementcontroller.h
+    measurementcontroller.h \
+    ../Common/protocoldefs.h
 
 FORMS    += mainwindow.ui
