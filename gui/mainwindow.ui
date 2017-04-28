@@ -785,7 +785,7 @@
   </action>
   <action name="actionAbout_v1002">
    <property name="text">
-    <string>About Measurement Tool v1003</string>
+    <string>About Measurement Tool v1004</string>
    </property>
   </action>
  </widget>
