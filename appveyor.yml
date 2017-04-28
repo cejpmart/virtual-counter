@@ -1,7 +1,15 @@
+version: 1.0.{build}
 install:
-  - set QTDIR=C:\Qt\5.7\mingw53_32
-  - set PATH=%PATH%;%QTDIR%\bin;C:\MinGW\bin
+- cmd: >-
+    set QTDIR=C:\Qt\5.7\mingw53_32
+
+    set PATH=%PATH%;%QTDIR%\bin;C:\MinGW\bin
 build_script:
-  - cd gui
-  - qmake MeasurementTool.pro
-  - mingw32-make
+- cmd: >-
+    cd gui
+
+    qmake MeasurementTool.pro
+
+    mingw32-make
+artifacts:
+- path: gui/release/MeasurementTool.exe
