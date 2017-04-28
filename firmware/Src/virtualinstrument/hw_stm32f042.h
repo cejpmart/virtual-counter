@@ -1,0 +1,31 @@
+#ifndef VIRTUALINSTRUMENT_HW_STM32F042_H_
+#define VIRTUALINSTRUMENT_HW_STM32F042_H_
+
+#include <stm32f042x6.h>
+
+#define PWM1_TIM        TIM3
+#define PWM1_HTIM       htim3
+#define PWM1_CCR        (TIM3->CCR1)
+#define PWM1_CHANNEL    TIM_CHANNEL_1
+
+#define PWM2_TIM        TIM14
+#define PWM2_HTIM       htim14
+#define PWM2_CCR        (TIM14->CCR1)
+#define PWM2_CHANNEL    TIM_CHANNEL_1
+
+#define TIMEFRAME_TIM       TIM1
+#define TIMEFRAME_HTIM      htim1
+
+#define TIMEFRAME_PRESCALER 1
+
+#define INPUT_CAPTURE_TIMER TIM2
+
+// For reciprocal mode
+// TODO: good enough?
+#define INPUT_CAPTURE_RISING_CHAN TIM_CHANNEL_4
+#define INPUT_CAPTURE_FALLING_CHAN TIM_CHANNEL_2
+#define INPUT_CAPTURE_RISING_CCR (TIM2->CCR4)
+#define INPUT_CAPTURE_FALLING_CCR (TIM2->CCR2)
+
+
+#endif /* VIRTUALINSTRUMENT_HW_STM32F042_H_ */

@@ -1,5 +1,7 @@
 #include "protocol.h"
-#include "instrument.h"
+
+#include "protocol_ascii.h"
+#include "protocol_binary.h"
 
 #ifdef ENABLE_SCPI
 #include "protocol_scpi.h"
@@ -36,7 +38,7 @@ void cdcDataIn(const uint8_t* data, size_t length) {
 	}
 }
 
-void protocolInit(const char* device_name, uint32_t cpu_units_per_second) {
+void protocolInit(const char* device_version, uint32_t cpu_units_per_second) {
 	/*s_device_name = device_name;
 	s_cpu_units_per_second = cpu_units_per_second;
 
@@ -44,19 +46,12 @@ void protocolInit(const char* device_name, uint32_t cpu_units_per_second) {
 	s_device_id.cpu_units_per_second = cpu_units_per_second;*/
 
 	protocolAsciiInit();
+	protocolBinaryInit(device_version);
 
 #ifdef ENABLE_SCPI
 	protocolScpiInit();
 #endif
 }
-
-/*void protocolSendHeartbeat(void) {
-	ocarinaDataOut(heartbeat, sizeof(heartbeat));
-}*/
-
-/*void protocolSendPulseInfoTEST(DataPulse* data) {
-	SendPacket(msgDataPulseLength, data, sizeof(DataPulse));
-}*/
 
 enum {
 	CONTROL_BINARY,
@@ -90,26 +85,27 @@ void protocolProcess(void) {
 #endif
 	}
 
-	size_t dataAvailable = (pendingDataReadPos != pendingDataWritePos) ? 1 : 0;
-	size_t nextReadPos = (pendingDataReadPos + dataAvailable) & (sizeof(pendingData) - 1);
+	size_t end = (pendingDataWritePos >= pendingDataReadPos) ? pendingDataWritePos : sizeof(pendingData);
+
+	size_t dataAvailable = (end - pendingDataReadPos) & (sizeof(pendingData) - 1);
+	size_t nextReadPos = end & (sizeof(pendingData) - 1);
 
 	switch (controlMode) {
-	case CONTROL_BINARY:
-
-		/*size_t consumed = ProcessCommand(pendingData, numPendingData);
-
-		if (consumed == 0)
-			break;*/
+	case CONTROL_BINARY: {
+		protocolBinaryHandle(pendingData + pendingDataReadPos, dataAvailable);
 		break;
+	}
 
 	case CONTROL_ASCII: {
 		protocolAsciiHandle(pendingData + pendingDataReadPos, dataAvailable);
 		break;
 	}
 
+#ifdef ENABLE_SCPI
 	case CONTROL_SCPI:
 		protocolScpiHandle(pendingData + pendingDataReadPos, dataAvailable);
 		break;
+#endif
 	}
 
 	/*

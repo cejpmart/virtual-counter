@@ -4,8 +4,11 @@
 #include <stdio.h>
 #include <string.h>
 
-int s_mode = MODE_COUNTER;
-int s_running = 0;
+static int s_mode = MODE_COUNTER;
+static int s_running = 0;
+
+static int s_gate_time = 1000;
+
 static const int s_continuousInterval = 500;
 
 static const int s_burstCount = 10;
@@ -18,37 +21,69 @@ extern uint32_t SystemCoreClock;
 
 static void putstr(const char* str) {
 	cdcDataOut((const uint8_t*) str, strlen(str));
-	//cdcDataOut("\r\n");
 }
 
-void protocolAsciiInit() {
-	//putstr("Virtual Counter\r\n");
-	//putstr("press H for Help\r\n\n");
+static void printError(void) {
+    putstr("Unknown error!\r\n");
 }
 
 static void doOneMeasurement() {
-	if (s_mode == MODE_COUNTER || s_mode == MODE_RECIPROCAL) {
-		float freq;
-		int duty;
-		instrumentMeasureFrequency(&freq, &duty);
+	if (s_mode == MODE_COUNTER) {
+	    if (instrumentStartMeasurePulseCount(s_gate_time) < 0) {
+            printError();
+            return;
+        }
 
-		if (duty == 0) {
-			sprintf(outbuf, "%u Hz\r\n", (unsigned int)(freq));
+	    unsigned int freq;
+		while (instrumentFinishMeasurePulseCount(&freq) <= 0) {
 		}
-		else {
-			sprintf(outbuf, "%u Hz\t\t%d %%\r\n", (unsigned int)(freq), duty);
-		}
-		putstr(outbuf);
+
+		sprintf(outbuf, "%u Hz\r\n", freq);
 
 		s_burstTotal += freq;
 	}
-	else if (s_mode == MODE_TDELTA) {
-		int period, phase;
-		instrumentMeasurePhaseAtoB(&period, &phase);
+	else if (s_mode == MODE_RECIPROCAL) {
+	    if (instrumentStartMeasurePeriod(1) < 0) {
+	        printError();
+	        return;
+	    }
 
-		sprintf(outbuf, "%u Hz, %+d deg phase shift\r\n", (unsigned int)(SystemCoreClock / period), (int)(360 * phase / period));
-		putstr(outbuf);
+	    unsigned int period, pulse_width;
+        while (instrumentFinishMeasurePeriod(&period, &pulse_width) <= 0) {
+        }
+
+        unsigned int period_ns = period * 1000 / (SystemCoreClock / 1000000);
+        unsigned int pulse_width_ns = pulse_width * 1000 / (SystemCoreClock / 1000000);
+
+        sprintf(outbuf, "%uns period, %uns pulse width\r\n", period_ns, pulse_width_ns);
+        putstr(outbuf);
+
+        unsigned int freq = SystemCoreClock / period;
+
+        sprintf(outbuf, "%u Hz\t\t%d %%\r\n", freq, 100 * pulse_width / period);
+
+        s_burstTotal += freq;
 	}
+	else if (s_mode == MODE_TDELTA) {
+		if (instrumentStartMeasurePhaseShift() < 0) {
+            printError();
+            return;
+        }
+
+		unsigned int period;
+		int interval;
+		while (instrumentFinishMeasurePhaseShift(&period, &interval) <= 0) {
+		}
+
+		sprintf(outbuf, "%u Hz, %+d deg phase shift\r\n", (unsigned int)(SystemCoreClock / period), interval * 360 / (int)period);
+	}
+
+	putstr(outbuf);
+}
+
+void protocolAsciiInit(void) {
+    //putstr("Virtual Counter\r\n");
+    //putstr("press H for Help\r\n\n");
 }
 
 void protocolAsciiHandle(const uint8_t* data, size_t length) {
@@ -62,6 +97,7 @@ void protocolAsciiHandle(const uint8_t* data, size_t length) {
 		putstr("\r\n");
 
 		switch (*data) {
+		case '?':
 		case 'h':
 			putstr("\r\nCommands:\r\n");
 			putstr("[q] Counting\t[w] Reciprocal\t[e] Interval\r\n");
@@ -73,23 +109,19 @@ void protocolAsciiHandle(const uint8_t* data, size_t length) {
 		case 'w': s_mode = MODE_RECIPROCAL; break;
 		case 'e': s_mode = MODE_TDELTA; break;
 
-		case 'a': instrumentSetAperture(100); break;
-		case 's': instrumentSetAperture(1000); break;
-		case 'd': instrumentSetAperture(10000); break;
+		case 'a': s_gate_time = 100; break;
+		case 's': s_gate_time = 1000; break;
+		case 'd': s_gate_time = 10000; break;
 
 		case 'z':
-			instrumentSetFreqMode(s_mode);
 			doOneMeasurement();
 			break;
 
 		case 'x':
-			instrumentSetFreqMode(s_mode);
 			s_running = 1;
 			break;
 
 		case 'c':
-			instrumentSetFreqMode(s_mode);
-
 			for (int i = 0; i < s_burstCount; i++)
 				doOneMeasurement();
 
@@ -104,7 +136,7 @@ void protocolAsciiHandle(const uint8_t* data, size_t length) {
 	if (s_running) {
 		doOneMeasurement();
 
-		HAL_Delay(s_continuousInterval);
+		utilDelayMs(s_continuousInterval);
 	}
 }
 

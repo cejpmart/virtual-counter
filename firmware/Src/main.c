@@ -46,7 +46,9 @@
 #include "usb_device.h"
 
 /* USER CODE BEGIN Includes */
+#include "virtualinstrument/hw.h"
 #include "virtualinstrument/instrument.h"
+#include "virtualinstrument/protocol.h"
 
 #include <string.h>
 /* USER CODE END Includes */
@@ -83,127 +85,13 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 /* USER CODE BEGIN 0 */
 #define COUNTER_HTIM htim2
 
-#define INPUT_CAPTURE_TIMER TIM2
 #define INPUT_CAPTURE_HTIM htim2
-
-//#define INPUT_CAPTURE_PRESCALER 4
-//(TIM2->PSC + 1)
-#define INPUT_CAPTURE_TIMER_MASK 0xffffffff
-
-// For reciprocal mode
-#define INPUT_CAPTURE_RISING_CHAN TIM_CHANNEL_4
-#define INPUT_CAPTURE_FALLING_CHAN TIM_CHANNEL_2
-#define INPUT_CAPTURE_RISING_CCR (TIM2->CCR4)
-#define INPUT_CAPTURE_FALLING_CCR (TIM2->CCR2)
 
 // For t_AB mode
 #define INPUT_CAPTURE_CH1_CHAN TIM_CHANNEL_4
 #define INPUT_CAPTURE_CH2_CHAN TIM_CHANNEL_2
 #define INPUT_CAPTURE_CH1_CCR (TIM2->CCR4)
 #define INPUT_CAPTURE_CH2_CCR (TIM2->CCR2)
-
-static uint32_t lastRiseTime;
-static uint32_t lastEdge1, lastEdge2;
-
-// TODO
-void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
-	if (htim == &INPUT_CAPTURE_HTIM) {
-		uint32_t riseTime = INPUT_CAPTURE_RISING_CCR;
-		uint32_t fallTime = INPUT_CAPTURE_FALLING_CCR;
-
-		//meas_riseTime = riseTime;
-		//meas_fallTime = fallTime;
-		meas_rec_pulseWidth = ((fallTime - riseTime) & INPUT_CAPTURE_TIMER_MASK);
-		meas_rec_period = ((riseTime - lastRiseTime) & INPUT_CAPTURE_TIMER_MASK);
-		meas_rec_valid = 1;
-		lastRiseTime = riseTime;
-
-		//meas_tdelta_edge1 = INPUT_CAPTURE_CH1_CCR;
-		//meas_tdelta_edge2 = INPUT_CAPTURE_CH2_CCR;
-		//meas_tdelta_period1 = (meas_tdelta_edge1 - lastEdge1);
-		//meas_tdelta_period2 = (meas_tdelta_edge2 - lastEdge2);
-		//meas_tdelta_valid = 1;
-		//lastEdge1 = meas_tdelta_edge1;
-		//lastEdge2 = meas_tdelta_edge2;
-	}
-}
-
-void HWSetPulseMeasurement(uint16_t prescaler) {
-	//INPUT_CAPTURE_TIMER->PSC = prescaler - 1;
-}
-
-int HWGetTdelta() {
-	return INPUT_CAPTURE_CH2_CCR - INPUT_CAPTURE_CH1_CCR;
-}
-
-#define PWM_TIM TIM3
-#define PWM_HTIM htim3
-#define PWM_CCR (TIM3->CCR3)
-#define PWM_CHANNEL TIM_CHANNEL_3
-
-#define PWM2_TIM TIM14
-#define PWM2_HTIM htim14
-#define PWM2_CCR (TIM14->CCR1)
-#define PWM2_CHANNEL TIM_CHANNEL_1
-
-void HWSetGeneratorPWM(uint16_t prescaler, uint16_t period, uint16_t pulse_time, int phase) {
-	PWM_TIM->PSC = prescaler - 1;
-	PWM_TIM->ARR = period - 1;
-	PWM_CCR = pulse_time;
-	PWM_TIM->EGR |= TIM_EGR_UG;
-
-	PWM2_TIM->PSC = prescaler - 1;
-	PWM2_TIM->ARR = period - 1;
-	PWM2_CCR = pulse_time;
-	PWM2_TIM->EGR |= TIM_EGR_UG;
-
-	// Ugh... basically make sure the update event has finished and we can safely mess with CNT
-	while (PWM2_TIM->CNT == 0) {}
-
-	PWM_TIM->CNT = 0;
-	PWM2_TIM->CNT = period * phase / 360 - 1;
-}
-
-#define TIMEFRAME_TIM TIM1
-#define TIMEFRAME_HTIM htim1
-
-#define TIMEFRAME_PRESCALER 1
-
-//volatile int timeframe_finished;
-
-void start_timeframe(uint32_t duration) {
-	// TODO: this should be more flexible and not need TIMEFRAME_PRESCALER,
-	// TODO: deriving the necessary constants from SystemCoreClock instead
-
-	//timeframe_finished = 0;
-	TIMEFRAME_TIM->ARR = 65535;
-	TIMEFRAME_TIM->PSC = SystemCoreClock / 1000 - 1;
-	TIMEFRAME_TIM->CCR1 = duration / TIMEFRAME_PRESCALER;//-1;
-	TIMEFRAME_TIM->CCMR1 = (0b110 << TIM_CCMR1_OC1M_Pos);
-	TIMEFRAME_TIM->CNT = 0;
-	HAL_TIM_GenerateEvent(&TIMEFRAME_HTIM, TIM_EGR_UG_Msk);
-	HAL_TIM_Base_Start(&TIMEFRAME_HTIM);
-
-	while (TIMEFRAME_TIM->CNT <= TIMEFRAME_TIM->CCR1) {
-	}
-
-	// To test if gating works properly
-	//HAL_Delay(100);
-
-	HAL_TIM_Base_Stop(&TIMEFRAME_HTIM);
-	//timeframe_finished = 1;
-}
-
-/*void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-	INPUT_CAPTURE_TIMER->CR1 &= ~TIM_CR1_CEN_Msk;
-
-	timeframe_finished = 1;
-}*/
-
-void etr_cnt_reset() {
-	INPUT_CAPTURE_TIMER->CNT = 0;
-	INPUT_CAPTURE_TIMER->CR1 |= TIM_CR1_CEN_Msk;
-}
 
 void HardFault_Handler() {
 	TIM1->CNT = 0;
@@ -281,38 +169,6 @@ void HWSetFreqMode(int mode, int edge) {
 	}
 }
 
-static int HWTryEnableHSE() {
-	RCC_OscInitTypeDef RCC_OscInitStruct;
-	RCC_ClkInitTypeDef RCC_ClkInitStruct;
-
-	/**Initializes the CPU, AHB and APB busses clocks
-	*/
-	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48|RCC_OSCILLATORTYPE_HSE;
-	RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-	RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-	RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
-	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-	RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL6;
-	RCC_OscInitStruct.PLL.PREDIV = RCC_PREDIV_DIV1;
-	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
-		return -1;
-	}
-
-	/**Initializes the CPU, AHB and APB busses clocks
-	*/
-	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-									|RCC_CLOCKTYPE_PCLK1;
-	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-
-	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK) {
-		return -2;
-	}
-
-	return 0;
-}
 /* USER CODE END 0 */
 
 int main(void)
@@ -339,15 +195,19 @@ int main(void)
   MX_TIM14_Init();
 
   /* USER CODE BEGIN 2 */
+  HWInit();
   HWTryEnableHSE();
-  HAL_TIM_PWM_Start(&PWM_HTIM, PWM_CHANNEL);
+  HAL_TIM_PWM_Start(&PWM1_HTIM, PWM1_CHANNEL);
   HAL_TIM_PWM_Start(&PWM2_HTIM, PWM2_CHANNEL);
   //HAL_TIM_Base_Start(&HTIM_INPUT_COMPARE);
   //HAL_TIM_Base_Start(&TIMEFRAME_HTIM);
 
+  protocolInit("VirtualInstrument,,1002", SystemCoreClock);
+
   instrumentInit(SystemCoreClock);
-  instrumentSetFreqMode(MODE_COUNTER);
-  start_timeframe(100);	// unclog the pipes at start
+
+  // FIXME: how to avoid this sin
+  HWStartTimeframe(100);	// unclog the pipes at start
 
   //HWSetGeneratorPWM(1, 48, 24);		// 1 MHz
   //HWSetGeneratorPWM(1, 480, 240);		// 100 kHz
@@ -364,6 +224,7 @@ int main(void)
 
   /* USER CODE BEGIN 3 */
 	  instrumentProcess();
+	  protocolProcess();
   }
   /* USER CODE END 3 */
 
@@ -605,7 +466,7 @@ static void MX_TIM3_Init(void)
   sConfigOC.Pulse = 0;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
   {
     Error_Handler();
   }
