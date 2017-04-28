@@ -65,7 +65,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(measurementController, SIGNAL (measurementTimedOut()), this, SLOT (onMeasurementTimedOut()));
 
     connect(this, SIGNAL (measurementShouldStartCounting(double)), measurementController, SLOT (doMeasurementCounting(double)));
-    connect(this, SIGNAL (measurementShouldStartReciprocal()), measurementController, SLOT (doMeasurementReciprocal()));
+    connect(this, SIGNAL (measurementShouldStartReciprocal(unsigned int)), measurementController, SLOT (doMeasurementReciprocal(unsigned int)));
     connect(this, SIGNAL (measurementShouldStartPhase(Edge)), measurementController, SLOT (doMeasurementPhase(Edge)));
     connect(this, SIGNAL (shouldOpenInterface(QString)), measurementController, SLOT (openInterface(QString)));
     connect(this, SIGNAL (shouldSetPwmFrequency(double)), measurementController, SLOT (setPwmFrequency(double)));
@@ -110,6 +110,18 @@ double MainWindow::getCountingGateTimeSeconds()
         return values[index];
     else
         return 0.0;
+}
+
+int MainWindow::getReciprocalIterations()
+{
+    static const int values[] = {1, 10, 100};
+
+    int index = ui->reciprocalIterationsSelect->currentIndex();
+
+    if (index >= 0 && (size_t) index < sizeof(values) / sizeof(values[0]))
+        return values[index];
+    else
+        return 1;
 }
 
 void MainWindow::onInstrumentConnected()
@@ -288,7 +300,7 @@ void MainWindow::on_measureButton_clicked()
         emit measurementShouldStartCounting(getCountingGateTimeSeconds());
     }
     else if (ui->measurementMethodReciprocal->isChecked()) {
-        emit measurementShouldStartReciprocal();
+        emit measurementShouldStartReciprocal(getReciprocalIterations());
     }
     else if (ui->measurementMethodInterval->isChecked()) {
         emit measurementShouldStartPhase(ui->intervalEdgeSelect->currentIndex() == 0 ? Edge::rising : Edge::falling);

@@ -26,9 +26,9 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>Common</name>
+			<name>common</name>
 			<type>2</type>
-			<locationURI>PARENT-1-PROJECT_LOC/Common</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/common</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

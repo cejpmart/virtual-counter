@@ -1,7 +1,7 @@
 #include "protocol.h"
 #include "instrument.h"
 
-#include "../../Common/protocoldefs.h"
+#include "../../common/protocoldefs.h"
 
 #include <string.h>
 
@@ -98,9 +98,16 @@ void protocolBinaryHandle(const uint8_t* data, size_t length) {
                 break;
             }
 
-            case MEASUREMENT_PERIOD:
-                rc = instrumentStartMeasurePeriod(4);
+            case MEASUREMENT_PERIOD: {
+                uint32_t iterations = 1;
+
+                if (packet->length >= 5) {
+                    memcpy(&iterations, &packet->data[1], 4);
+                }
+
+                rc = instrumentStartMeasurePeriod(iterations);
                 break;
+            }
 
             case MEASUREMENT_PHASE:
                 rc = instrumentStartMeasurePhaseShift();

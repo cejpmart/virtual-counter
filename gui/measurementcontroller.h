@@ -37,7 +37,7 @@ signals:
 
 public slots:
     void doMeasurementCounting(double gateTime);
-    void doMeasurementReciprocal();
+    void doMeasurementReciprocal(unsigned int iterations);
     void doMeasurementPhase(Edge edge);
 
     void setPwmFrequency(double frequency);

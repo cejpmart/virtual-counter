@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include "measurementcontroller.h"
 
-#include "../Common/protocoldefs.h"
+#include "../common/protocoldefs.h"
 
 static const double F_CPU = 48000000;
 static const double MIN_REASONABLE_FREQUENCY = 0.000001;
@@ -171,7 +171,7 @@ void MeasurementController::doMeasurementPhase(Edge edge)
     emit measurementFinishedPhase(frequency, period, -interval, phase);
 }
 
-void MeasurementController::doMeasurementReciprocal()
+void MeasurementController::doMeasurementReciprocal(unsigned int iterations)
 {
     if (!session)
         return;
@@ -179,7 +179,7 @@ void MeasurementController::doMeasurementReciprocal()
     measurement_period_request_t request;
     measurement_period_result_t result;
 
-    request.iterations = 1;
+    request.iterations = iterations;
 
     if (!doMeasurement(MEASUREMENT_PERIOD, &request, sizeof(request), &result, sizeof(result)))
         return;

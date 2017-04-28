@@ -1,7 +1,7 @@
 #include "hw.h"
 #include "instrument.h"
 
-#include "../../Common/protocoldefs.h"
+#include "../../common/protocoldefs.h"
 
 static uint32_t s_cpu_units_per_second;
 
@@ -10,6 +10,11 @@ static int s_instrument_state;
 static struct {
 	int mode;
 	int gate_time;
+
+	unsigned int period_sum;
+	unsigned int pulse_width_sum;
+	unsigned int iterations_total;
+	unsigned int iterations_remaining;
 } s_measurement_state;
 
 void instrumentInit(uint32_t cpu_units_per_second) {
@@ -18,6 +23,17 @@ void instrumentInit(uint32_t cpu_units_per_second) {
 }
 
 void instrumentProcess(void) {
+    if (s_instrument_state == STATE_MEASURING) {
+        if (s_measurement_state.mode == MEASUREMENT_PERIOD && s_measurement_state.iterations_remaining) {
+            unsigned int period, pulse_width;
+
+            if (HWGetPeriodPulseWidth(&period, &pulse_width)) {
+                s_measurement_state.period_sum += period;
+                s_measurement_state.pulse_width_sum += pulse_width;
+                s_measurement_state.iterations_remaining--;
+            }
+        }
+    }
 }
 
 int instrumentStartMeasurePulseCount(int gate_time) {
@@ -59,6 +75,11 @@ int instrumentStartMeasurePeriod(unsigned int iterations) {
 
     s_instrument_state = STATE_MEASURING;
     s_measurement_state.mode = MEASUREMENT_PERIOD;
+
+    s_measurement_state.period_sum = 0;
+    s_measurement_state.pulse_width_sum = 0;
+    s_measurement_state.iterations_total = iterations;
+    s_measurement_state.iterations_remaining = iterations;
     return 1;
 }
 
@@ -78,13 +99,13 @@ int instrumentFinishMeasurePeriod(unsigned int* period_out, unsigned int* pulse_
     if (s_instrument_state != STATE_MEASURING || s_measurement_state.mode != MEASUREMENT_PERIOD)
         return -1;
 
-    if (!meas_rec_valid)
+    if (s_measurement_state.iterations_remaining)
         return 0;
 
-    *period_out = meas_rec_period;
-
     // FIXME: Max pulse width: 2^31/100 => 447.8 ms @ 48 MHz!
-    *pulse_width_out = meas_rec_pulseWidth;
+
+    *period_out = s_measurement_state.period_sum / s_measurement_state.iterations_total;
+    *pulse_width_out = s_measurement_state.pulse_width_sum / s_measurement_state.iterations_total;
 
     s_instrument_state = STATE_READY;
     return 1;
@@ -94,15 +115,16 @@ int instrumentFinishMeasurePhaseShift(unsigned int* period_out, int* interval_ou
     if (s_instrument_state != STATE_MEASURING || s_measurement_state.mode != MEASUREMENT_PHASE)
         return -1;
 
-    if (!meas_rec_valid)
-        return 0;
+    uint32_t period, pulse_width;
 
-    *period_out = meas_rec_period;
+    if (HWGetPeriodPulseWidth(&period, &pulse_width)) {
+        *period_out = period;
 
-    if (meas_rec_pulseWidth < meas_rec_period / 2)
-        *interval_out = meas_rec_pulseWidth;
-    else
-        *interval_out = meas_rec_pulseWidth - meas_rec_period;
+        if (pulse_width < period / 2)
+            *interval_out = pulse_width;
+        else
+            *interval_out = pulse_width - period;
+    }
 
     s_instrument_state = STATE_READY;
     return 1;

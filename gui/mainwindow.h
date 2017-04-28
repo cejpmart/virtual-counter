@@ -21,7 +21,7 @@ public:
 
 signals:
     void measurementShouldStartCounting(double gateTime);
-    void measurementShouldStartReciprocal();
+    void measurementShouldStartReciprocal(unsigned int iterations);
     void measurementShouldStartPhase(Edge edge);
     void shouldSetPwmFrequency(double frequency);
     void shouldSetRelativePhase(double phase);
@@ -59,6 +59,7 @@ private slots:
 
 private:
     double getCountingGateTimeSeconds();
+    int getReciprocalIterations();
 
     void afterMeasurement();
 

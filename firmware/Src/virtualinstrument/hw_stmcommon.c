@@ -6,8 +6,8 @@
 
 static uint32_t lastRiseTime;
 
-volatile uint32_t meas_rec_period, meas_rec_pulseWidth;
-volatile uint32_t meas_rec_valid;
+static volatile uint32_t meas_rec_period, meas_rec_pulseWidth;
+static volatile uint32_t meas_rec_valid;
 
 // TODO
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
@@ -40,6 +40,18 @@ void HWClearPeriodMeasurement(void) {
 void HWClearPulseCounter(void) {
     INPUT_CAPTURE_TIMER->CNT = 0;
     INPUT_CAPTURE_TIMER->CR1 |= TIM_CR1_CEN_Msk;
+}
+
+int HWGetPeriodPulseWidth(unsigned int* period_out, unsigned int* pulse_width_out) {
+    if (!meas_rec_valid)
+        return 0;
+
+    __disable_irq();
+    *period_out = meas_rec_period;
+    *pulse_width_out = meas_rec_pulseWidth;
+    __enable_irq();
+
+    return 1;
 }
 
 void HWSetGeneratorPWM(uint16_t prescaler, uint16_t period, uint16_t pulse_time, int phase) {

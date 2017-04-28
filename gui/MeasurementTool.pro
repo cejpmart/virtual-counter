@@ -22,6 +22,6 @@ SOURCES += main.cpp\
 HEADERS  += mainwindow.h \
     serialsession.h \
     measurementcontroller.h \
-    ../Common/protocoldefs.h
+    ../common/protocoldefs.h
 
 FORMS    += mainwindow.ui

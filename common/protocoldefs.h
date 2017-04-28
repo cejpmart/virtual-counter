@@ -15,7 +15,7 @@ enum {
     MEASUREMENT_PERIOD =        0x02,
     MEASUREMENT_PHASE =         0x03,
 
-    MEASUREMENT_FLAG_CONTINOUS =    0x01,
+    MEASUREMENT_FLAG_CONTINUOUS =   0x01,
 };
 
 enum {
