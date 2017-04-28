@@ -117,14 +117,16 @@ int instrumentFinishMeasurePhaseShift(unsigned int* period_out, int* interval_ou
 
     uint32_t period, pulse_width;
 
-    if (HWGetPeriodPulseWidth(&period, &pulse_width)) {
-        *period_out = period;
+    if (!HWGetPeriodPulseWidth(&period, &pulse_width))
+        return 0;
 
-        if (pulse_width < period / 2)
-            *interval_out = pulse_width;
-        else
-            *interval_out = pulse_width - period;
-    }
+    *period_out = period;
+
+    if (pulse_width < period / 2)
+        *interval_out = pulse_width;
+    else
+        *interval_out = pulse_width - period;
+
 
     s_instrument_state = STATE_READY;
     return 1;

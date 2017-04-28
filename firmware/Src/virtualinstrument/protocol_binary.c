@@ -10,6 +10,11 @@ static const char* s_device_name;
 static uint8_t s_rx_packet[16];
 static size_t s_rx_have;
 
+// TODO: ???
+static uint16_t s_pwmPrescaler = 1;
+static int32_t s_pwmPrescaled = 48000;
+static int32_t s_pulsePhase = 0;
+
 struct packet {
     uint8_t tag;
     uint8_t length;
@@ -178,6 +183,49 @@ void protocolBinaryHandle(const uint8_t* data, size_t length) {
 
             sendpacket(reply_packet);
             break;
+
+        case CMD_SET_PWM_FREQUENCY: {
+            if (packet->length != 4)
+                break;
+
+            uint32_t period;
+            memcpy(&period, &packet->data[0], 4);
+
+            s_pwmPrescaler = 1;
+            s_pwmPrescaled = period;
+
+            while (s_pwmPrescaled >= 65535) {
+                s_pwmPrescaler++;
+                s_pwmPrescaled = period / s_pwmPrescaler;
+            }
+
+            HWSetGeneratorPWM(s_pwmPrescaler, s_pwmPrescaled, s_pwmPrescaled / 2, s_pulsePhase);
+            reply_packet->tag = INFO_RESULT_CODE;
+            reply_packet->length = 1;
+            reply_packet->data[0] = 1;
+            sendpacket(reply_packet);
+            break;
+        }
+
+        case CMD_SET_PWM_PHASE: {
+            if (packet->length != 4)
+                break;
+
+            int32_t phase;
+            memcpy(&phase, &packet->data[0], 4);
+
+            while (phase < 0)
+                phase += 360;
+
+            s_pulsePhase = phase;
+            HWSetGeneratorPWM(s_pwmPrescaler, s_pwmPrescaled, s_pwmPrescaled / 2, s_pulsePhase);
+
+            reply_packet->tag = INFO_RESULT_CODE;
+            reply_packet->length = 1;
+            reply_packet->data[0] = 1;
+            sendpacket(reply_packet);
+            break;
+        }
         }
 
         memmove(s_rx_packet, s_rx_packet + used, s_rx_have);

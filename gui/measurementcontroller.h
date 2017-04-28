@@ -31,6 +31,7 @@ signals:
     void measurementTimedOut();
 
     void pwmFrequencySet(double frequency);
+    void pwmPhaseSet(int phase);
 
     void status(QString status);
     void errorSignal(QString err);
@@ -41,7 +42,7 @@ public slots:
     void doMeasurementPhase(Edge edge);
 
     void setPwmFrequency(double frequency);
-    void setRelativePhase(double phase);
+    void setRelativePhase(int phase);
 
     void openInterface(QString path);
 

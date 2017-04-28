@@ -8,6 +8,9 @@ enum {
     CMD_START_MEASUREMENT =     's',
     CMD_POLL_MEASUREMENT =      'p',
     CMD_ABORT_MEASUREMENT =     'a',
+
+    CMD_SET_PWM_FREQUENCY =     0x80,
+    CMD_SET_PWM_PHASE =         0x81,
 };
 
 enum {
@@ -52,5 +55,13 @@ typedef struct {
     uint32_t period;
     int32_t interval;
 } __attribute__((packed)) measurement_phase_result_t;
+
+typedef struct {
+    uint32_t period;
+} __attribute__((packed)) set_pwm_frequency_request_t;
+
+typedef struct {
+    uint32_t phase;
+} __attribute__((packed)) set_pwm_phase_request_t;
 
 #endif // PROTOCOLDEFS_H

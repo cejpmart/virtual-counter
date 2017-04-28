@@ -263,23 +263,37 @@ bool MeasurementController::sendPacketAndAwaitResultCode(uint8_t tag, const uint
 
 void MeasurementController::setPwmFrequency(double frequency)
 {
-# if 0
     if (!session)
         return;
 
     int period = (int)round(F_CPU / frequency);
-    session->writeLine("SOUR:PULS:PER " + QString::number(period));
+
+    set_pwm_frequency_request_t request;
+    request.period = period;
+
+    int rc;
+    if (!sendPacketAndAwaitResultCode(CMD_SET_PWM_FREQUENCY, (const uint8_t*) &request, sizeof(request), &rc)) {
+        communicationError();
+        return;
+    }
+
     double actualFrequency = F_CPU / period;
     emit pwmFrequencySet(actualFrequency);
-#endif
 }
 
-void MeasurementController::setRelativePhase(double phase)
+void MeasurementController::setRelativePhase(int phase)
 {
-#if 0
     if (!session)
         return;
 
-    session->writeLine("SOUR:PULS:PHAS " + QString::number((int) phase));
-#endif
+    set_pwm_phase_request_t request;
+    request.phase = (int)(phase);   // FIXME
+
+    int rc;
+    if (!sendPacketAndAwaitResultCode(CMD_SET_PWM_PHASE, (const uint8_t*) &request, sizeof(request), &rc)) {
+        communicationError();
+        return;
+    }
+
+    emit pwmPhaseSet(phase);
 }

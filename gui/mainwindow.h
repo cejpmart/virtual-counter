@@ -24,7 +24,7 @@ signals:
     void measurementShouldStartReciprocal(unsigned int iterations);
     void measurementShouldStartPhase(Edge edge);
     void shouldSetPwmFrequency(double frequency);
-    void shouldSetRelativePhase(double phase);
+    void shouldSetRelativePhase(int phase);
     void shouldOpenInterface(QString path);
 
 private slots:
@@ -38,6 +38,7 @@ private slots:
     void onMeasurementTimedOut();
     void onOpenInterfaceTriggered(QAction* action);
     void onPwmFrequencySet(double frequency);
+    void onPwmPhaseSet(int phase);
 
     void on_measureButton_clicked();
 
@@ -77,6 +78,12 @@ private:
 
     MeasurementController* measurementController;
     QThread* measurementControllerThread;
+
+    bool settingPwmFrequency = false, pendingPwmFrequency = false;
+    double targetPwmFrequency;
+
+    bool settingPwmPhase = false, pendingPwmPhase = false;
+    int targetPwmPhase;
 };
 
 #endif // MAINWINDOW_H
