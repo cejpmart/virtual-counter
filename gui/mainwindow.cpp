@@ -265,7 +265,7 @@ void MainWindow::setMeasuredValuesFrequencyPeriodIntervalPhase(double channelAFr
     channelAFrequencyText.sprintf("%12.0f", channelAFrequency);
     channelAPeriodText.sprintf("%11.9f", channelAPeriod);
     intervalText.sprintf("%+11.9f", interval);
-    phaseText.sprintf("%+.0f", phase);
+    phaseText.sprintf("%+.1f", phase);
     //puts(channelAPeriodText.toLocal8Bit().data());
 
     unfade(ui->channelAFrequency, channelAFrequencyText);
@@ -301,12 +301,12 @@ void MainWindow::updateMeasurementFrequencyInfo()
 {
     if (ui->measurementMethodCounting->isChecked()) {
         ui->measurementResolutionInfo->setText(QString::number(1.0 / getCountingGateTimeSeconds()) + " Hz");
-        ui->measurementRangeInfo->setText("0 - 48,000,000 Hz");
+        ui->measurementRangeInfo->setText("0 - 24 000 000 Hz");
     }
     else if (ui->measurementMethodReciprocal->isChecked()) {
         // FIXME
         ui->measurementResolutionInfo->setText(QString::number(1000000000.0 / 48000000.0) + " ns");
-        ui->measurementRangeInfo->setText("0 - 175,000 Hz");
+        ui->measurementRangeInfo->setText("0 - 175 000 Hz");
     }
 }
 
@@ -380,6 +380,8 @@ void MainWindow::on_measurementMethodReciprocal_toggled(bool checked)
         ui->frequencyMeasurementRack->show();
         ui->intervalMeasurementRack->hide();
     }
+
+    ui->reciprocalIterationsSelect->setEnabled(checked);
 }
 
 void MainWindow::on_actionQuit_triggered()

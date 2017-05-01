@@ -60,6 +60,7 @@ int instrumentFinishMeasurePulseCount(unsigned int* freq_out) {
 		return 0;
 
 	int count = TIM2->CNT;
+	// FIXME: overflows with 8 MHz
 	*freq_out = count * 1000 / s_measurement_state.gate_time;
 
 	s_instrument_state = STATE_READY;

@@ -101,7 +101,7 @@
          <item row="2" column="1">
           <widget class="QComboBox" name="intervalEdgeSelect">
            <property name="enabled">
-            <bool>true</bool>
+            <bool>false</bool>
            </property>
            <item>
             <property name="text">
@@ -117,6 +117,9 @@
          </item>
          <item row="1" column="1">
           <widget class="QComboBox" name="reciprocalIterationsSelect">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <item>
             <property name="text">
              <string>1 iteration</string>
@@ -318,7 +321,7 @@
              </font>
             </property>
             <property name="text">
-             <string>0 - 48,000,000 Hz</string>
+             <string>0 - 24 000 000 Hz</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
