@@ -12,7 +12,8 @@ int     HWTryEnableHSE(void);
 
 void    HWClearPeriodMeasurement(void);
 void    HWClearPulseCounter(void);
-int     HWGetPeriodPulseWidth(unsigned int* period_out, unsigned int* pulse_width_out);
+// 48.16 frac
+int     HWGetPeriodPulseWidth(uint64_t* period_out, uint64_t* pulse_width_out);
 void 	HWSetGeneratorPWM(uint16_t prescaler, uint16_t period, uint16_t pulse_time, int phase);
 void    HWStartTimeframe(uint32_t duration);        // rename
 int     HWTimeframeElapsed(void);                   // rename

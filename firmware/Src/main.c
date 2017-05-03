@@ -124,7 +124,7 @@ void HWSetFreqMode(int mode, int edge) {
 		//HAL_TIM_IC_Stop_IT(&HTIM_INPUT_COMPARE, INPUT_CAPTURE_FALLING_CHAN);
 	}
 	else if (mode == MODE_RECIPROCAL) {
-		HWInitReciprocalMeasurement();
+	    HWInitPeriodMeasurement();
 	}
 	else if (mode == MODE_TDELTA) {
 		TIM_ClockConfigTypeDef sClockSourceConfig;
@@ -184,7 +184,7 @@ int main(void)
   //HAL_TIM_Base_Start(&HTIM_INPUT_COMPARE);
   //HAL_TIM_Base_Start(&TIMEFRAME_HTIM);
 
-  protocolInit("VirtualInstrument,,1002", SystemCoreClock);
+  protocolInit("VirtualInstrument,,1003", SystemCoreClock);
 
   instrumentInit(SystemCoreClock);
 

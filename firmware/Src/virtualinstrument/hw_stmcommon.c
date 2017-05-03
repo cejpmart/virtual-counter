@@ -3,7 +3,14 @@
 #include "stm32f0xx_hal.h"
 
 // ugh! can we fix this?
-extern TIM_HandleTypeDef INPUT_CAPTURE_HTIM;
+extern DMA_HandleTypeDef    INPUT_CAPTURE_HDMA;
+extern TIM_HandleTypeDef    INPUT_CAPTURE_HTIM;
+
+static volatile uint32_t dmabuf[202];
+static volatile size_t dma_num_samples;
+
+/*static void XferCpltCallback(struct __DMA_HandleTypeDef* hdma) {
+}*/
 
 void HWClearPeriodMeasurement(void) {
     //meas_rec_valid = 0;
@@ -15,20 +22,31 @@ void HWClearPulseCounter(void) {
     INPUT_CAPTURE_TIMER->CR1 |= TIM_CR1_CEN_Msk;
 }
 
-int HWGetPeriodPulseWidth(unsigned int* period_out, unsigned int* pulse_width_out) {
-    if (!(INPUT_CAPTURE_TIMER->SR & INPUT_CAPTURE_RISING_CCIF))
+int HWGetPeriodPulseWidth(uint64_t* period_out, uint64_t* pulse_width_out) {
+    if (!(__HAL_DMA_GET_FLAG(&INPUT_CAPTURE_HDMA, INPUT_CAPTURE_DMA_TC_FLAG)))
         return 0;
 
-    // +2 is correct, but why and how?
-    __disable_irq();
-    *period_out = INPUT_CAPTURE_RISING_CCR + 2;
-    *pulse_width_out = INPUT_CAPTURE_FALLING_CCR + 2;
-    __enable_irq();
+    uint64_t sum_period = 0;
+    uint64_t sum_pulse_width = 0;
+
+    for (size_t i = 1; i < dma_num_samples + 1; i++) {
+        // +2 is correct, but why and how?
+        //static const uint32_t mask = 0xffffffff;
+
+        uint32_t period = dmabuf[2 * i] + 2;//(dmabuf[2 * i] - dmabuf[2 * (i - 1)]) & mask;
+        uint32_t pulse_width = dmabuf[2 * i + 1] + 2;//(dmabuf[2 * i + 1] - dmabuf[2 * (i - 1)]) & mask;
+
+        sum_period += period;
+        sum_pulse_width += pulse_width;
+    }
+
+    *period_out = (sum_period << 16) / dma_num_samples;
+    *pulse_width_out = (sum_pulse_width << 16) / dma_num_samples;
 
     return 1;
 }
 
-void HWInitReciprocalMeasurement(void) {
+void HWInitPeriodMeasurement(size_t num_samples) {
     TIM_ClockConfigTypeDef sClockSourceConfig;
     TIM_IC_InitTypeDef sConfigIC;
 
@@ -36,7 +54,7 @@ void HWInitReciprocalMeasurement(void) {
     sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
     HAL_TIM_ConfigClockSource(&INPUT_CAPTURE_HTIM, &sClockSourceConfig);
 
-    // slave mode reset
+    // slave mode reset - this way, missed pulses don't matter
     TIM_SlaveConfigTypeDef slaveConfig;
     slaveConfig.SlaveMode = TIM_SLAVEMODE_RESET;
     slaveConfig.InputTrigger = TIM_TS_TI2FP2;
@@ -58,6 +76,21 @@ void HWInitReciprocalMeasurement(void) {
     // start!
     HAL_TIM_IC_Start(&INPUT_CAPTURE_HTIM, INPUT_CAPTURE_RISING_CHAN);
     HAL_TIM_IC_Start(&INPUT_CAPTURE_HTIM, INPUT_CAPTURE_FALLING_CHAN);
+
+    // configure the DMA Burst Mode
+    INPUT_CAPTURE_TIMER->DCR = (TIM_DMABASE_CCR2 | TIM_DMABURSTLENGTH_2TRANSFERS);
+    __HAL_TIM_ENABLE_DMA(&INPUT_CAPTURE_HTIM, TIM_DMA_CC2);
+
+    //INPUT_CAPTURE_HDMA.XferCpltCallback = XferCpltCallback;
+    //__HAL_DMA_ENABLE_IT(&INPUT_CAPTURE_HDMA, DMA_IT_TC);
+
+    assert_param((1 + num_samples) * 8 <= sizeof(dmabuf));
+    dma_num_samples = num_samples;
+
+    HAL_DMA_Abort(&INPUT_CAPTURE_HDMA);
+    __HAL_DMA_CLEAR_FLAG(&INPUT_CAPTURE_HDMA, INPUT_CAPTURE_DMA_TC_FLAG);
+
+    HAL_DMA_Start(&INPUT_CAPTURE_HDMA, (uint32_t) &INPUT_CAPTURE_TIMER->DMAR, (uint32_t) dmabuf, (1 + num_samples) * 2);
 }
 
 void HWSetGeneratorPWM(uint16_t prescaler, uint16_t period, uint16_t pulse_time, int phase) {

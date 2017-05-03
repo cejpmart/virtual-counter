@@ -75,7 +75,7 @@ void protocolBinaryHandle(const uint8_t* data, size_t length) {
 
         s_rx_have -= used;
 
-        uint8_t reply_buffer[16];
+        uint8_t reply_buffer[32];
         struct packet* reply_packet = (struct packet*) reply_buffer;
 
         switch (packet->tag) {
@@ -152,14 +152,14 @@ void protocolBinaryHandle(const uint8_t* data, size_t length) {
             }
 
             case MEASUREMENT_PERIOD: {
-                uint32_t period, pulse_width;
+                uint64_t period, pulse_width;
 
                 if ((rc = instrumentFinishMeasurePeriod(&period, &pulse_width)) > 0) {
                     reply_packet->tag = INFO_MEASUREMENT_DATA;
-                    reply_packet->length = 9;
+                    reply_packet->length = 1 + 8 + 8;
                     reply_packet->data[0] = rc;
-                    memcpy(&reply_packet->data[1], &period, 4);
-                    memcpy(&reply_packet->data[5], &pulse_width, 4);
+                    memcpy(&reply_packet->data[1], &period, 8);
+                    memcpy(&reply_packet->data[9], &pulse_width, 8);
                 }
                 break;
             }

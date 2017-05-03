@@ -68,7 +68,7 @@ int instrumentStartMeasurePulseCount(int gate_time);
 int instrumentFinishMeasurePulseCount(unsigned int* count_out);
 
 int instrumentStartMeasurePeriod(unsigned int iterations);
-int instrumentFinishMeasurePeriod(unsigned int* period_out, unsigned int* pulse_width_out);
+int instrumentFinishMeasurePeriod(uint64_t* period_out, uint64_t* pulse_width_out);
 
 int instrumentStartMeasurePhaseShift();
 int instrumentFinishMeasurePhaseShift(unsigned int* period_out, int* interval_out);

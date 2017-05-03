@@ -8,7 +8,7 @@ static const double MIN_REASONABLE_FREQUENCY = 0.000001;
 static const double MIN_REASONABLE_PERIOD = 1.0 / F_CPU;
 static const double USB_CLOCK_TOLERANCE = 0.0005;       // assuming USB 2.0
 
-constexpr const char VERSION[] = "1002";
+constexpr const char VERSION[] = "1003";
 
 MeasurementController::MeasurementController(MainWindow* view) : view(view)
 {
@@ -184,7 +184,7 @@ void MeasurementController::doMeasurementReciprocal(unsigned int iterations)
     if (!doMeasurement(MEASUREMENT_PERIOD, &request, sizeof(request), &result, sizeof(result)))
         return;
 
-    const double period = result.period * (1.0 / F_CPU);
+    const double period = result.period * (1.0 / 65536 / F_CPU);
     const double frequency = (period > MIN_REASONABLE_PERIOD) ? (1.0 / period) : 0.0;
 
     const double relativeError = USB_CLOCK_TOLERANCE;
@@ -240,6 +240,8 @@ void MeasurementController::openInterface(QString path)
         this->session.reset();
         return;
     }
+
+    this->session->sendPacket(CMD_RESET_INSTRUMENT, nullptr, 0);
 
     emit instrumentConnected();
     emit instrumentInfoSet("Connected " + path);

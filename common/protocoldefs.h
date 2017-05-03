@@ -45,8 +45,8 @@ typedef struct {
 } __attribute__((packed)) measurement_period_request_t;
 
 typedef struct {
-    uint32_t period;
-    uint32_t pulse_width;
+    uint64_t period;
+    uint64_t pulse_width;
 } __attribute__((packed)) measurement_period_result_t;
 
 typedef struct {
