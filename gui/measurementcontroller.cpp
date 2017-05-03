@@ -138,7 +138,7 @@ void MeasurementController::doMeasurementCounting(double gateTime)
     if (!doMeasurement(MEASUREMENT_PULSE_COUNT, &request, sizeof(request), &result, sizeof(result)))
         return;
 
-    auto frequency = result.frequency;
+    auto frequency = result.count / gateTime;
 
     const double period = (frequency > MIN_REASONABLE_FREQUENCY) ? (1.0 / frequency) : INFINITY;
 
@@ -229,6 +229,9 @@ void MeasurementController::openInterface(QString path)
     catch (const std::exception& ex) {
         emit instrumentInfoSet("Failed to open " + path);
         session.reset();
+
+        // TODO: set state
+        return;
     }
 
     this->session = std::move(session);

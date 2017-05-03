@@ -83,6 +83,10 @@ void protocolBinaryHandle(const uint8_t* data, size_t length) {
             putstr(s_device_name);
             break;
 
+        case CMD_RESET_INSTRUMENT:
+            instrumentReset();
+            break;
+
         case CMD_START_MEASUREMENT: {
             if (packet->length < 1)
                 break;
@@ -136,13 +140,13 @@ void protocolBinaryHandle(const uint8_t* data, size_t length) {
 
             switch (which) {
             case MEASUREMENT_PULSE_COUNT: {
-                uint32_t freq;
+                uint32_t count;
 
-                if ((rc = instrumentFinishMeasurePulseCount(&freq)) > 0) {
+                if ((rc = instrumentFinishMeasurePulseCount(&count)) > 0) {
                     reply_packet->tag = INFO_MEASUREMENT_DATA;
                     reply_packet->length = 5;
                     reply_packet->data[0] = rc;
-                    memcpy(&reply_packet->data[1], &freq, 4);
+                    memcpy(&reply_packet->data[1], &count, 4);
                 }
                 break;
             }

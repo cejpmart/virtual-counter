@@ -60,11 +60,12 @@ extern volatile uint32_t meas_tdelta_valid;
 
 // Instrument lifecycle
 void instrumentInit(uint32_t cpu_units_per_second);
+void instrumentReset(void);
 void instrumentProcess(void);
 
 // Measurement Start
 int instrumentStartMeasurePulseCount(int gate_time);
-int instrumentFinishMeasurePulseCount(unsigned int* freq_out);
+int instrumentFinishMeasurePulseCount(unsigned int* count_out);
 
 int instrumentStartMeasurePeriod(unsigned int iterations);
 int instrumentFinishMeasurePeriod(unsigned int* period_out, unsigned int* pulse_width_out);

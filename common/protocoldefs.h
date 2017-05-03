@@ -11,6 +11,7 @@ enum {
 
     CMD_SET_PWM_FREQUENCY =     0x80,
     CMD_SET_PWM_PHASE =         0x81,
+    CMD_RESET_INSTRUMENT =      0xA0
 };
 
 enum {
@@ -36,7 +37,7 @@ typedef struct {
 } __attribute__((packed)) measurement_pulse_count_request_t;
 
 typedef struct {
-    uint32_t frequency;
+    uint32_t count;
 } __attribute__((packed)) measurement_pulse_count_result_t;
 
 typedef struct {

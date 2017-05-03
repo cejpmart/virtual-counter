@@ -19,13 +19,16 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
         break;
     case QtFatalMsg:
         fprintf(stderr, "\x1b[31;1mFatal:\x1b[0;m");
-        abort();
+        break;
     }
     fprintf(stderr, " %s", localMsg.constData());
     if (context.file)
         fprintf(stderr, " (%s:%u, %s)", context.file, context.line, context.function);
 
     fprintf(stderr, "\n");
+
+    if (type == QtFatalMsg)
+        abort();
 }
 
 

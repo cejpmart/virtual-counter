@@ -22,6 +22,10 @@ void instrumentInit(uint32_t cpu_units_per_second) {
 	s_instrument_state = STATE_READY;
 }
 
+void instrumentReset(void) {
+    s_instrument_state = STATE_READY;
+}
+
 void instrumentProcess(void) {
     if (s_instrument_state == STATE_MEASURING) {
         if (s_measurement_state.mode == MEASUREMENT_PERIOD && s_measurement_state.iterations_remaining) {
@@ -52,7 +56,7 @@ int instrumentStartMeasurePulseCount(int gate_time) {
 	return 1;
 }
 
-int instrumentFinishMeasurePulseCount(unsigned int* freq_out) {
+int instrumentFinishMeasurePulseCount(unsigned int* count_out) {
 	if (s_instrument_state != STATE_MEASURING || s_measurement_state.mode != MEASUREMENT_PULSE_COUNT)
 		return -1;
 
@@ -60,8 +64,7 @@ int instrumentFinishMeasurePulseCount(unsigned int* freq_out) {
 		return 0;
 
 	int count = TIM2->CNT;
-	// FIXME: overflows with 8 MHz
-	*freq_out = count * 1000 / s_measurement_state.gate_time;
+	*count_out = count;
 
 	s_instrument_state = STATE_READY;
 	return 1;

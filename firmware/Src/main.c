@@ -85,8 +85,6 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 /* USER CODE BEGIN 0 */
 #define COUNTER_HTIM htim2
 
-#define INPUT_CAPTURE_HTIM htim2
-
 // For t_AB mode
 #define INPUT_CAPTURE_CH1_CHAN TIM_CHANNEL_4
 #define INPUT_CAPTURE_CH2_CHAN TIM_CHANNEL_2
@@ -124,26 +122,7 @@ void HWSetFreqMode(int mode, int edge) {
 		//HAL_TIM_IC_Stop_IT(&HTIM_INPUT_COMPARE, INPUT_CAPTURE_FALLING_CHAN);
 	}
 	else if (mode == MODE_RECIPROCAL) {
-		TIM_ClockConfigTypeDef sClockSourceConfig;
-		TIM_IC_InitTypeDef sConfigIC;
-
-		// clock
-		sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-		HAL_TIM_ConfigClockSource(&INPUT_CAPTURE_HTIM, &sClockSourceConfig);
-
-		// input capture
-		sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_FALLING;
-		sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
-		sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
-		sConfigIC.ICFilter = 0;
-		HAL_TIM_IC_ConfigChannel(&htim2, &sConfigIC, TIM_CHANNEL_2);
-
-		sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
-		HAL_TIM_IC_ConfigChannel(&htim2, &sConfigIC, TIM_CHANNEL_4);
-
-		// start!
-		HAL_TIM_IC_Start(&INPUT_CAPTURE_HTIM, INPUT_CAPTURE_RISING_CHAN);
-		HAL_TIM_IC_Start_IT(&INPUT_CAPTURE_HTIM, INPUT_CAPTURE_FALLING_CHAN);
+		HWInitReciprocalMeasurement();
 	}
 	else if (mode == MODE_TDELTA) {
 		TIM_ClockConfigTypeDef sClockSourceConfig;

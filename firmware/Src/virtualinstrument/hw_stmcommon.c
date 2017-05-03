@@ -2,39 +2,12 @@
 
 #include "stm32f0xx_hal.h"
 
-#define INPUT_CAPTURE_TIMER_MASK 0xffffffff
-
-static uint32_t lastRiseTime;
-
-static volatile uint32_t meas_rec_period, meas_rec_pulseWidth;
-static volatile uint32_t meas_rec_valid;
-
-// TODO
-void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
-    if (htim->Instance == INPUT_CAPTURE_TIMER) {
-        uint32_t riseTime = INPUT_CAPTURE_RISING_CCR;
-        uint32_t fallTime = INPUT_CAPTURE_FALLING_CCR;
-
-        //meas_riseTime = riseTime;
-        //meas_fallTime = fallTime;
-        meas_rec_pulseWidth = ((fallTime - riseTime) & INPUT_CAPTURE_TIMER_MASK);
-        meas_rec_period = ((riseTime - lastRiseTime) & INPUT_CAPTURE_TIMER_MASK);
-        meas_rec_valid = (lastRiseTime != 0);
-        lastRiseTime = riseTime;
-
-        //meas_tdelta_edge1 = INPUT_CAPTURE_CH1_CCR;
-        //meas_tdelta_edge2 = INPUT_CAPTURE_CH2_CCR;
-        //meas_tdelta_period1 = (meas_tdelta_edge1 - lastEdge1);
-        //meas_tdelta_period2 = (meas_tdelta_edge2 - lastEdge2);
-        //meas_tdelta_valid = 1;
-        //lastEdge1 = meas_tdelta_edge1;
-        //lastEdge2 = meas_tdelta_edge2;
-    }
-}
+// ugh! can we fix this?
+extern TIM_HandleTypeDef INPUT_CAPTURE_HTIM;
 
 void HWClearPeriodMeasurement(void) {
-    meas_rec_valid = 0;
-    lastRiseTime = 0;
+    //meas_rec_valid = 0;
+    //lastRiseTime = 0;
 }
 
 void HWClearPulseCounter(void) {
@@ -43,15 +16,48 @@ void HWClearPulseCounter(void) {
 }
 
 int HWGetPeriodPulseWidth(unsigned int* period_out, unsigned int* pulse_width_out) {
-    if (!meas_rec_valid)
+    if (!(INPUT_CAPTURE_TIMER->SR & INPUT_CAPTURE_RISING_CCIF))
         return 0;
 
+    // +2 is correct, but why and how?
     __disable_irq();
-    *period_out = meas_rec_period;
-    *pulse_width_out = meas_rec_pulseWidth;
+    *period_out = INPUT_CAPTURE_RISING_CCR + 2;
+    *pulse_width_out = INPUT_CAPTURE_FALLING_CCR + 2;
     __enable_irq();
 
     return 1;
+}
+
+void HWInitReciprocalMeasurement(void) {
+    TIM_ClockConfigTypeDef sClockSourceConfig;
+    TIM_IC_InitTypeDef sConfigIC;
+
+    // clock
+    sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+    HAL_TIM_ConfigClockSource(&INPUT_CAPTURE_HTIM, &sClockSourceConfig);
+
+    // slave mode reset
+    TIM_SlaveConfigTypeDef slaveConfig;
+    slaveConfig.SlaveMode = TIM_SLAVEMODE_RESET;
+    slaveConfig.InputTrigger = TIM_TS_TI2FP2;
+    slaveConfig.TriggerFilter = 0;
+    slaveConfig.TriggerPolarity = TIM_TRIGGERPOLARITY_RISING;
+    slaveConfig.TriggerPrescaler = TIM_TRIGGERPRESCALER_DIV1;
+    HAL_TIM_SlaveConfigSynchronization(&INPUT_CAPTURE_HTIM, &slaveConfig);
+
+    // input capture
+    sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_FALLING;
+    sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
+    sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
+    sConfigIC.ICFilter = 0;
+    HAL_TIM_IC_ConfigChannel(&INPUT_CAPTURE_HTIM, &sConfigIC, INPUT_CAPTURE_FALLING_CHAN);
+
+    sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
+    HAL_TIM_IC_ConfigChannel(&INPUT_CAPTURE_HTIM, &sConfigIC, INPUT_CAPTURE_RISING_CHAN);
+
+    // start!
+    HAL_TIM_IC_Start(&INPUT_CAPTURE_HTIM, INPUT_CAPTURE_RISING_CHAN);
+    HAL_TIM_IC_Start(&INPUT_CAPTURE_HTIM, INPUT_CAPTURE_FALLING_CHAN);
 }
 
 void HWSetGeneratorPWM(uint16_t prescaler, uint16_t period, uint16_t pulse_time, int phase) {
