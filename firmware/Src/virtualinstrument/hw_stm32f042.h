@@ -3,9 +3,9 @@
 
 #include <stm32f042x6.h>
 
-#define PWM1_TIM        TIM3
-#define PWM1_HTIM       htim3
-#define PWM1_CCR        (TIM3->CCR1)
+#define PWM1_TIM        TIM16
+#define PWM1_HTIM       htim16
+#define PWM1_CCR        (TIM16->CCR1)
 #define PWM1_CHANNEL    TIM_CHANNEL_1
 
 #define PWM2_TIM        TIM14
@@ -18,8 +18,8 @@
 
 #define TIMEFRAME_PRESCALER 1
 
-#define INPUT_CAPTURE_TIMER TIM2
-#define INPUT_CAPTURE_HTIM  htim2
+#define INPUT_CAPTURE_TIMER         TIM2
+#define INPUT_CAPTURE_HTIM          htim2
 
 #define INPUT_CAPTURE_HDMA          hdma_tim2_ch2
 #define INPUT_CAPTURE_DMA_TC_FLAG   DMA_FLAG_TC3
@@ -30,7 +30,7 @@
 #define INPUT_CAPTURE_RISING_CCR    (TIM2->CCR2)
 #define INPUT_CAPTURE_RISING_CCIF   TIM_SR_CC2IF
 
-#define INPUT_CAPTURE_FALLING_CHAN TIM_CHANNEL_3
-#define INPUT_CAPTURE_FALLING_CCR (TIM2->CCR3)
+#define INPUT_CAPTURE_FALLING_CHAN  TIM_CHANNEL_3
+#define INPUT_CAPTURE_FALLING_CCR   (TIM2->CCR3)
 
 #endif /* VIRTUALINSTRUMENT_HW_STM32F042_H_ */
