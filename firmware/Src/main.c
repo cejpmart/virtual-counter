@@ -123,9 +123,6 @@ void HWSetFreqMode(int mode, int edge) {
 
 		//HAL_TIM_IC_Stop_IT(&HTIM_INPUT_COMPARE, INPUT_CAPTURE_FALLING_CHAN);
 	}
-	else if (mode == MODE_RECIPROCAL) {
-	    HWInitPeriodMeasurement();
-	}
 	else if (mode == MODE_TDELTA) {
 		TIM_ClockConfigTypeDef sClockSourceConfig;
 		TIM_IC_InitTypeDef sConfigIC;

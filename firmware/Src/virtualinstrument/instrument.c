@@ -58,7 +58,9 @@ int instrumentStartMeasurePeriod(unsigned int iterations) {
     if (s_instrument_state != STATE_READY)
         return -1;
 
-    HWInitPeriodMeasurement(iterations);
+    if (HWInitPeriodMeasurement(iterations) <= 0)
+        return -1;
+
     HWClearPeriodMeasurement();
 
     s_instrument_state = STATE_MEASURING;
@@ -108,4 +110,12 @@ int instrumentFinishMeasurePhaseShift(unsigned int* period_out, int* interval_ou
 
     s_instrument_state = STATE_READY;
     return 1;
+}
+
+int instrumentStartMeasureFreqRatio(unsigned int iterations) {
+    return -1;
+}
+
+int instrumentFinishMeasureFreqRatio(unsigned int* ratio_out) {
+    return -1;
 }

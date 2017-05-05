@@ -6,12 +6,12 @@
 extern DMA_HandleTypeDef    INPUT_CAPTURE_HDMA;
 extern TIM_HandleTypeDef    INPUT_CAPTURE_HTIM;
 
-static volatile uint32_t dmabuf[202];
-static volatile size_t dma_num_samples;
+static volatile uint32_t dmabuf[252];
 
-/*static void XferCpltCallback(struct __DMA_HandleTypeDef* hdma) {
-}*/
+// If hardware pre-scaler is used, dma_num_samples < measurement_num_samples
+static volatile size_t dma_num_samples, measurement_num_samples;
 
+//#define AUTO_RESET_IC_CNT
 void HWClearPeriodMeasurement(void) {
     //meas_rec_valid = 0;
     //lastRiseTime = 0;

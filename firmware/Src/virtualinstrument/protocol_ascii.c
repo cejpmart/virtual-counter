@@ -1,6 +1,8 @@
 #include "protocol.h"
 #include "instrument.h"
 
+#include "../../common/protocoldefs.h"
+
 #include <stdio.h>
 #include <string.h>
 
@@ -42,7 +44,7 @@ static void doOneMeasurement() {
 
 		s_burstTotal += freq;
 	}
-	else if (s_mode == MODE_RECIPROCAL) {
+	else if (s_mode == MEASUREMENT_PERIOD) {
 	    if (instrumentStartMeasurePeriod(1) < 0) {
 	        printError();
 	        return;
@@ -106,7 +108,7 @@ void protocolAsciiHandle(const uint8_t* data, size_t length) {
 			break;
 
 		case 'q': s_mode = MODE_COUNTER; break;
-		case 'w': s_mode = MODE_RECIPROCAL; break;
+		case 'w': s_mode = MEASUREMENT_PERIOD; break;
 		case 'e': s_mode = MODE_TDELTA; break;
 
 		case 'a': s_gate_time = 100; break;
@@ -125,7 +127,7 @@ void protocolAsciiHandle(const uint8_t* data, size_t length) {
 			for (int i = 0; i < s_burstCount; i++)
 				doOneMeasurement();
 
-			if (s_mode == MODE_COUNTER || s_mode == MODE_RECIPROCAL) {
+			if (s_mode == MODE_COUNTER || s_mode == MEASUREMENT_PERIOD) {
 				sprintf(outbuf, "\r\nAverage: %u Hz\r\n", (unsigned int)(s_burstTotal / s_burstCount));
 				putstr(outbuf);
 			}
