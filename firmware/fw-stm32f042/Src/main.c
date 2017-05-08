@@ -173,9 +173,6 @@ int main(void)
 
   instrumentInit(SystemCoreClock);
 
-  // FIXME: how to avoid this sin
-  //HWStartTimeframe(100);	// unclog the pipes at start
-
   //HWSetGeneratorPWM(1, 48, 24);		// 1 MHz
   //HWSetGeneratorPWM(1, 480, 240);		// 100 kHz
   //HWSetGeneratorPWM(1, 4800, 2400);		// 10 kHz

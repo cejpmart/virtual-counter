@@ -31,9 +31,11 @@ static void StartGate(uint32_t duration) {
     // configure parameters
     TIMEFRAME_TIM->ARR = 65535;
     TIMEFRAME_TIM->PSC = SystemCoreClock / 1000 - 1;
-    TIMEFRAME_TIM->CCR1 = duration / TIMEFRAME_PRESCALER;//-1;
+    TIMEFRAME_TIM->CCR1 = duration / TIMEFRAME_PRESCALER;
     TIMEFRAME_TIM->CCMR1 = (0b110 << TIM_CCMR1_OC1M_Pos);
-    TIMEFRAME_TIM->CNT = 0;
+
+    // let the counter wrap-around immediately to force PWM reset
+    TIMEFRAME_TIM->CNT = TIMEFRAME_TIM->ARR - 1;
 
     // generate Update event
     TIMEFRAME_TIM->EGR = TIM_EGR_UG_Msk;
@@ -42,8 +44,13 @@ static void StartGate(uint32_t duration) {
     TIMEFRAME_TIM->CR1 |= TIM_CR1_CEN;
 }
 
+static void StopGate() {
+    TIMEFRAME_TIM->CR1 &= ~TIM_CR1_CEN;
+}
+
 int HWStartPulseCountMeasurement(uint32_t gate_time_ms) {
     HAL_TIM_Base_Stop(&COUNTER_HTIM);
+    StopGate();
 
     COUNTER_TIM->CNT = 0;
 
