@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>VirtualInstrument</name>
+	<name>fw-stm32f042</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -28,7 +28,68 @@
 		<link>
 			<name>common</name>
 			<type>2</type>
-			<locationURI>PARENT-1-PROJECT_LOC/common</locationURI>
+			<locationURI>copy_PARENT/common</locationURI>
+		</link>
+		<link>
+			<name>src</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>stm32-shared</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>src/instrument.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/virtual-instrument/src/instrument.c</locationURI>
+		</link>
+		<link>
+			<name>src/protocol.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/virtual-instrument/src/protocol.c</locationURI>
+		</link>
+		<link>
+			<name>src/protocol_ascii.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/virtual-instrument/src/protocol_ascii.c</locationURI>
+		</link>
+		<link>
+			<name>src/protocol_ascii.h</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/virtual-instrument/src/protocol_ascii.h</locationURI>
+		</link>
+		<link>
+			<name>src/protocol_binary.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/virtual-instrument/src/protocol_binary.c</locationURI>
+		</link>
+		<link>
+			<name>src/protocol_binary.h</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/virtual-instrument/src/protocol_binary.h</locationURI>
+		</link>
+		<link>
+			<name>src/protocol_scpi.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/virtual-instrument/src/protocol_scpi.c</locationURI>
+		</link>
+		<link>
+			<name>src/protocol_scpi.h</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/virtual-instrument/src/protocol_scpi.h</locationURI>
+		</link>
+		<link>
+			<name>stm32-shared/hw_stmcommon.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/stm32-shared/hw_stmcommon.c</locationURI>
 		</link>
 	</linkedResources>
+	<variableList>
+		<variable>
+			<name>copy_PARENT</name>
+			<value>$%7BPARENT-2-PROJECT_LOC%7D/dev/virtual-counter/firmware</value>
+		</variable>
+	</variableList>
 </projectDescription>
