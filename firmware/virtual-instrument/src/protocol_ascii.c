@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 
-static int s_mode = MODE_COUNTER;
+static int s_mode = MEASUREMENT_PULSE_COUNT;
 static int s_running = 0;
 
 static int s_gate_time = 1000;
@@ -30,7 +30,7 @@ static void printError(void) {
 }
 
 static void doOneMeasurement() {
-	if (s_mode == MODE_COUNTER) {
+	if (s_mode == MEASUREMENT_PULSE_COUNT) {
 	    if (instrumentStartMeasurePulseCount(s_gate_time) < 0) {
             printError();
             return;
@@ -66,7 +66,7 @@ static void doOneMeasurement() {
 
         s_burstTotal += freq;
 	}
-	else if (s_mode == MODE_TDELTA) {
+	else if (s_mode == MEASUREMENT_PHASE) {
 		if (instrumentStartMeasurePhaseShift() < 0) {
             printError();
             return;
@@ -107,9 +107,9 @@ void protocolAsciiHandle(const uint8_t* data, size_t length) {
 			putstr("[z] Single measurement\t[x] Continous measurement\t[c] Burst (10) measurement\r\n\r\n");
 			break;
 
-		case 'q': s_mode = MODE_COUNTER; break;
+		case 'q': s_mode = MEASUREMENT_PULSE_COUNT; break;
 		case 'w': s_mode = MEASUREMENT_PERIOD; break;
-		case 'e': s_mode = MODE_TDELTA; break;
+		case 'e': s_mode = MEASUREMENT_PHASE; break;
 
 		case 'a': s_gate_time = 100; break;
 		case 's': s_gate_time = 1000; break;
@@ -127,7 +127,7 @@ void protocolAsciiHandle(const uint8_t* data, size_t length) {
 			for (int i = 0; i < s_burstCount; i++)
 				doOneMeasurement();
 
-			if (s_mode == MODE_COUNTER || s_mode == MEASUREMENT_PERIOD) {
+			if (s_mode == MEASUREMENT_PULSE_COUNT || s_mode == MEASUREMENT_PERIOD) {
 				sprintf(outbuf, "\r\nAverage: %u Hz\r\n", (unsigned int)(s_burstTotal / s_burstCount));
 				putstr(outbuf);
 			}

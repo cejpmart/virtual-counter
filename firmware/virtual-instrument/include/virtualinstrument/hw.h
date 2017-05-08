@@ -4,17 +4,19 @@
 #include <stddef.h>
 #include <stdint.h>
 
-// Counting measurement
-int     HWGetCounterValue(uint32_t* value_out);
+// Pulse Count measurement
+int     HWStartPulseCountMeasurement(uint32_t gate_time_ms);
+int     HWPollPulseCountMeasurement(uint32_t* value_out);
+
+// Interval measurement
+int     HWStartIntervalMeasurement(void);
+
 
 void    HWClearPeriodMeasurement(void);
-void    HWClearPulseCounter(void);
 int     HWInitPeriodMeasurement(size_t num_samples);
 // 48.16 frac
 int     HWGetPeriodPulseWidth(uint64_t* period_out, uint64_t* pulse_width_out);
 void 	HWSetGeneratorPWM(uint16_t prescaler, uint16_t period, uint16_t pulse_time, int phase);
-void    HWStartTimeframe(uint32_t duration);        // rename
-
 
 void    utilDelayMs(uint32_t milliseconds);
 

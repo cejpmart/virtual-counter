@@ -28,23 +28,20 @@ int instrumentStartMeasurePulseCount(int gate_time) {
     if (s_instrument_state != STATE_READY)
         return -1;
 
-    HWSetFreqMode(MODE_COUNTER, 0);
+    if (HWStartPulseCountMeasurement(gate_time) <= 0)
+        return -1;
 
+    s_instrument_state = STATE_MEASURING;
+    s_measurement_state.mode = MEASUREMENT_PULSE_COUNT;
     s_measurement_state.gate_time = gate_time;
-
-	HWClearPulseCounter();
-	HWStartTimeframe(gate_time);
-
-	s_instrument_state = STATE_MEASURING;
-	s_measurement_state.mode = MEASUREMENT_PULSE_COUNT;
 	return 1;
 }
 
-int instrumentFinishMeasurePulseCount(unsigned int* count_out) {
+int instrumentFinishMeasurePulseCount(uint32_t* count_out) {
 	if (s_instrument_state != STATE_MEASURING || s_measurement_state.mode != MEASUREMENT_PULSE_COUNT)
 		return -1;
 
-	if (!HWGetCounterValue(count_out))
+	if (!HWPollPulseCountMeasurement(count_out))
 		return 0;
 
 	s_instrument_state = STATE_READY;
@@ -69,8 +66,8 @@ int instrumentStartMeasurePhaseShift() {
     if (s_instrument_state != STATE_READY)
         return -1;
 
-    HWSetFreqMode(MODE_TDELTA, 0);
-    HWClearPeriodMeasurement();
+    if (HWStartIntervalMeasurement() <= 0)
+        return -1;
 
     s_instrument_state = STATE_MEASURING;
     s_measurement_state.mode = MEASUREMENT_PHASE;

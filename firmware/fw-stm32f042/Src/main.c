@@ -89,8 +89,6 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 /* USER CODE BEGIN 0 */
 
 // For t_AB mode
-#define INPUT_CAPTURE_CH1_CHAN TIM_CHANNEL_4
-#define INPUT_CAPTURE_CH2_CHAN TIM_CHANNEL_2
 #define INPUT_CAPTURE_CH1_CCR (TIM2->CCR4)
 #define INPUT_CAPTURE_CH2_CCR (TIM2->CCR2)
 
@@ -98,62 +96,11 @@ void HardFault_Handler() {
 	TIM1->CNT = 0;
 }
 
-//mode = MODE_COUNTER, edge = XXX
-//mode = MODE_RECIPROCAL, edge = EDGE_RISING
-//mode = MODE_RECIPROCAL, edge = EDGE_FALLING
-// 'edge' argument is NOT IMPLEMENTED
-void HWSetFreqMode(int mode, int edge) {
-	HAL_TIM_Base_Stop(&COUNTER_HTIM);
-	HAL_TIM_Base_Stop(&INPUT_CAPTURE_HTIM);
-	HAL_TIM_IC_Stop_IT(&INPUT_CAPTURE_HTIM, INPUT_CAPTURE_FALLING_CHAN);
-
-	if (mode == MODE_COUNTER) {
-		TIM_ClockConfigTypeDef sClockSourceConfig;
-		sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_ETRMODE2;
-		sClockSourceConfig.ClockPolarity = TIM_CLOCKPOLARITY_NONINVERTED;
-		sClockSourceConfig.ClockPrescaler = TIM_CLOCKPRESCALER_DIV1;
-		sClockSourceConfig.ClockFilter = 0;
-		HAL_TIM_ConfigClockSource(&COUNTER_HTIM, &sClockSourceConfig);
-
-		TIM_SlaveConfigTypeDef sSlaveConfig;
-		sSlaveConfig.SlaveMode = TIM_SLAVEMODE_GATED;
-		sSlaveConfig.InputTrigger = COUNTER_TIM_GATE_IT;
-		HAL_TIM_SlaveConfigSynchronization(&COUNTER_HTIM, &sSlaveConfig);
-
-		HAL_TIM_Base_Start(&COUNTER_HTIM);
-
-		//HAL_TIM_IC_Stop_IT(&HTIM_INPUT_COMPARE, INPUT_CAPTURE_FALLING_CHAN);
-	}
-	else if (mode == MODE_TDELTA) {
-		TIM_ClockConfigTypeDef sClockSourceConfig;
-		TIM_IC_InitTypeDef sConfigIC;
-
-		// clock
-		sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-		HAL_TIM_ConfigClockSource(&INPUT_CAPTURE_HTIM, &sClockSourceConfig);
-
-		// input capture
-		// TODO: polarity
-		sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
-		sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
-		sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
-		sConfigIC.ICFilter = 0;
-		HAL_TIM_IC_ConfigChannel(&INPUT_CAPTURE_HTIM, &sConfigIC, TIM_CHANNEL_2);
-		HAL_TIM_IC_ConfigChannel(&INPUT_CAPTURE_HTIM, &sConfigIC, TIM_CHANNEL_4);
-
-		// start!
-		HAL_TIM_IC_Start(&INPUT_CAPTURE_HTIM, INPUT_CAPTURE_CH1_CHAN);
-		//HAL_TIM_IC_Start(&INPUT_CAPTURE_HTIM, INPUT_CAPTURE_CH2_CHAN);
-		HAL_TIM_IC_Start_IT(&INPUT_CAPTURE_HTIM, INPUT_CAPTURE_CH2_CHAN);
-	}
-}
-
 static void HWInit(void) {
 #ifdef STM32F042F6
   SYSCFG->CFGR1 |= SYSCFG_CFGR1_PA11_PA12_RMP;
 #endif
 }
-
 
 static int HWTryEnableHSE(void) {
   RCC_OscInitTypeDef RCC_OscInitStruct;
