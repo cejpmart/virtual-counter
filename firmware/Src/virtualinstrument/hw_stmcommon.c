@@ -120,6 +120,7 @@ int HWInitPeriodMeasurement(size_t num_samples) {
 }
 
 void HWSetGeneratorPWM(uint16_t prescaler, uint16_t period, uint16_t pulse_time, int phase) {
+    // TODO: we should do our own init of PWM -- or not?
     PWM1_TIM->PSC = prescaler - 1;
     PWM1_TIM->ARR = period - 1;
     PWM1_CCR = pulse_time;
@@ -138,6 +139,7 @@ void HWSetGeneratorPWM(uint16_t prescaler, uint16_t period, uint16_t pulse_time,
 }
 
 void HWStartTimeframe(uint32_t duration) {
+    // TODO: we should do our own initialization of TIMEFRAME_TIM
     // TODO: this should be more flexible and not need TIMEFRAME_PRESCALER,
     // TODO: deriving the necessary values from SystemCoreClock instead
 

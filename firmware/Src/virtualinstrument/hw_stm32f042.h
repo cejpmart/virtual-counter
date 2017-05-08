@@ -3,18 +3,22 @@
 
 #include <stm32f042x6.h>
 
-#define PWM1_TIM        TIM16
-#define PWM1_HTIM       htim16
-#define PWM1_CCR        (TIM16->CCR1)
+#define PWM1_TIM        TIM14
+#define PWM1_HTIM       htim14
+#define PWM1_CCR        (TIM14->CCR1)
 #define PWM1_CHANNEL    TIM_CHANNEL_1
 
-#define PWM2_TIM        TIM14
-#define PWM2_HTIM       htim14
-#define PWM2_CCR        (TIM14->CCR1)
+#define PWM2_TIM        TIM17
+#define PWM2_HTIM       htim17
+#define PWM2_CCR        (TIM17->CCR1)
 #define PWM2_CHANNEL    TIM_CHANNEL_1
 
-#define TIMEFRAME_TIM       TIM1
-#define TIMEFRAME_HTIM      htim1
+#define TIMEFRAME_TIM       TIM3
+#define TIMEFRAME_HTIM      htim3
+
+#define COUNTER_HTIM        htim2
+// ITR2 = TIM3
+#define COUNTER_TIM_GATE_IT TIM_TS_ITR2
 
 #define TIMEFRAME_PRESCALER 1
 
