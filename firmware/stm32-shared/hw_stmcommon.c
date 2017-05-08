@@ -1,6 +1,9 @@
-#include "hw.h"
+#include "virtualinstrument/hw.h"
 
+#ifdef STM32F042x6
+#include "hw_stm32f042.h"
 #include "stm32f0xx_hal.h"
+#endif
 
 // ugh! can we fix this?
 extern DMA_HandleTypeDef    INPUT_CAPTURE_HDMA;
@@ -157,8 +160,13 @@ void HWStartTimeframe(uint32_t duration) {
     TIMEFRAME_TIM->CR1 |= TIM_CR1_CEN;
 }
 
-int HWTimeframeElapsed(void) {
-    return TIMEFRAME_TIM->CNT > TIMEFRAME_TIM->CCR1;
+int HWGetCounterValue(uint32_t* value_out) {
+    if (TIMEFRAME_TIM->CNT > TIMEFRAME_TIM->CCR1) {
+        *value_out = COUNTER_TIM->CNT;
+        return 1;
+    }
+    else
+        return 0;
 }
 
 void utilDelayMs(uint32_t milliseconds) {

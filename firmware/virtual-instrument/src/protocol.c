@@ -1,4 +1,4 @@
-#include "protocol.h"
+#include "virtualinstrument/protocol.h"
 
 #include "protocol_ascii.h"
 #include "protocol_binary.h"

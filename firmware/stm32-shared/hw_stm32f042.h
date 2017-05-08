@@ -16,6 +16,7 @@
 #define TIMEFRAME_TIM       TIM3
 #define TIMEFRAME_HTIM      htim3
 
+#define COUNTER_TIM         TIM2
 #define COUNTER_HTIM        htim2
 // ITR2 = TIM3
 #define COUNTER_TIM_GATE_IT TIM_TS_ITR2

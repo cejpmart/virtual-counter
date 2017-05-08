@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.6)
-project(VirtualInstrument C ASM)
+project(fw_stm32f042 C ASM)
 
 set(TARGET_CPU "" CACHE STRING "Target CPU")
 
@@ -12,7 +12,10 @@ else()
 	message(FATAL_ERROR "Invalid or undefined TARGET_CPU")
 endif()
 
-file(GLOB_RECURSE USER_SOURCES "Src/*.c")
+add_subdirectory(../virtual-instrument ${CMAKE_BINARY_DIR}/build-virtual-instrument)
+
+file(GLOB_RECURSE USER_SOURCES "Src/*.c"
+		"../stm32-shared/*.c")
 file(GLOB_RECURSE HAL_SOURCES "Drivers/STM32F0xx_HAL_Driver/Src/*.c"
         "Middlewares/ST/STM32_USB_Device_Library/*.c")
 
@@ -29,7 +32,9 @@ include_directories(Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc)
 
 add_executable(${PROJECT_NAME}.elf ${USER_SOURCES} ${HAL_SOURCES} ${LINKER_SCRIPT})
 
-target_link_libraries(${PROJECT_NAME}.elf CMSIS)
+target_include_directories(${PROJECT_NAME}.elf PRIVATE ../stm32-shared)
+
+target_link_libraries(${PROJECT_NAME}.elf CMSIS virtual-instrument)
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Map=${CMAKE_BINARY_DIR}/${PROJECT_NAME}.map")
 
@@ -44,7 +49,7 @@ add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
         COMMAND ${CMAKE_SIZE} $<TARGET_FILE:${PROJECT_NAME}.elf>
         )
 
-if (TARGET_CPU STREQUAL "STM32F042F6")
+if (TARGET_CPU STREQUAL "STM32F042K6")
 add_custom_target(flash
 		DEPENDS ${PROJECT_NAME}.elf
 		COMMAND openocd -f ${CMAKE_SOURCE_DIR}/STM32F042_Nucleo32.cfg -c init -c targets -c "reset halt" -c "flash write_image erase ${PROJECT_NAME}.elf 0 elf" -c "verify_image ${PROJECT_NAME}.elf 0 elf" -c "reset run" -c shutdown

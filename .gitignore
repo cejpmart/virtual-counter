@@ -1,5 +1,5 @@
 /build-MeasurementTool-Desktop-Debug/
-/firmware/.idea/
+/firmware/fw-stm32f042/.idea/
 /firmware/.settings/
-/firmware/cmake-build-debug/
+/firmware/fw-stm32f042/cmake-build-debug/
 /gui/MeasurementTool.pro.user

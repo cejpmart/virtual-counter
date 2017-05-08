@@ -1,7 +1,7 @@
-#include "hw.h"
-#include "instrument.h"
+#include "virtualinstrument/hw.h"
+#include "virtualinstrument/instrument.h"
 
-#include "../../common/protocoldefs.h"
+#include "../../../common/protocoldefs.h"
 
 static uint32_t s_cpu_units_per_second;
 
@@ -44,11 +44,8 @@ int instrumentFinishMeasurePulseCount(unsigned int* count_out) {
 	if (s_instrument_state != STATE_MEASURING || s_measurement_state.mode != MEASUREMENT_PULSE_COUNT)
 		return -1;
 
-	if (!HWTimeframeElapsed())
+	if (!HWGetCounterValue(count_out))
 		return 0;
-
-	int count = TIM2->CNT;
-	*count_out = count;
 
 	s_instrument_state = STATE_READY;
 	return 1;

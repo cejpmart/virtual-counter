@@ -1,7 +1,7 @@
-#include "protocol.h"
-#include "instrument.h"
+#include "virtualinstrument/protocol.h"
+#include "virtualinstrument/instrument.h"
 
-#include "../../common/protocoldefs.h"
+#include "../../../common/protocoldefs.h"
 
 #include <string.h>
 
