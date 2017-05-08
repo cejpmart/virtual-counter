@@ -115,7 +115,7 @@ double MainWindow::getCountingGateTimeSeconds()
 
 int MainWindow::getReciprocalIterations()
 {
-    static const int values[] = {1, 10, 100};
+    static const int values[] = {1, 10, 100, 1000};
 
     int index = ui->reciprocalIterationsSelect->currentIndex();
 
