@@ -44,6 +44,9 @@ add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
         COMMAND ${CMAKE_SIZE} $<TARGET_FILE:${PROJECT_NAME}.elf>
         )
 
+if (TARGET_CPU STREQUAL "STM32F042F6")
 add_custom_target(flash
-        COMMAND dfu-util -a 0 -D ${BIN_FILE} --dfuse-address 0x08000000
+		DEPENDS ${PROJECT_NAME}.elf
+		COMMAND openocd -f ${CMAKE_SOURCE_DIR}/STM32F042_Nucleo32.cfg -c init -c targets -c "reset halt" -c "flash write_image erase ${PROJECT_NAME}.elf 0 elf" -c "verify_image ${PROJECT_NAME}.elf 0 elf" -c "reset run" -c shutdown
         COMMENT "Uploading ${BIN_FILE}")
+endif()
