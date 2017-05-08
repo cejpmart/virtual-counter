@@ -1,3 +1,4 @@
+#include "virtualinstrument/hw.h"
 #include "virtualinstrument/protocol.h"
 #include "virtualinstrument/instrument.h"
 

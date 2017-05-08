@@ -81,36 +81,7 @@ int HWPollPulseCountMeasurement(uint32_t *value_out) {
         return 0;
 }
 
-int HWStartIntervalMeasurement(void) {
-    return -1;
-
-    HAL_TIM_Base_Stop(&COUNTER_HTIM);
-    HAL_TIM_Base_Stop(&INPUT_CAPTURE_HTIM);
-    HAL_TIM_IC_Stop_IT(&INPUT_CAPTURE_HTIM, INPUT_CAPTURE_FALLING_CHAN);
-
-    TIM_ClockConfigTypeDef sClockSourceConfig;
-    TIM_IC_InitTypeDef sConfigIC;
-
-    // clock
-    sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-    HAL_TIM_ConfigClockSource(&INPUT_CAPTURE_HTIM, &sClockSourceConfig);
-
-    // input capture
-    // TODO: polarity
-    sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
-    sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
-    sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
-    sConfigIC.ICFilter = 0;
-    HAL_TIM_IC_ConfigChannel(&INPUT_CAPTURE_HTIM, &sConfigIC, TIM_CHANNEL_2);
-    HAL_TIM_IC_ConfigChannel(&INPUT_CAPTURE_HTIM, &sConfigIC, TIM_CHANNEL_4);
-
-    // start!
-    HAL_TIM_IC_Start(&INPUT_CAPTURE_HTIM, INPUT_CAPTURE_CH1_CHAN);
-    //HAL_TIM_IC_Start(&INPUT_CAPTURE_HTIM, INPUT_CAPTURE_CH2_CHAN);
-    HAL_TIM_IC_Start_IT(&INPUT_CAPTURE_HTIM, INPUT_CAPTURE_CH2_CHAN);
-}
-
-int HWInitPeriodMeasurement(size_t num_samples) {
+int HWStartPeriodMeasurement(size_t num_samples) {
     TIM_ClockConfigTypeDef sClockSourceConfig;
     TIM_IC_InitTypeDef sConfigIC;
 
@@ -172,12 +143,7 @@ int HWInitPeriodMeasurement(size_t num_samples) {
     return 1;
 }
 
-void HWClearPeriodMeasurement(void) {
-    //meas_rec_valid = 0;
-    //lastRiseTime = 0;
-}
-
-int HWGetPeriodPulseWidth(uint64_t* period_out, uint64_t* pulse_width_out) {
+int HWPollPeriodMeasurement(uint64_t* period_out, uint64_t* pulse_width_out) {
     if (!(__HAL_DMA_GET_FLAG(&INPUT_CAPTURE_HDMA, INPUT_CAPTURE_DMA_TC_FLAG)))
         return 0;
 
@@ -203,6 +169,35 @@ int HWGetPeriodPulseWidth(uint64_t* period_out, uint64_t* pulse_width_out) {
     *pulse_width_out = (sum_pulse_width << 16) / measurement_num_samples;
 
     return 1;
+}
+
+int HWStartIntervalMeasurement(void) {
+    return -1;
+
+    HAL_TIM_Base_Stop(&COUNTER_HTIM);
+    HAL_TIM_Base_Stop(&INPUT_CAPTURE_HTIM);
+    HAL_TIM_IC_Stop_IT(&INPUT_CAPTURE_HTIM, INPUT_CAPTURE_FALLING_CHAN);
+
+    TIM_ClockConfigTypeDef sClockSourceConfig;
+    TIM_IC_InitTypeDef sConfigIC;
+
+    // clock
+    sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+    HAL_TIM_ConfigClockSource(&INPUT_CAPTURE_HTIM, &sClockSourceConfig);
+
+    // input capture
+    // TODO: polarity
+    sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
+    sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
+    sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
+    sConfigIC.ICFilter = 0;
+    HAL_TIM_IC_ConfigChannel(&INPUT_CAPTURE_HTIM, &sConfigIC, TIM_CHANNEL_2);
+    HAL_TIM_IC_ConfigChannel(&INPUT_CAPTURE_HTIM, &sConfigIC, TIM_CHANNEL_4);
+
+    // start!
+    HAL_TIM_IC_Start(&INPUT_CAPTURE_HTIM, INPUT_CAPTURE_CH1_CHAN);
+    //HAL_TIM_IC_Start(&INPUT_CAPTURE_HTIM, INPUT_CAPTURE_CH2_CHAN);
+    HAL_TIM_IC_Start_IT(&INPUT_CAPTURE_HTIM, INPUT_CAPTURE_CH2_CHAN);
 }
 
 void HWSetGeneratorPWM(uint16_t prescaler, uint16_t period, uint16_t pulse_time, int phase) {

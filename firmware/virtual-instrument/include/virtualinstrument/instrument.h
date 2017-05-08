@@ -26,14 +26,14 @@ void instrumentProcess(void);
 int instrumentStartMeasurePulseCount(int gate_time);
 int instrumentFinishMeasurePulseCount(uint32_t* count_out);
 
-int instrumentStartMeasurePeriod(unsigned int iterations);
+int instrumentStartMeasurePeriod(uint32_t iterations);
 int instrumentFinishMeasurePeriod(uint64_t* period_out, uint64_t* pulse_width_out);
 
 int instrumentStartMeasurePhaseShift();
-int instrumentFinishMeasurePhaseShift(unsigned int* period_out, int* interval_out);
+int instrumentFinishMeasurePhaseShift(uint32_t* period_out, int32_t* interval_out);
 
-int instrumentStartMeasureFreqRatio(unsigned int iterations);
-int instrumentFinishMeasureFreqRatio(unsigned int* ratio_out);
+int instrumentStartMeasureFreqRatio(uint32_t iterations);
+int instrumentFinishMeasureFreqRatio(uint32_t* ratio_out);
 
 // Deprecated, pending clean-up
 int instrumentMeasurePhaseAtoB(int* period_out, int* interval_out);

@@ -48,14 +48,12 @@ int instrumentFinishMeasurePulseCount(uint32_t* count_out) {
 	return 1;
 }
 
-int instrumentStartMeasurePeriod(unsigned int iterations) {
+int instrumentStartMeasurePeriod(uint32_t iterations) {
     if (s_instrument_state != STATE_READY)
         return -1;
 
-    if (HWInitPeriodMeasurement(iterations) <= 0)
+    if (HWStartPeriodMeasurement(iterations) <= 0)
         return -1;
-
-    HWClearPeriodMeasurement();
 
     s_instrument_state = STATE_MEASURING;
     s_measurement_state.mode = MEASUREMENT_PERIOD;
@@ -78,20 +76,20 @@ int instrumentFinishMeasurePeriod(uint64_t* period_out, uint64_t* pulse_width_ou
     if (s_instrument_state != STATE_MEASURING || s_measurement_state.mode != MEASUREMENT_PERIOD)
         return -1;
 
-    if (!HWGetPeriodPulseWidth(period_out, pulse_width_out))
+    if (!HWPollPeriodMeasurement(period_out, pulse_width_out))
         return 0;
 
     s_instrument_state = STATE_READY;
     return 1;
 }
 
-int instrumentFinishMeasurePhaseShift(unsigned int* period_out, int* interval_out) {
+int instrumentFinishMeasurePhaseShift(uint32_t* period_out, int32_t* interval_out) {
     if (s_instrument_state != STATE_MEASURING || s_measurement_state.mode != MEASUREMENT_PHASE)
         return -1;
 
     uint64_t period, pulse_width;
 
-    if (!HWGetPeriodPulseWidth(&period, &pulse_width))
+    if (!HWPollPeriodMeasurement(&period, &pulse_width))
         return 0;
 
     *period_out = period;
@@ -106,10 +104,10 @@ int instrumentFinishMeasurePhaseShift(unsigned int* period_out, int* interval_ou
     return 1;
 }
 
-int instrumentStartMeasureFreqRatio(unsigned int iterations) {
+int instrumentStartMeasureFreqRatio(uint32_t iterations) {
     return -1;
 }
 
-int instrumentFinishMeasureFreqRatio(unsigned int* ratio_out) {
+int instrumentFinishMeasureFreqRatio(uint32_t* ratio_out) {
     return -1;
 }

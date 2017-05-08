@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.6)
-project(lib-virtual-instrument C ASM)
+project(virtual-instrument C ASM)
 
 #set(TARGET_CPU "" CACHE STRING "Target CPU")
 #
@@ -14,7 +14,9 @@ project(lib-virtual-instrument C ASM)
 
 file(GLOB_RECURSE USER_SOURCES "src/*.c")
 
-add_library(virtual-instrument ${USER_SOURCES})
+add_library(${PROJECT_NAME} ${USER_SOURCES})
 
-target_include_directories(virtual-instrument PUBLIC include)
-target_include_directories(virtual-instrument PRIVATE src)
+target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wno-unused -Werror)
+
+target_include_directories(${PROJECT_NAME} PUBLIC include)
+target_include_directories(${PROJECT_NAME} PRIVATE src)

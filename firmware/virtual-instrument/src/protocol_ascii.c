@@ -1,3 +1,4 @@
+#include "virtualinstrument/hw.h"
 #include "virtualinstrument/protocol.h"
 #include "virtualinstrument/instrument.h"
 
@@ -36,11 +37,11 @@ static void doOneMeasurement() {
             return;
         }
 
-	    unsigned int freq;
+	    uint32_t freq;
 		while (instrumentFinishMeasurePulseCount(&freq) <= 0) {
 		}
 
-		sprintf(outbuf, "%u Hz\r\n", freq);
+		sprintf(outbuf, "%u Hz\r\n", (unsigned int) freq);
 
 		s_burstTotal += freq;
 	}
@@ -50,9 +51,12 @@ static void doOneMeasurement() {
 	        return;
 	    }
 
-	    unsigned int period, pulse_width;
+		uint64_t period, pulse_width;
         while (instrumentFinishMeasurePeriod(&period, &pulse_width) <= 0) {
         }
+
+		period >>= 16;
+		pulse_width >>= 16;
 
         unsigned int period_ns = period * 1000 / (SystemCoreClock / 1000000);
         unsigned int pulse_width_ns = pulse_width * 1000 / (SystemCoreClock / 1000000);
@@ -62,7 +66,7 @@ static void doOneMeasurement() {
 
         unsigned int freq = SystemCoreClock / period;
 
-        sprintf(outbuf, "%u Hz\t\t%d %%\r\n", freq, 100 * pulse_width / period);
+        sprintf(outbuf, "%u Hz\t\t%u %%\r\n", freq, (unsigned int) (100 * pulse_width / period));
 
         s_burstTotal += freq;
 	}
@@ -72,12 +76,12 @@ static void doOneMeasurement() {
             return;
         }
 
-		unsigned int period;
-		int interval;
+		uint32_t period;
+		int32_t interval;
 		while (instrumentFinishMeasurePhaseShift(&period, &interval) <= 0) {
 		}
 
-		sprintf(outbuf, "%u Hz, %+d deg phase shift\r\n", (unsigned int)(SystemCoreClock / period), interval * 360 / (int)period);
+		sprintf(outbuf, "%u Hz, %+d deg phase shift\r\n", (unsigned int)(SystemCoreClock / period), (int)interval * 360 / (int)period);
 	}
 
 	putstr(outbuf);
