@@ -87,9 +87,9 @@ int instrumentFinishMeasurePhaseShift(uint32_t* period_out, int32_t* interval_ou
     if (s_instrument_state != STATE_MEASURING || s_measurement_state.mode != MEASUREMENT_PHASE)
         return -1;
 
-    uint64_t period, pulse_width;
+    uint32_t period, pulse_width;
 
-    if (!HWPollPeriodMeasurement(&period, &pulse_width))
+    if (HWPollIntervalMeasurement(&period, &pulse_width) <= 0)
         return 0;
 
     *period_out = period;

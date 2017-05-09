@@ -18,6 +18,19 @@ static volatile size_t dma_num_samples, measurement_num_samples;
 
 enum { HW_PRESCALER_MAX = 3 };
 
+static void DmaStop(void) {
+    HAL_DMA_Abort(&INPUT_CAPTURE_HDMA);
+    __HAL_DMA_CLEAR_FLAG(&INPUT_CAPTURE_HDMA, INPUT_CAPTURE_DMA_TC_FLAG);
+}
+
+static void DmaStart(size_t num_samples) {
+    // configure the DMA Burst Mode
+    INPUT_CAPTURE_TIMER->DCR = (TIM_DMABASE_CCR2 | TIM_DMABURSTLENGTH_2TRANSFERS);
+    __HAL_TIM_ENABLE_DMA(&INPUT_CAPTURE_HTIM, TIM_DMA_CC2);
+
+    HAL_DMA_Start(&INPUT_CAPTURE_HDMA, (uint32_t) &INPUT_CAPTURE_TIMER->DMAR, (uint32_t) dmabuf, (2 + num_samples) * 2);
+}
+
 static uint32_t GetHWPrescaler(size_t index) {
     static const uint32_t hw_prescalers[] = {TIM_ICPSC_DIV1, TIM_ICPSC_DIV2, TIM_ICPSC_DIV4, TIM_ICPSC_DIV8};
     return hw_prescalers[index];
@@ -44,7 +57,7 @@ static void StartGate(uint32_t duration) {
     TIMEFRAME_TIM->CR1 |= TIM_CR1_CEN;
 }
 
-static void StopGate() {
+static void StopGate(void) {
     TIMEFRAME_TIM->CR1 &= ~TIM_CR1_CEN;
 }
 
@@ -85,8 +98,8 @@ int HWStartPeriodMeasurement(size_t num_samples) {
     TIM_ClockConfigTypeDef sClockSourceConfig;
     TIM_IC_InitTypeDef sConfigIC;
 
-    HAL_DMA_Abort(&INPUT_CAPTURE_HDMA);
-    __HAL_DMA_CLEAR_FLAG(&INPUT_CAPTURE_HDMA, INPUT_CAPTURE_DMA_TC_FLAG);
+    __HAL_TIM_DISABLE(&INPUT_CAPTURE_HTIM);
+    DmaStop();
 
     dma_num_samples = num_samples;
     measurement_num_samples = num_samples;
@@ -116,6 +129,10 @@ int HWStartPeriodMeasurement(size_t num_samples) {
     slaveConfig.TriggerPolarity = TIM_TRIGGERPOLARITY_RISING;
     slaveConfig.TriggerPrescaler = TIM_TRIGGERPRESCALER_DIV1;
     HAL_TIM_SlaveConfigSynchronization(&INPUT_CAPTURE_HTIM, &slaveConfig);
+#else
+    TIM_SlaveConfigTypeDef slaveConfig;
+    slaveConfig.SlaveMode = TIM_SLAVEMODE_DISABLE;
+    HAL_TIM_SlaveConfigSynchronization(&INPUT_CAPTURE_HTIM, &slaveConfig);
 #endif
 
     // input capture
@@ -132,14 +149,8 @@ int HWStartPeriodMeasurement(size_t num_samples) {
     HAL_TIM_IC_Start(&INPUT_CAPTURE_HTIM, INPUT_CAPTURE_RISING_CHAN);
     HAL_TIM_IC_Start(&INPUT_CAPTURE_HTIM, INPUT_CAPTURE_FALLING_CHAN);
 
-    // configure the DMA Burst Mode
-    INPUT_CAPTURE_TIMER->DCR = (TIM_DMABASE_CCR2 | TIM_DMABURSTLENGTH_2TRANSFERS);
-    __HAL_TIM_ENABLE_DMA(&INPUT_CAPTURE_HTIM, TIM_DMA_CC2);
-
-    //INPUT_CAPTURE_HDMA.XferCpltCallback = XferCpltCallback;
-    //__HAL_DMA_ENABLE_IT(&INPUT_CAPTURE_HDMA, DMA_IT_TC);
-
-    HAL_DMA_Start(&INPUT_CAPTURE_HDMA, (uint32_t) &INPUT_CAPTURE_TIMER->DMAR, (uint32_t) dmabuf, (2 + dma_num_samples) * 2);
+    DmaStart(dma_num_samples);
+    __HAL_TIM_ENABLE(&INPUT_CAPTURE_HTIM);
     return 1;
 }
 
@@ -157,8 +168,12 @@ int HWPollPeriodMeasurement(uint64_t* period_out, uint64_t* pulse_width_out) {
         uint32_t pulse_width = dmabuf[2 * i + 1] + 2;
 #else
         static const uint32_t mask = 0xffffffff;
-        uint32_t period = (dmabuf[2 * i] - dmabuf[2 * (i - 1)]) & mask;
-        uint32_t pulse_width = (dmabuf[2 * i + 1] - dmabuf[2 * (i - 1)]) & mask;
+
+        // load this manually because dmabuf is declared volatile
+        uint32_t prev = dmabuf[2 * (i - 1)];
+
+        uint32_t period = (dmabuf[2 * i] - prev) & mask;
+        uint32_t pulse_width = (dmabuf[2 * i + 1] - prev - 1) & mask;       // FIXME: is the -1 correct here??
 #endif
 
         sum_period += period;
@@ -166,20 +181,24 @@ int HWPollPeriodMeasurement(uint64_t* period_out, uint64_t* pulse_width_out) {
     }
 
     *period_out = (sum_period << 16) / measurement_num_samples;
-    *pulse_width_out = (sum_pulse_width << 16) / measurement_num_samples;
+
+    if (dma_num_samples == measurement_num_samples) {
+        *pulse_width_out = (sum_pulse_width << 16) / measurement_num_samples;
+    }
+    else {
+        // Pulse width currently doesn't work with HW pre-scaling
+        *pulse_width_out = 0;
+    }
 
     return 1;
 }
 
 int HWStartIntervalMeasurement(void) {
-    return -1;
-
-    HAL_TIM_Base_Stop(&COUNTER_HTIM);
-    HAL_TIM_Base_Stop(&INPUT_CAPTURE_HTIM);
-    HAL_TIM_IC_Stop_IT(&INPUT_CAPTURE_HTIM, INPUT_CAPTURE_FALLING_CHAN);
-
     TIM_ClockConfigTypeDef sClockSourceConfig;
     TIM_IC_InitTypeDef sConfigIC;
+
+    __HAL_TIM_DISABLE(&INPUT_CAPTURE_HTIM);
+    DmaStop();
 
     // clock
     sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
@@ -191,13 +210,26 @@ int HWStartIntervalMeasurement(void) {
     sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
     sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
     sConfigIC.ICFilter = 0;
-    HAL_TIM_IC_ConfigChannel(&INPUT_CAPTURE_HTIM, &sConfigIC, TIM_CHANNEL_2);
-    HAL_TIM_IC_ConfigChannel(&INPUT_CAPTURE_HTIM, &sConfigIC, TIM_CHANNEL_4);
+    HAL_TIM_IC_ConfigChannel(&INPUT_CAPTURE_HTIM, &sConfigIC, INPUT_CAPTURE_CH1_CHAN);
+    HAL_TIM_IC_ConfigChannel(&INPUT_CAPTURE_HTIM, &sConfigIC, INPUT_CAPTURE_CH2_CHAN);
 
     // start!
     HAL_TIM_IC_Start(&INPUT_CAPTURE_HTIM, INPUT_CAPTURE_CH1_CHAN);
-    //HAL_TIM_IC_Start(&INPUT_CAPTURE_HTIM, INPUT_CAPTURE_CH2_CHAN);
-    HAL_TIM_IC_Start_IT(&INPUT_CAPTURE_HTIM, INPUT_CAPTURE_CH2_CHAN);
+    HAL_TIM_IC_Start(&INPUT_CAPTURE_HTIM, INPUT_CAPTURE_CH2_CHAN);
+
+    DmaStart(2);
+    __HAL_TIM_ENABLE(&INPUT_CAPTURE_HTIM);
+
+    return 1;
+}
+
+int HWPollIntervalMeasurement(uint32_t* period_out, uint32_t* pulse_width_out) {
+    if (!(__HAL_DMA_GET_FLAG(&INPUT_CAPTURE_HDMA, INPUT_CAPTURE_DMA_TC_FLAG)))
+        return 0;
+
+    *period_out = dmabuf[2] - dmabuf[0];
+    *pulse_width_out = dmabuf[3] - dmabuf[0];
+    return 1;
 }
 
 void HWSetGeneratorPWM(uint16_t prescaler, uint16_t period, uint16_t pulse_time, int phase) {

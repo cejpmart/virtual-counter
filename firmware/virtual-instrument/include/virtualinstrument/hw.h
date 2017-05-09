@@ -15,6 +15,7 @@ int     HWPollPeriodMeasurement(uint64_t* period_out, uint64_t* pulse_width_out)
 
 // Interval measurement
 int     HWStartIntervalMeasurement(void);
+int     HWPollIntervalMeasurement(uint32_t* period_out, uint32_t* pulse_width_out);
 
 
 void 	HWSetGeneratorPWM(uint16_t prescaler, uint16_t period, uint16_t pulse_time, int phase);

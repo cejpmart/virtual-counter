@@ -87,11 +87,6 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
-
-// For t_AB mode
-#define INPUT_CAPTURE_CH1_CCR (TIM2->CCR4)
-#define INPUT_CAPTURE_CH2_CCR (TIM2->CCR2)
-
 void HardFault_Handler() {
 	TIM1->CNT = 0;
 }
