@@ -8,7 +8,7 @@ static const double MIN_REASONABLE_FREQUENCY = 0.000001;
 static const double MIN_REASONABLE_PERIOD = 1.0 / F_CPU;
 static const double USB_CLOCK_TOLERANCE = 0.0005;       // assuming USB 2.0
 
-constexpr const char VERSION[] = "1003";
+constexpr const char VERSION[] = "1004";
 
 MeasurementController::MeasurementController(MainWindow* view) : view(view)
 {
