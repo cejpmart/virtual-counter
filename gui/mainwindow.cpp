@@ -165,7 +165,7 @@ void MainWindow::onMeasurementFinishedCounting(double frequency, double frequenc
 
 void MainWindow::onMeasurementFinishedFreqRatio(double ratio)
 {
-    qInfo("freq ratio %g", ratio);
+    qInfo("freq ratio %.2f", ratio);
 
     afterMeasurement();
 }

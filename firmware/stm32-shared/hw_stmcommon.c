@@ -23,7 +23,7 @@ enum {
 
 enum { HW_PRESCALER_MAX = 3 };
 
-static int ConfigureCounting(void) {
+static int ConfigureAndStartGatedCounting(void) {
     TIM_ClockConfigTypeDef sClockSourceConfig;
     sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_ETRMODE2;
     sClockSourceConfig.ClockPolarity = TIM_CLOCKPOLARITY_NONINVERTED;
@@ -36,6 +36,8 @@ static int ConfigureCounting(void) {
     sSlaveConfig.InputTrigger = COUNTER_TIM_GATE_IT;
     HAL_TIM_SlaveConfigSynchronization(&COUNTER_HTIM, &sSlaveConfig);
 
+    COUNTER_TIM->CNT = 0;
+    COUNTER_TIM->CR1 |= TIM_CR1_CEN_Msk;
     return 1;
 }
 
@@ -112,17 +114,10 @@ static void StartGateTime(uint32_t duration) {
     // TODO: this should be more flexible and not need TIMEFRAME_PRESCALER,
     // TODO: deriving the necessary values from SystemCoreClock instead
 
-    // configure parameters
-    TIMEFRAME_TIM->ARR = 65535;
-    TIMEFRAME_TIM->PSC = SystemCoreClock / 1000 - 1;
-    TIMEFRAME_CCR = duration / TIMEFRAME_PRESCALER;
-    TIMEFRAME_TIM->CCMR1 = (0b110 << TIM_CCMR1_OC2M_Pos);
-
-    // let the counter wrap-around immediately to force PWM reset
-    TIMEFRAME_TIM->CNT = TIMEFRAME_TIM->ARR - 1;
-
-    // generate Update event
-    TIMEFRAME_TIM->EGR = TIM_EGR_UG_Msk;
+    TIMEFRAME_TIM->CNT = 0;
+    TIMEFRAME_CCR = duration / TIMEFRAME_PRESCALER;             // gate time
+    TIMEFRAME_TIM->CCMR1 = (0b101 << TIM_CCMR1_OC2M_Pos);       // force to 1
+    TIMEFRAME_TIM->CCMR1 = (0b010 << TIM_CCMR1_OC2M_Pos);       // clear when CNT == CCR
 
     // start timer
     TIMEFRAME_TIM->CR1 |= TIM_CR1_CEN;
@@ -136,14 +131,11 @@ int HWStartPulseCountMeasurement(uint32_t gate_time_ms) {
     __HAL_TIM_DISABLE(&COUNTER_HTIM);
     StopGate();
 
-    COUNTER_TIM->CNT = 0;
-    COUNTER_TIM->CR1 |= TIM_CR1_CEN_Msk;
-
-    ConfigureCounting();
-
     int prescaler = SystemCoreClock / 1000 - 1;
     if (ConfigureGate(GATE_MODE_TIME, prescaler, 65535) <= 0)
         return -1;
+
+    ConfigureAndStartGatedCounting();
 
     StartGateTime(gate_time_ms);
     return 1;
@@ -300,26 +292,20 @@ int HWStartFreqRatioMeasurement(size_t num_periods) {
     __HAL_TIM_DISABLE(&COUNTER_HTIM);
     StopGate();
 
-    ConfigureCounting();
-
-    COUNTER_TIM->CNT = 0;
-    COUNTER_TIM->CR1 |= TIM_CR1_CEN_Msk;
-
     if (ConfigureGate(GATE_MODE_ETR, 0, 65535) <= 0)
         return -1;
 
+    ConfigureAndStartGatedCounting();
+
     // configure parameters
-        TIMEFRAME_CCR = num_periods;
-        TIMEFRAME_TIM->CCMR1 = (0b110 << TIM_CCMR1_OC2M_Pos);
+    TIMEFRAME_TIM->CNT = 0;
 
-        // let the counter wrap-around immediately to force PWM reset
-        TIMEFRAME_TIM->CNT = TIMEFRAME_TIM->ARR - 1;
+    TIMEFRAME_CCR = num_periods;
+    TIMEFRAME_TIM->CCMR1 = (0b101 << TIM_CCMR1_OC2M_Pos);       // force to 1
+    TIMEFRAME_TIM->CCMR1 = (0b010 << TIM_CCMR1_OC2M_Pos);       // clear when CNT == CCR
 
-        // generate Update event
-        TIMEFRAME_TIM->EGR = TIM_EGR_UG_Msk;
-
-        // start timer
-        TIMEFRAME_TIM->CR1 |= TIM_CR1_CEN;
+    // start timer
+    TIMEFRAME_TIM->CR1 |= TIM_CR1_CEN;
 
     return 1;
 }
