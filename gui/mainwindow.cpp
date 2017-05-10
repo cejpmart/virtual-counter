@@ -103,8 +103,10 @@ void MainWindow::afterMeasurement()
 {
     statusString((QString) "Ready.");
 
-    if (ui->continuousMeasurementCheck->isChecked())
+    if (continuousMeasurement)
         on_measureButton_clicked();
+    else
+        ui->measureButton->setEnabled(true);
 }
 
 void MainWindow::fade(QLabel* label)
@@ -151,7 +153,7 @@ void MainWindow::onInstrumentConnected()
 
     statusString("Ready.");
     ui->measureButton->setEnabled(true);
-    ui->continuousMeasurementCheck->setEnabled(true);
+    ui->continuousMeasurementToggle->setEnabled(true);
 }
 
 void MainWindow::onInstrumentFirmwareVersionSet(QString text)
@@ -194,7 +196,7 @@ void MainWindow::onMeasurementFinishedReciprocal(double frequency, double freque
 
 void MainWindow::onMeasurementStarted()
 {
-    if (!ui->continuousMeasurementCheck->isChecked())
+    if (!continuousMeasurement)
         setMeasuredValuesInvalid();
 
     statusString((QString) "Measurement in progress...");
@@ -232,6 +234,15 @@ void MainWindow::onPwmSet(size_t index, PwmParameters params)
 
     pwmActual[index] = params;
     pwmOutputPlotController.redraw(pwmActual[0], pwmActual[1]);
+}
+
+void MainWindow::setContinousMeasurement(bool enabled)
+{
+    continuousMeasurement = enabled;
+
+    if (continuousMeasurement) {
+        on_measureButton_clicked();
+    }
 }
 
 void MainWindow::setMeasuredValuesFrequencyPeriodDuty(double frequency, double frequencyError, double period, double periodError, double duty)
@@ -345,6 +356,8 @@ void MainWindow::unfade(QLabel* label, const QString& text)
 
 void MainWindow::on_measureButton_clicked()
 {
+    ui->measureButton->setEnabled(false);
+
     if (ui->measurementMethodCounting->isChecked()) {
         emit measurementShouldStartCounting(getCountingGateTimeSeconds());
     }
@@ -376,19 +389,9 @@ void MainWindow::on_measurementCountingGateSelect_currentIndexChanged(int index)
     updateMeasurementFrequencyInfo();
 }
 
-void MainWindow::on_continuousMeasurementCheck_toggled(bool checked)
-{
-    // FIXME: just add a measurementMethodChanged()
-
-    if (checked) {
-        on_measureButton_clicked();
-    }
-
-    ui->measureButton->setEnabled(!checked);
-}
-
 void MainWindow::on_measurementMethodInterval_toggled(bool checked)
 {
+    // FIXME: just add a measurementMethodChanged()
     if (checked) {
         ui->frequencyMeasurementRack->hide();
         ui->intervalMeasurementRack->show();
@@ -408,6 +411,16 @@ void MainWindow::on_measurementMethodPeriod_toggled(bool checked)
 void MainWindow::on_actionQuit_triggered()
 {
     this->close();
+}
+
+void MainWindow::on_continuousMeasurementToggle_clicked()
+{
+    setContinousMeasurement(!continuousMeasurement);
+
+    if (continuousMeasurement)
+        ui->continuousMeasurementToggle->setText("Stop");
+    else
+        ui->continuousMeasurementToggle->setText("Run");
 }
 
 void MainWindow::on_pwmAEnabled_toggled(bool checked)

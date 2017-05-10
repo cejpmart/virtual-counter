@@ -52,8 +52,6 @@ private slots:
 
     void on_measurementCountingGateSelect_currentIndexChanged(int index);
 
-    void on_continuousMeasurementCheck_toggled(bool checked);
-
     void on_measurementMethodInterval_toggled(bool checked);
 
     void on_measurementMethodPeriod_toggled(bool checked);
@@ -74,6 +72,8 @@ private slots:
 
     void on_pwmBFreqSpinner_valueChanged(double arg1);
 
+    void on_continuousMeasurementToggle_clicked();
+
 private:
     double getCountingGateTimeSeconds();
     int getReciprocalIterations();
@@ -83,6 +83,7 @@ private:
     void fade(QLabel* label);
     void unfade(QLabel* label, const QString& text);
 
+    void setContinousMeasurement(bool enabled);
     void setMeasuredValuesFrequencyPeriodDuty(double frequency, double frequencyError, double period, double periodError, double duty);
     void setMeasuredValuesInvalid();
     void setMeasuredValuesFrequencyPeriodIntervalPhase(double channelAFrequency, double channelAPeriod, double interval, double phase);
@@ -97,6 +98,8 @@ private:
 
     MeasurementController* measurementController;
     QThread* measurementControllerThread;
+
+    bool continuousMeasurement = false;
 
     PwmOutputPlotController pwmOutputPlotController;
 
