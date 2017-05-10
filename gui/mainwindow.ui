@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1074</width>
-    <height>789</height>
+    <height>795</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -685,7 +685,10 @@
            <item row="0" column="0">
             <widget class="QCheckBox" name="checkBox">
              <property name="text">
-              <string>enable</string>
+              <string>enabled</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
              </property>
             </widget>
            </item>
@@ -744,6 +747,9 @@
            </item>
            <item row="3" column="1">
             <widget class="QSlider" name="horizontalSlider_2">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="value">
               <number>50</number>
              </property>
@@ -814,6 +820,9 @@
            </item>
            <item row="3" column="1">
             <widget class="QSlider" name="horizontalSlider_6">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="value">
               <number>50</number>
              </property>
@@ -846,7 +855,10 @@
            <item row="0" column="0">
             <widget class="QCheckBox" name="checkBox_3">
              <property name="text">
-              <string>enable</string>
+              <string>enabled</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
              </property>
             </widget>
            </item>
