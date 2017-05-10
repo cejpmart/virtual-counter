@@ -22,12 +22,15 @@ public:
     ~MainWindow();
 
 signals:
+    void shouldOpenInterface(QString path);
+
     void measurementShouldStartCounting(double gateTime);
     void measurementShouldStartReciprocal(unsigned int iterations);
     void measurementShouldStartPhase(Edge edge);
+    void measurementShouldStartFreqRatio(unsigned int periods);
+
     void shouldSetPwm1(PwmParameters params);
     void shouldSetPwm2(PwmParameters params);
-    void shouldOpenInterface(QString path);
 
 private slots:
     void onInstrumentConnected();
@@ -37,6 +40,7 @@ private slots:
     void onMeasurementFinishedCounting(double frequency, double frequencyError, double period, double periodError);
     void onMeasurementFinishedPhase(double channelAFrequency, double channelAPeriod, double interval, double phase);
     void onMeasurementFinishedReciprocal(double frequency, double frequencyError, double period, double periodError, double duty);
+    void onMeasurementFinishedFreqRatio(double ratio);
     void onMeasurementTimedOut();
     void onOpenInterfaceTriggered(QAction* action);
     void onPwm1Set(PwmParameters params);
@@ -52,7 +56,7 @@ private slots:
 
     void on_measurementMethodInterval_toggled(bool checked);
 
-    void on_measurementMethodReciprocal_toggled(bool checked);
+    void on_measurementMethodPeriod_toggled(bool checked);
 
     void on_actionQuit_triggered();
 

@@ -7,7 +7,7 @@
 
 // ugh! can we fix this?
 extern DMA_HandleTypeDef    INPUT_CAPTURE_HDMA;
-extern TIM_HandleTypeDef    INPUT_CAPTURE_HTIM;
+extern TIM_HandleTypeDef    INPUT_CAPTURE_HTIM, TIMEFRAME_HTIM;
 
 static volatile uint32_t dmabuf[252];
 
@@ -16,7 +16,79 @@ static volatile size_t dma_num_samples, measurement_num_samples;
 
 //#define AUTO_RESET_IC_CNT
 
+enum {
+    GATE_MODE_TIME,
+    GATE_MODE_ETR,
+};
+
 enum { HW_PRESCALER_MAX = 3 };
+
+static int ConfigureCounting(void) {
+    TIM_ClockConfigTypeDef sClockSourceConfig;
+    sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_ETRMODE2;
+    sClockSourceConfig.ClockPolarity = TIM_CLOCKPOLARITY_NONINVERTED;
+    sClockSourceConfig.ClockPrescaler = TIM_CLOCKPRESCALER_DIV1;
+    sClockSourceConfig.ClockFilter = 0;
+    HAL_TIM_ConfigClockSource(&COUNTER_HTIM, &sClockSourceConfig);
+
+    TIM_SlaveConfigTypeDef sSlaveConfig;
+    sSlaveConfig.SlaveMode = TIM_SLAVEMODE_GATED;
+    sSlaveConfig.InputTrigger = COUNTER_TIM_GATE_IT;
+    HAL_TIM_SlaveConfigSynchronization(&COUNTER_HTIM, &sSlaveConfig);
+
+    return 1;
+}
+
+static int ConfigureGate(int mode, unsigned int prescaler, unsigned int period) {
+    TIM_ClockConfigTypeDef sClockSourceConfig;
+    TIM_MasterConfigTypeDef sMasterConfig;
+    TIM_OC_InitTypeDef sConfigOC;
+
+    __HAL_TIM_DISABLE(&TIMEFRAME_HTIM);
+
+    TIMEFRAME_HTIM.Instance = TIMEFRAME_TIM;
+    TIMEFRAME_HTIM.Init.Prescaler = prescaler;
+    TIMEFRAME_HTIM.Init.CounterMode = TIM_COUNTERMODE_UP;
+    TIMEFRAME_HTIM.Init.Period = period;
+    TIMEFRAME_HTIM.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+    if (HAL_TIM_Base_Init(&TIMEFRAME_HTIM) != HAL_OK)
+        return -1;
+
+    sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+    if (HAL_TIM_ConfigClockSource(&TIMEFRAME_HTIM, &sClockSourceConfig) != HAL_OK)
+        return -1;
+
+    if (HAL_TIM_OC_Init(&TIMEFRAME_HTIM) != HAL_OK)
+        return -1;
+
+    TIM_SlaveConfigTypeDef slaveConfig;
+    if (mode == GATE_MODE_TIME) {
+        slaveConfig.SlaveMode = TIM_SLAVEMODE_DISABLE;
+        slaveConfig.InputTrigger = TIM_TS_ITR0;
+    }
+    else {
+        slaveConfig.SlaveMode = TIM_SLAVEMODE_EXTERNAL1;
+        slaveConfig.InputTrigger = TIM_TS_TI1FP1;           // TODO: must be configurable
+        slaveConfig.TriggerFilter = 0;
+        slaveConfig.TriggerPolarity = TIM_TRIGGERPOLARITY_RISING;
+        slaveConfig.TriggerPrescaler = TIM_TRIGGERPRESCALER_DIV1;
+    }
+    HAL_TIM_SlaveConfigSynchronization(&TIMEFRAME_HTIM, &slaveConfig);
+
+    sMasterConfig.MasterOutputTrigger = TIM_TRGO_OC2REF;
+    sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_ENABLE;
+    if (HAL_TIMEx_MasterConfigSynchronization(&TIMEFRAME_HTIM, &sMasterConfig) != HAL_OK)
+        return -1;
+
+    sConfigOC.OCMode = TIM_OCMODE_INACTIVE;
+    sConfigOC.Pulse = 0;
+    sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+    sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+    if (HAL_TIM_OC_ConfigChannel(&TIMEFRAME_HTIM, &sConfigOC, TIMEFRAME_CHAN) != HAL_OK)
+        return -1;
+
+    return 1;
+}
 
 static void DmaStop(void) {
     HAL_DMA_Abort(&INPUT_CAPTURE_HDMA);
@@ -36,16 +108,15 @@ static uint32_t GetHWPrescaler(size_t index) {
     return hw_prescalers[index];
 }
 
-static void StartGate(uint32_t duration) {
-    // TODO: we should do our own initialization of TIMEFRAME_TIM
+static void StartGateTime(uint32_t duration) {
     // TODO: this should be more flexible and not need TIMEFRAME_PRESCALER,
     // TODO: deriving the necessary values from SystemCoreClock instead
 
     // configure parameters
     TIMEFRAME_TIM->ARR = 65535;
     TIMEFRAME_TIM->PSC = SystemCoreClock / 1000 - 1;
-    TIMEFRAME_TIM->CCR1 = duration / TIMEFRAME_PRESCALER;
-    TIMEFRAME_TIM->CCMR1 = (0b110 << TIM_CCMR1_OC1M_Pos);
+    TIMEFRAME_CCR = duration / TIMEFRAME_PRESCALER;
+    TIMEFRAME_TIM->CCMR1 = (0b110 << TIM_CCMR1_OC2M_Pos);
 
     // let the counter wrap-around immediately to force PWM reset
     TIMEFRAME_TIM->CNT = TIMEFRAME_TIM->ARR - 1;
@@ -62,31 +133,24 @@ static void StopGate(void) {
 }
 
 int HWStartPulseCountMeasurement(uint32_t gate_time_ms) {
-    HAL_TIM_Base_Stop(&COUNTER_HTIM);
+    __HAL_TIM_DISABLE(&COUNTER_HTIM);
     StopGate();
 
     COUNTER_TIM->CNT = 0;
-
-    TIM_ClockConfigTypeDef sClockSourceConfig;
-    sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_ETRMODE2;
-    sClockSourceConfig.ClockPolarity = TIM_CLOCKPOLARITY_NONINVERTED;
-    sClockSourceConfig.ClockPrescaler = TIM_CLOCKPRESCALER_DIV1;
-    sClockSourceConfig.ClockFilter = 0;
-    HAL_TIM_ConfigClockSource(&COUNTER_HTIM, &sClockSourceConfig);
-
-    TIM_SlaveConfigTypeDef sSlaveConfig;
-    sSlaveConfig.SlaveMode = TIM_SLAVEMODE_GATED;
-    sSlaveConfig.InputTrigger = COUNTER_TIM_GATE_IT;
-    HAL_TIM_SlaveConfigSynchronization(&COUNTER_HTIM, &sSlaveConfig);
-
     COUNTER_TIM->CR1 |= TIM_CR1_CEN_Msk;
 
-    StartGate(gate_time_ms);
+    ConfigureCounting();
+
+    int prescaler = SystemCoreClock / 1000 - 1;
+    if (ConfigureGate(GATE_MODE_TIME, prescaler, 65535) <= 0)
+        return -1;
+
+    StartGateTime(gate_time_ms);
     return 1;
 }
 
 int HWPollPulseCountMeasurement(uint32_t *value_out) {
-    if (TIMEFRAME_TIM->CNT > TIMEFRAME_TIM->CCR1) {
+    if (TIMEFRAME_TIM->CNT > TIMEFRAME_CCR) {
         *value_out = COUNTER_TIM->CNT;
         return 1;
     }
@@ -229,6 +293,48 @@ int HWPollIntervalMeasurement(uint32_t* period_out, uint32_t* pulse_width_out) {
 
     *period_out = dmabuf[2] - dmabuf[0];
     *pulse_width_out = dmabuf[3] - dmabuf[0];
+    return 1;
+}
+
+int HWStartFreqRatioMeasurement(size_t num_periods) {
+    __HAL_TIM_DISABLE(&COUNTER_HTIM);
+    StopGate();
+
+    ConfigureCounting();
+
+    COUNTER_TIM->CNT = 0;
+    COUNTER_TIM->CR1 |= TIM_CR1_CEN_Msk;
+
+    if (ConfigureGate(GATE_MODE_ETR, 0, 65535) <= 0)
+        return -1;
+
+    // configure parameters
+        TIMEFRAME_CCR = num_periods;
+        TIMEFRAME_TIM->CCMR1 = (0b110 << TIM_CCMR1_OC2M_Pos);
+
+        // let the counter wrap-around immediately to force PWM reset
+        TIMEFRAME_TIM->CNT = TIMEFRAME_TIM->ARR - 1;
+
+        // generate Update event
+        TIMEFRAME_TIM->EGR = TIM_EGR_UG_Msk;
+
+        // start timer
+        TIMEFRAME_TIM->CR1 |= TIM_CR1_CEN;
+
+    return 1;
+}
+
+int HWPollFreqRatioMeasurement(uint64_t* ratio_out) {
+    if (TIMEFRAME_TIM->CNT < TIMEFRAME_TIM->CCR2)
+        return 0;
+
+    __HAL_TIM_DISABLE(&COUNTER_HTIM);
+    __HAL_TIM_DISABLE(&TIMEFRAME_HTIM);
+
+    uint32_t cnt1 = COUNTER_TIM->CNT;
+    uint32_t cnt2 = TIMEFRAME_TIM->CCR2;
+
+    *ratio_out = (cnt1 << 16) / cnt2;
     return 1;
 }
 

@@ -105,9 +105,24 @@ int instrumentFinishMeasurePhaseShift(uint32_t* period_out, int32_t* interval_ou
 }
 
 int instrumentStartMeasureFreqRatio(uint32_t iterations) {
-    return -1;
+    if (s_instrument_state != STATE_READY)
+            return -1;
+
+    if (HWStartFreqRatioMeasurement(iterations) <= 0)
+        return -1;
+
+    s_instrument_state = STATE_MEASURING;
+    s_measurement_state.mode = MEASUREMENT_FREQ_RATIO;
+    return 1;
 }
 
-int instrumentFinishMeasureFreqRatio(uint32_t* ratio_out) {
-    return -1;
+int instrumentFinishMeasureFreqRatio(uint64_t* ratio_out) {
+    if (s_instrument_state != STATE_MEASURING || s_measurement_state.mode != MEASUREMENT_FREQ_RATIO)
+        return -1;
+
+    if (HWPollFreqRatioMeasurement(ratio_out) <= 0)
+        return 0;
+
+    s_instrument_state = STATE_READY;
+    return 1;
 }

@@ -71,7 +71,7 @@ bool MeasurementController::checkFirmwareVersion()
     QStringList tokens = versionInfo.split(",");
 
     if (tokens.size() >= 3)
-        qCritical("%d `%s` `%s`", tokens.size(), qPrintable(tokens[2]), VERSION);
+        qInfo("%d `%s` `%s`", tokens.size(), qPrintable(tokens[2]), VERSION);
 
     if (tokens.size() < 3 || tokens[2] != VERSION) {
         error("Firmware version mismatch");
@@ -151,6 +151,22 @@ void MeasurementController::doMeasurementCounting(double gateTime)
     const double periodError = periodErrorPoint - period;
 
     emit measurementFinishedCounting(frequency, frequencyError, period, periodError);
+}
+
+void MeasurementController::doMeasurementFreqRatio(unsigned int periods)
+{
+    if (!session)
+        return;
+
+    measurement_freq_ratio_request_t request;
+    measurement_freq_ratio_result_t result;
+
+    request.iterations = periods;
+
+    if (!doMeasurement(MEASUREMENT_FREQ_RATIO, &request, sizeof(request), &result, sizeof(result)))
+        return;
+
+    emit measurementFinishedFreqRatio(result.ratio / 65536.0);
 }
 
 void MeasurementController::doMeasurementPhase(Edge edge)

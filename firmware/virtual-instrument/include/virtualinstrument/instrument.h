@@ -33,7 +33,7 @@ int instrumentStartMeasurePhaseShift();
 int instrumentFinishMeasurePhaseShift(uint32_t* period_out, int32_t* interval_out);
 
 int instrumentStartMeasureFreqRatio(uint32_t iterations);
-int instrumentFinishMeasureFreqRatio(uint32_t* ratio_out);
+int instrumentFinishMeasureFreqRatio(uint64_t* ratio_out);
 
 // Deprecated, pending clean-up
 int instrumentMeasurePhaseAtoB(int* period_out, int* interval_out);

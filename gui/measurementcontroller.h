@@ -29,6 +29,7 @@ signals:
     void measurementFinishedCounting(double frequency, double frequencyError, double period, double periodError);
     void measurementFinishedReciprocal(double frequency, double frequencyError, double period, double periodError, double duty);
     void measurementFinishedPhase(double channelAFrequency, double channelAPeriod, double interval, double phase);
+    void measurementFinishedFreqRatio(double ratio);
     void measurementTimedOut();
 
     void didSetPwm1(PwmParameters params);
@@ -41,6 +42,7 @@ public slots:
     void doMeasurementCounting(double gateTime);
     void doMeasurementReciprocal(unsigned int iterations);
     void doMeasurementPhase(Edge edge);
+    void doMeasurementFreqRatio(unsigned int periods);
 
     void setPwm1(PwmParameters params);
     void setPwm2(PwmParameters params);

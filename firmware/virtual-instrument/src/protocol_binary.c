@@ -122,6 +122,17 @@ void protocolBinaryHandle(const uint8_t* data, size_t length) {
             case MEASUREMENT_PHASE:
                 rc = instrumentStartMeasurePhaseShift();
                 break;
+
+            case MEASUREMENT_FREQ_RATIO: {
+                if (packet->length != 5)
+                    break;
+
+                uint32_t periods;
+                memcpy(&periods, &packet->data[1], 4);
+
+                rc = instrumentStartMeasureFreqRatio(periods);
+                break;
+            }
             }
 
             reply_packet->tag = INFO_RESULT_CODE;
@@ -175,6 +186,18 @@ void protocolBinaryHandle(const uint8_t* data, size_t length) {
                     reply_packet->data[0] = rc;
                     memcpy(&reply_packet->data[1], &period, 4);
                     memcpy(&reply_packet->data[5], &interval, 4);
+                }
+                break;
+            }
+
+            case MEASUREMENT_FREQ_RATIO: {
+                uint64_t ratio;
+
+                if ((rc = instrumentFinishMeasureFreqRatio(&ratio)) > 0) {
+                    reply_packet->tag = INFO_MEASUREMENT_DATA;
+                    reply_packet->length = 1 + 8;
+                    reply_packet->data[0] = rc;
+                    memcpy(&reply_packet->data[1], &ratio, 8);
                 }
                 break;
             }

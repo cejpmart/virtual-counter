@@ -17,6 +17,10 @@
 #define TIMEFRAME_HTIM              htim3
 #define TIMEFRAME_PRESCALER         1
 
+#define TIMEFRAME_CHAN              TIM_CHANNEL_2
+#define TIMEFRAME_CCR               TIMEFRAME_TIM->CCR2
+//#define TIMEFRAME_CCMR              TIMEFRAME_TIM->CCMR2
+
 #define COUNTER_TIM                 TIM2
 #define COUNTER_HTIM                htim2
 // ITR2 = TIM3

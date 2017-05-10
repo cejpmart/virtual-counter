@@ -63,7 +63,7 @@ typedef struct {
 } __attribute__((packed)) measurement_freq_ratio_request_t;
 
 typedef struct {
-    uint32_t ratio;
+    uint64_t ratio;
 } __attribute__((packed)) measurement_freq_ratio_result_t;
 
 typedef struct {
