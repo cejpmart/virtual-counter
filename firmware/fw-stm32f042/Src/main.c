@@ -164,7 +164,7 @@ int main(void)
   //HAL_TIM_Base_Start(&HTIM_INPUT_COMPARE);
   //HAL_TIM_Base_Start(&TIMEFRAME_HTIM);
 
-  protocolInit("VirtualInstrument,,1004", SystemCoreClock);
+  protocolInit("VirtualInstrument,,1005", SystemCoreClock);
 
   instrumentInit(SystemCoreClock);
 
@@ -172,7 +172,7 @@ int main(void)
   //HWSetGeneratorPWM(1, 480, 240);		// 100 kHz
   //HWSetGeneratorPWM(1, 4800, 2400);		// 10 kHz
   //HWSetGeneratorPWM(1, 9600, 4800);		// 5 kHz
-  HWSetGeneratorPWM(1, 48000, 24000, 45);		// 1 kHz
+  //HWSetGeneratorPWM(1, 48000, 24000, 45);		// 1 kHz
   /* USER CODE END 2 */
 
   /* Infinite loop */

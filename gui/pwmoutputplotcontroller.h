@@ -22,7 +22,7 @@ public slots:
 
 private:
     QCustomPlot* plot = nullptr;
-    QCPGraph* graph = nullptr;
+    QCPGraph* pwmGraphs[2];// = {nullptr, nullptr};
 };
 
 #endif // PWMOUTPUTPLOTCONTROLLER_H

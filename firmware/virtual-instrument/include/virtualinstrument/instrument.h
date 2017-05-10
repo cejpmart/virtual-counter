@@ -35,8 +35,7 @@ int instrumentFinishMeasurePhaseShift(uint32_t* period_out, int32_t* interval_ou
 int instrumentStartMeasureFreqRatio(uint32_t iterations);
 int instrumentFinishMeasureFreqRatio(uint64_t* ratio_out);
 
-// Deprecated, pending clean-up
-int instrumentMeasurePhaseAtoB(int* period_out, int* interval_out);
-int instrumentGetTdelta(int* tdelta_out);
+// PWM
+int instrumentSetPwm(size_t index, uint32_t period, uint32_t pulse_width, uint32_t phase);
 
 #endif /* VIRTUALINSTRUMENT_INSTRUMENT_H_ */

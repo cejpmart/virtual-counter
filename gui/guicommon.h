@@ -32,8 +32,8 @@ struct Parameter {
 };
 
 struct PwmParameters {
-    bool enabled = true;
-    float freq = 1000, duty = 0.5, phase = 0;
+    bool enabled = false;
+    float freq = 0, duty = 0, phase = 0;
 };
 
 #endif // GUICOMMON_H

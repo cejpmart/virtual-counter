@@ -32,8 +32,7 @@ signals:
     void measurementFinishedFreqRatio(double ratio);
     void measurementTimedOut();
 
-    void didSetPwm1(PwmParameters params);
-    void didSetPwm2(PwmParameters params);
+    void didSetPwm(size_t index, PwmParameters params);
 
     void status(QString status);
     void errorSignal(QString err);
@@ -44,8 +43,7 @@ public slots:
     void doMeasurementPhase(Edge edge);
     void doMeasurementFreqRatio(unsigned int periods);
 
-    void setPwm1(PwmParameters params);
-    void setPwm2(PwmParameters params);
+    void setPwm(size_t index, PwmParameters params);
 
     void openInterface(QString path);
 

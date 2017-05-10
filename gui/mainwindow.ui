@@ -14,7 +14,7 @@
    <string>Measurement Tool</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,1,0">
+   <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0,1,0,0">
     <item>
      <layout class="QHBoxLayout" name="instrumentShelf">
       <item>
@@ -27,6 +27,12 @@
           <layout class="QFormLayout" name="formLayout">
            <item row="0" column="0">
             <widget class="QLabel" name="label_12">
+             <property name="font">
+              <font>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
              <property name="text">
               <string>Device</string>
              </property>
@@ -34,6 +40,12 @@
            </item>
            <item row="1" column="0">
             <widget class="QLabel" name="label_16">
+             <property name="font">
+              <font>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
              <property name="text">
               <string>Firmware</string>
              </property>
@@ -55,6 +67,12 @@
            </item>
            <item row="2" column="0">
             <widget class="QLabel" name="label_24">
+             <property name="font">
+              <font>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
              <property name="text">
               <string>Status</string>
              </property>
@@ -263,6 +281,13 @@
        </layout>
       </item>
      </layout>
+    </item>
+    <item>
+     <widget class="Line" name="line">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
     </item>
     <item>
      <layout class="QHBoxLayout" name="measurementShelf" stretch="0,0,1">
@@ -676,6 +701,13 @@
      </layout>
     </item>
     <item>
+     <widget class="Line" name="line_2">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item>
      <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,0,1">
       <item>
        <widget class="QGroupBox" name="groupBox_3">
@@ -689,7 +721,7 @@
             <number>0</number>
            </property>
            <item row="0" column="0">
-            <widget class="QCheckBox" name="checkBox">
+            <widget class="QCheckBox" name="pwmAEnabled">
              <property name="text">
               <string>enabled</string>
              </property>
@@ -738,7 +770,7 @@
            <item row="4" column="1">
             <widget class="QSlider" name="pwm1DutySlider">
              <property name="enabled">
-              <bool>false</bool>
+              <bool>true</bool>
              </property>
              <property name="maximum">
               <number>100</number>
@@ -859,7 +891,7 @@
             </widget>
            </item>
            <item row="0" column="0">
-            <widget class="QCheckBox" name="checkBox_3">
+            <widget class="QCheckBox" name="pwmBEnabled">
              <property name="text">
               <string>enabled</string>
              </property>
@@ -871,7 +903,7 @@
            <item row="4" column="1">
             <widget class="QSlider" name="pwm2DutySlider">
              <property name="enabled">
-              <bool>false</bool>
+              <bool>true</bool>
              </property>
              <property name="maximum">
               <number>100</number>

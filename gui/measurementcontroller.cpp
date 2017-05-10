@@ -8,7 +8,7 @@ static const double MIN_REASONABLE_FREQUENCY = 0.000001;
 static const double MIN_REASONABLE_PERIOD = 1.0 / F_CPU;
 static const double USB_CLOCK_TOLERANCE = 0.0005;       // assuming USB 2.0
 
-constexpr const char VERSION[] = "1004";
+constexpr const char VERSION[] = "1005";
 
 MeasurementController::MeasurementController(MainWindow* view) : view(view)
 {
@@ -284,60 +284,33 @@ bool MeasurementController::sendPacketAndAwaitResultCode(uint8_t tag, const uint
     return false;
 }
 
-void MeasurementController::setPwm1(PwmParameters pwm1)
+void MeasurementController::setPwm(size_t index, PwmParameters params)
 {
     if (!session)
         return;
 
-    int period = (int)round(F_CPU / pwm1.freq);
+    auto period = F_CPU / params.freq;
+    auto pulse_width = period * params.duty;
 
-    set_pwm_frequency_request_t request;
-    request.period = period;
+    while (params.phase < 0)
+        params.phase += 360;
+
+    set_pwm_request_t request;
+    request.index = index;
+    request.period = (unsigned int)round(period);
+    request.pulse_width = (unsigned int)round(pulse_width);
+    request.phase = (unsigned int)round(params.phase * period / 360);
 
     int rc;
-    if (!sendPacketAndAwaitResultCode(CMD_SET_PWM_FREQUENCY, (const uint8_t*) &request, sizeof(request), &rc)) {
+    if (!sendPacketAndAwaitResultCode(CMD_SET_PWM, (const uint8_t*) &request, sizeof(request), &rc)) {
         communicationError();
         return;
     }
 
     // Calculate actual frequency
-    pwm1.freq = F_CPU / period;
+    params.freq = F_CPU / request.period;
+    params.duty = (float)request.pulse_width / request.period;
+    params.phase = (float)request.phase / request.period * 360;
 
-    emit didSetPwm1(pwm1);
-}
-
-void MeasurementController::setPwm2(PwmParameters pwm2)
-{
-    if (!session)
-        return;
-
-    int period = (int)round(F_CPU / pwm2.freq);
-    int phase = pwm2.phase;
-
-    {
-    set_pwm_frequency_request_t request;
-    request.period = period;
-
-    int rc;
-    if (!sendPacketAndAwaitResultCode(CMD_SET_PWM_FREQUENCY, (const uint8_t*) &request, sizeof(request), &rc)) {
-        communicationError();
-        return;
-    }
-    }
-
-    {
-    set_pwm_phase_request_t request;
-    request.phase = phase;   // FIXME
-
-    int rc;
-    if (!sendPacketAndAwaitResultCode(CMD_SET_PWM_PHASE, (const uint8_t*) &request, sizeof(request), &rc)) {
-        communicationError();
-        return;
-    }
-    }
-
-    // Calculate actual frequency
-    pwm2.freq = F_CPU / period;
-
-    emit didSetPwm2(pwm2);
+    emit didSetPwm(index, params);
 }

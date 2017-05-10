@@ -22,11 +22,11 @@ int     HWStartFreqRatioMeasurement(size_t num_periods);
 // 48.16 frac
 int     HWPollFreqRatioMeasurement(uint64_t* ratio_out);
 
-void 	HWSetGeneratorPWM(uint16_t prescaler, uint16_t period, uint16_t pulse_time, int phase);
+// PWM
+int     HWSetPwm(size_t index, uint16_t prescaler, uint16_t period, uint16_t pulse_time, int phase);
+int     HWSetPwmPhase(uint32_t phase);
 
 void    utilDelayMs(uint32_t milliseconds);
 
-// temporary
-void HWSetFreqMode(int mode, int edge) __attribute__ ((deprecated ("refactor")));
 
 #endif /* VIRTUALINSTRUMENT_HW_H_ */

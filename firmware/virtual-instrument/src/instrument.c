@@ -7,6 +7,8 @@ static uint32_t s_cpu_units_per_second;
 
 static int s_instrument_state;
 
+static int s_pwm_phase;
+
 static struct {
 	int mode;
 	int gate_time;
@@ -125,4 +127,25 @@ int instrumentFinishMeasureFreqRatio(uint64_t* ratio_out) {
 
     s_instrument_state = STATE_READY;
     return 1;
+}
+
+int instrumentSetPwm(size_t index, uint32_t period, uint32_t pulse_width, uint32_t phase) {
+    unsigned int prescaler = 1;
+    unsigned int prescaled = period;
+
+    while (prescaled >= 65535) {
+        prescaler++;
+        prescaled = period / prescaler;
+    }
+
+    if (index == 1)
+        s_pwm_phase = phase;
+
+    if (HWSetPwm(index, prescaler, prescaled, pulse_width / prescaler, phase) <= 0)
+        return -1;
+
+    if (HWSetPwmPhase(s_pwm_phase) <= 0)
+        return -1;
+
+    return 0;
 }

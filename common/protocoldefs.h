@@ -1,6 +1,8 @@
 #ifndef PROTOCOLDEFS_H
 #define PROTOCOLDEFS_H
 
+#include <stdint.h>
+
 enum {
     CMD_QUERY_VERSION =         '?',
     CMD_SET_MODE_COUNTING =     'q',
@@ -9,8 +11,7 @@ enum {
     CMD_POLL_MEASUREMENT =      'p',
     CMD_ABORT_MEASUREMENT =     'a',
 
-    CMD_SET_PWM_FREQUENCY =     0x80,
-    CMD_SET_PWM_PHASE =         0x81,
+    CMD_SET_PWM =               0x80,
     CMD_RESET_INSTRUMENT =      0xA0
 };
 
@@ -67,11 +68,10 @@ typedef struct {
 } __attribute__((packed)) measurement_freq_ratio_result_t;
 
 typedef struct {
-    uint32_t period;
-} __attribute__((packed)) set_pwm_frequency_request_t;
-
-typedef struct {
-    uint32_t phase;
-} __attribute__((packed)) set_pwm_phase_request_t;
+    uint32_t index;             // 0 or 1
+    uint32_t period;            // in CPU units
+    uint32_t pulse_width;       // in CPU units
+    uint32_t phase;             // in CPU units (0..period-1)
+} __attribute__((packed)) set_pwm_request_t;
 
 #endif // PROTOCOLDEFS_H

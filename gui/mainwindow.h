@@ -7,6 +7,8 @@
 #include "measurementcontroller.h"
 #include "pwmoutputplotcontroller.h"
 
+constexpr size_t NUM_PWM = 2;
+
 namespace Ui {
 class MainWindow;
 }
@@ -29,8 +31,7 @@ signals:
     void measurementShouldStartPhase(Edge edge);
     void measurementShouldStartFreqRatio(unsigned int periods);
 
-    void shouldSetPwm1(PwmParameters params);
-    void shouldSetPwm2(PwmParameters params);
+    void shouldSetPwm(size_t index, PwmParameters params);
 
 private slots:
     void onInstrumentConnected();
@@ -43,8 +44,7 @@ private slots:
     void onMeasurementFinishedFreqRatio(double ratio);
     void onMeasurementTimedOut();
     void onOpenInterfaceTriggered(QAction* action);
-    void onPwm1Set(PwmParameters params);
-    void onPwm2Set(PwmParameters params);
+    void onPwmSet(size_t index, PwmParameters params);
 
     void on_measureButton_clicked();
 
@@ -63,6 +63,14 @@ private slots:
     void on_pwm1FreqSpinner_valueChanged(double arg1);
 
     void on_pwm2Phase_valueChanged(int value);
+
+    void on_pwm1DutySlider_valueChanged(int value);
+
+    void on_pwm2DutySlider_valueChanged(int value);
+
+    void on_pwmAEnabled_toggled(bool checked);
+
+    void on_pwmBEnabled_toggled(bool checked);
 
 private:
     double getCountingGateTimeSeconds();
@@ -90,8 +98,8 @@ private:
 
     PwmOutputPlotController pwmOutputPlotController;
 
-    Parameter<PwmParameters> pwm1;
-    Parameter<PwmParameters> pwm2;
+    Parameter<PwmParameters> pwm[NUM_PWM];
+    PwmParameters pwmActual[NUM_PWM];
 };
 
 #endif // MAINWINDOW_H

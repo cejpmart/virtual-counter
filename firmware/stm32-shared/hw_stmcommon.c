@@ -324,23 +324,30 @@ int HWPollFreqRatioMeasurement(uint64_t* ratio_out) {
     return 1;
 }
 
-void HWSetGeneratorPWM(uint16_t prescaler, uint16_t period, uint16_t pulse_time, int phase) {
+int HWSetPwm(size_t index, uint16_t prescaler, uint16_t period, uint16_t pulse_time, int phase) {
     // TODO: we should do our own init of PWM -- or not?
-    PWM1_TIM->PSC = prescaler - 1;
-    PWM1_TIM->ARR = period - 1;
-    PWM1_CCR = pulse_time;
-    PWM1_TIM->EGR |= TIM_EGR_UG;
+    if (index == 0) {
+        PWM1_TIM->PSC = prescaler - 1;
+        PWM1_TIM->ARR = period - 1;
+        PWM1_CCR = pulse_time;
+        PWM1_TIM->EGR |= TIM_EGR_UG;
+    }
+    else if (index == 1) {
+        PWM2_TIM->PSC = prescaler - 1;
+        PWM2_TIM->ARR = period - 1;
+        PWM2_CCR = pulse_time;
+        PWM2_TIM->EGR |= TIM_EGR_UG;
+    }
+    else
+        return -1;
 
-    PWM2_TIM->PSC = prescaler - 1;
-    PWM2_TIM->ARR = period - 1;
-    PWM2_CCR = pulse_time;
-    PWM2_TIM->EGR |= TIM_EGR_UG;
+    return 1;
+}
 
-    // Ugh... basically make sure the update event has finished and we can safely mess with CNT
-    while (PWM2_TIM->CNT == 0) {}
-
+int HWSetPwmPhase(uint32_t phase) {
     PWM1_TIM->CNT = 0;
-    PWM2_TIM->CNT = period * phase / 360 - 1;
+    PWM2_TIM->CNT = phase;
+    return 1;
 }
 
 void utilDelayMs(uint32_t milliseconds) {
