@@ -73,13 +73,6 @@
        </widget>
       </item>
       <item>
-       <widget class="Line" name="line_2">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QGroupBox" name="groupBox_11">
         <property name="title">
          <string>Measurement Method</string>
@@ -118,13 +111,6 @@
           </layout>
          </item>
         </layout>
-       </widget>
-      </item>
-      <item>
-       <widget class="Line" name="line">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
        </widget>
       </item>
       <item>
@@ -234,13 +220,6 @@
        </widget>
       </item>
       <item>
-       <widget class="Line" name="line_3">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-       </widget>
-      </item>
-      <item>
        <spacer name="horizontalSpacer_2">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -252,13 +231,6 @@
          </size>
         </property>
        </spacer>
-      </item>
-      <item>
-       <widget class="Line" name="line_4">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-       </widget>
       </item>
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -287,10 +259,7 @@
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="measurementShelf" stretch="1,0,0">
-      <item>
-       <widget class="QCustomPlot" name="meausrementPlot" native="true"/>
-      </item>
+     <layout class="QHBoxLayout" name="measurementShelf" stretch="0,0,1">
       <item>
        <widget class="QWidget" name="frequencyMeasurementRack" native="true">
         <layout class="QVBoxLayout" name="_2">
@@ -695,22 +664,32 @@
         </layout>
        </widget>
       </item>
+      <item>
+       <widget class="QCustomPlot" name="meausrementPlot" native="true"/>
+      </item>
      </layout>
     </item>
     <item>
-     <layout class="QVBoxLayout" name="verticalLayout">
+     <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,0,1">
       <item>
-       <widget class="QGroupBox" name="groupBox_2">
+       <widget class="QGroupBox" name="groupBox_3">
         <property name="title">
-         <string>Signal Generator</string>
+         <string>PWM A</string>
         </property>
-        <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0,1">
+        <layout class="QHBoxLayout" name="horizontalLayout_6">
          <item>
           <layout class="QGridLayout" name="gridLayout">
            <property name="rightMargin">
             <number>0</number>
            </property>
-           <item row="1" column="1">
+           <item row="0" column="0">
+            <widget class="QCheckBox" name="checkBox">
+             <property name="text">
+              <string>enable</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
             <widget class="QDoubleSpinBox" name="pwmFreqSpinner">
              <property name="maximum">
               <double>48000000.000000000000000</double>
@@ -720,21 +699,34 @@
              </property>
             </widget>
            </item>
-           <item row="3" column="0">
+           <item row="4" column="0">
             <widget class="QLabel" name="label_4">
              <property name="text">
               <string>Duty cycle</string>
              </property>
             </widget>
            </item>
-           <item row="3" column="2">
+           <item row="5" column="1">
+            <spacer name="verticalSpacer_3">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="4" column="2">
             <widget class="QLabel" name="label_5">
              <property name="text">
               <string>50 %</string>
              </property>
             </widget>
            </item>
-           <item row="3" column="1">
+           <item row="4" column="1">
             <widget class="QSlider" name="horizontalSlider">
              <property name="enabled">
               <bool>false</bool>
@@ -750,28 +742,7 @@
              </property>
             </widget>
            </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="label_6">
-             <property name="text">
-              <string>PWM A</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="2">
-            <widget class="QLabel" name="pwmFrequencyInfo">
-             <property name="text">
-              <string>1000 Hz</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="label_2">
-             <property name="text">
-              <string>Frequency</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1">
+           <item row="3" column="1">
             <widget class="QSlider" name="horizontalSlider_2">
              <property name="value">
               <number>50</number>
@@ -781,15 +752,38 @@
              </property>
             </widget>
            </item>
-           <item row="0" column="1">
-            <widget class="QCheckBox" name="checkBox">
+           <item row="2" column="2">
+            <widget class="QLabel" name="pwmFrequencyInfo">
              <property name="text">
-              <string>enable</string>
+              <string>1000 Hz</string>
              </property>
             </widget>
            </item>
-           <item row="4" column="1">
-            <spacer name="verticalSpacer_3">
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_2">
+             <property name="text">
+              <string>Frequency</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="groupBox_12">
+        <property name="title">
+         <string>PWM B</string>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_7">
+         <item>
+          <layout class="QGridLayout" name="gridLayout_2">
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <item row="6" column="1">
+            <spacer name="verticalSpacer_4">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
              </property>
@@ -801,15 +795,15 @@
              </property>
             </spacer>
            </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QGridLayout" name="gridLayout_9">
-           <property name="rightMargin">
-            <number>0</number>
-           </property>
-           <item row="1" column="1">
-            <widget class="QDoubleSpinBox" name="pwmFreqSpinner_2">
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_6">
+             <property name="text">
+              <string>Duty cycle</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QDoubleSpinBox" name="pwmFreqSpinner_3">
              <property name="maximum">
               <double>48000000.000000000000000</double>
              </property>
@@ -818,15 +812,8 @@
              </property>
             </widget>
            </item>
-           <item row="3" column="2">
-            <widget class="QLabel" name="label_23">
-             <property name="text">
-              <string>50 %</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1">
-            <widget class="QSlider" name="horizontalSlider_4">
+           <item row="3" column="1">
+            <widget class="QSlider" name="horizontalSlider_6">
              <property name="value">
               <number>50</number>
              </property>
@@ -835,29 +822,36 @@
              </property>
             </widget>
            </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="label_27">
+           <item row="4" column="2">
+            <widget class="QLabel" name="label_28">
+             <property name="text">
+              <string>50 %</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_29">
              <property name="text">
               <string>Frequency</string>
              </property>
             </widget>
            </item>
-           <item row="3" column="0">
-            <widget class="QLabel" name="label_7">
+           <item row="2" column="2">
+            <widget class="QLabel" name="pwmFrequencyInfo_3">
              <property name="text">
-              <string>Duty cycle</string>
+              <string>1000 Hz</string>
              </property>
             </widget>
            </item>
            <item row="0" column="0">
-            <widget class="QLabel" name="label_25">
+            <widget class="QCheckBox" name="checkBox_3">
              <property name="text">
-              <string>PWM B</string>
+              <string>enable</string>
              </property>
             </widget>
            </item>
-           <item row="3" column="1">
-            <widget class="QSlider" name="horizontalSlider_3">
+           <item row="4" column="1">
+            <widget class="QSlider" name="horizontalSlider_5">
              <property name="enabled">
               <bool>false</bool>
              </property>
@@ -872,28 +866,7 @@
              </property>
             </widget>
            </item>
-           <item row="1" column="2">
-            <widget class="QLabel" name="pwmFrequencyInfo_2">
-             <property name="text">
-              <string>1000 Hz</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QCheckBox" name="checkBox_2">
-             <property name="text">
-              <string>enable</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="0">
-            <widget class="QLabel" name="label_9">
-             <property name="text">
-              <string>Relative phase</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="1">
+           <item row="5" column="1">
             <widget class="QSlider" name="relativePhase">
              <property name="minimum">
               <number>-180</number>
@@ -909,7 +882,14 @@
              </property>
             </widget>
            </item>
-           <item row="4" column="2">
+           <item row="5" column="0">
+            <widget class="QLabel" name="label_9">
+             <property name="text">
+              <string>Relative phase</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="2">
             <widget class="QLabel" name="relativePhaseDisplay">
              <property name="text">
               <string>+45 °</string>
@@ -918,11 +898,11 @@
            </item>
           </layout>
          </item>
-         <item>
-          <widget class="QCustomPlot" name="signalGeneratorPlot" native="true"/>
-         </item>
         </layout>
        </widget>
+      </item>
+      <item>
+       <widget class="QCustomPlot" name="meausrementPlot_2" native="true"/>
       </item>
      </layout>
     </item>
