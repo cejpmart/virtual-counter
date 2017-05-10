@@ -39,8 +39,7 @@ private:
 private:
     void setTimeoutErrorFlag();
 
-    std::unique_ptr<QSerialPort> serialPort_;
-    QSerialPort* serialPort = nullptr;      // no other reason than QtCreator's stupidity
+    std::unique_ptr<QSerialPort> serialPort;
 
     std::vector<uint8_t> receivedPacketData;
 };

@@ -1,6 +1,7 @@
 #ifndef MEASUREMENTCONTROLLER_H
 #define MEASUREMENTCONTROLLER_H
 
+#include "guicommon.h"
 #include "serialsession.h"
 
 class MainWindow;
@@ -22,7 +23,7 @@ public:
 signals:
     void instrumentConnected();
     void instrumentFirmwareVersionSet(QString text);
-    void instrumentInfoSet(QString text);
+    void instrumentStatusSet(QString text);
 
     void measurementStarted();
     void measurementFinishedCounting(double frequency, double frequencyError, double period, double periodError);
@@ -30,8 +31,8 @@ signals:
     void measurementFinishedPhase(double channelAFrequency, double channelAPeriod, double interval, double phase);
     void measurementTimedOut();
 
-    void pwmFrequencySet(double frequency);
-    void pwmPhaseSet(int phase);
+    void didSetPwm1(PwmParameters params);
+    void didSetPwm2(PwmParameters params);
 
     void status(QString status);
     void errorSignal(QString err);
@@ -41,8 +42,8 @@ public slots:
     void doMeasurementReciprocal(unsigned int iterations);
     void doMeasurementPhase(Edge edge);
 
-    void setPwmFrequency(double frequency);
-    void setRelativePhase(int phase);
+    void setPwm1(PwmParameters params);
+    void setPwm2(PwmParameters params);
 
     void openInterface(QString path);
 

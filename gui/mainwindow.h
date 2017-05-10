@@ -3,7 +3,9 @@
 
 #include <QMainWindow>
 
+#include "guicommon.h"
 #include "measurementcontroller.h"
+#include "pwmoutputplotcontroller.h"
 
 namespace Ui {
 class MainWindow;
@@ -23,28 +25,26 @@ signals:
     void measurementShouldStartCounting(double gateTime);
     void measurementShouldStartReciprocal(unsigned int iterations);
     void measurementShouldStartPhase(Edge edge);
-    void shouldSetPwmFrequency(double frequency);
-    void shouldSetRelativePhase(int phase);
+    void shouldSetPwm1(PwmParameters params);
+    void shouldSetPwm2(PwmParameters params);
     void shouldOpenInterface(QString path);
 
 private slots:
     void onInstrumentConnected();
-    void onInstrumentFirmwareVersionSet(QString text) {}
-    void onInstrumentInfoSet(QString text);
+    void onInstrumentFirmwareVersionSet(QString text);
+    void onInstrumentStatusSet(QString text);
     void onMeasurementStarted();
     void onMeasurementFinishedCounting(double frequency, double frequencyError, double period, double periodError);
     void onMeasurementFinishedPhase(double channelAFrequency, double channelAPeriod, double interval, double phase);
     void onMeasurementFinishedReciprocal(double frequency, double frequencyError, double period, double periodError, double duty);
     void onMeasurementTimedOut();
     void onOpenInterfaceTriggered(QAction* action);
-    void onPwmFrequencySet(double frequency);
-    void onPwmPhaseSet(int phase);
+    void onPwm1Set(PwmParameters params);
+    void onPwm2Set(PwmParameters params);
 
     void on_measureButton_clicked();
 
     void on_measurementMethodCounting_toggled(bool checked);
-
-    void on_pwmFreqSpinner_valueChanged(double arg1);
 
     void on_measurementCountingGateSelect_currentIndexChanged(int index);
 
@@ -56,7 +56,9 @@ private slots:
 
     void on_actionQuit_triggered();
 
-    void on_relativePhase_valueChanged(int value);
+    void on_pwm1FreqSpinner_valueChanged(double arg1);
+
+    void on_pwm2Phase_valueChanged(int value);
 
 private:
     double getCountingGateTimeSeconds();
@@ -74,16 +76,18 @@ private:
     void statusString(QString text);
     void updateMeasurementFrequencyInfo();
 
+    void updatePwm1();
+    void updatePwm2();
+
     Ui::MainWindow *ui;
 
     MeasurementController* measurementController;
     QThread* measurementControllerThread;
 
-    bool settingPwmFrequency = false, pendingPwmFrequency = false;
-    double targetPwmFrequency;
+    PwmOutputPlotController pwmOutputPlotController;
 
-    bool settingPwmPhase = false, pendingPwmPhase = false;
-    int targetPwmPhase;
+    Parameter<PwmParameters> pwm1;
+    Parameter<PwmParameters> pwm2;
 };
 
 #endif // MAINWINDOW_H

@@ -13,6 +13,7 @@ constexpr const char VERSION[] = "1004";
 MeasurementController::MeasurementController(MainWindow* view) : view(view)
 {
     qRegisterMetaType<Edge>("Edge");
+    qRegisterMetaType<PwmParameters>("PwmParameters");
 }
 
 bool MeasurementController::awaitMeasurementResult(uint8_t which, uint8_t const** reply_payload_out, size_t* reply_length_out) {
@@ -77,6 +78,7 @@ bool MeasurementController::checkFirmwareVersion()
         return false;
     }
 
+    emit instrumentFirmwareVersionSet(versionInfo);
     return true;
 }
 
@@ -220,14 +222,14 @@ void MeasurementController::openInterface(QString path)
     //connect(session.get(), SIGNAL (error(QString)), view, SLOT (statusString(QString)));
 
     // FIXME EEEE
-    connect(this, SIGNAL (status(QString)), view, SLOT (onInstrumentInfoSet(QString)));
-    connect(this, SIGNAL (errorSignal(QString)), view, SLOT (onInstrumentInfoSet(QString)));
+    connect(this, SIGNAL (status(QString)), view, SLOT (onInstrumentStatusSet(QString)));
+    connect(this, SIGNAL (errorSignal(QString)), view, SLOT (onInstrumentStatusSet(QString)));
 
     try {
         session->open(path.toLatin1().data());
     }
     catch (const std::exception& ex) {
-        emit instrumentInfoSet("Failed to open " + path);
+        emit instrumentStatusSet("Failed to open " + path);
         session.reset();
 
         // TODO: set state
@@ -244,7 +246,7 @@ void MeasurementController::openInterface(QString path)
     this->session->sendPacket(CMD_RESET_INSTRUMENT, nullptr, 0);
 
     emit instrumentConnected();
-    emit instrumentInfoSet("Connected " + path);
+    emit instrumentStatusSet("Connected " + path);
 }
 
 bool MeasurementController::sendPacketAndAwaitResultCode(uint8_t tag, const uint8_t* data, size_t length, int* rc_out) {
@@ -266,12 +268,12 @@ bool MeasurementController::sendPacketAndAwaitResultCode(uint8_t tag, const uint
     return false;
 }
 
-void MeasurementController::setPwmFrequency(double frequency)
+void MeasurementController::setPwm1(PwmParameters pwm1)
 {
     if (!session)
         return;
 
-    int period = (int)round(F_CPU / frequency);
+    int period = (int)round(F_CPU / pwm1.freq);
 
     set_pwm_frequency_request_t request;
     request.period = period;
@@ -282,23 +284,44 @@ void MeasurementController::setPwmFrequency(double frequency)
         return;
     }
 
-    double actualFrequency = F_CPU / period;
-    emit pwmFrequencySet(actualFrequency);
+    // Calculate actual frequency
+    pwm1.freq = F_CPU / period;
+
+    emit didSetPwm1(pwm1);
 }
 
-void MeasurementController::setRelativePhase(int phase)
+void MeasurementController::setPwm2(PwmParameters pwm2)
 {
     if (!session)
         return;
 
+    int period = (int)round(F_CPU / pwm2.freq);
+    int phase = pwm2.phase;
+
+    {
+    set_pwm_frequency_request_t request;
+    request.period = period;
+
+    int rc;
+    if (!sendPacketAndAwaitResultCode(CMD_SET_PWM_FREQUENCY, (const uint8_t*) &request, sizeof(request), &rc)) {
+        communicationError();
+        return;
+    }
+    }
+
+    {
     set_pwm_phase_request_t request;
-    request.phase = (int)(phase);   // FIXME
+    request.phase = phase;   // FIXME
 
     int rc;
     if (!sendPacketAndAwaitResultCode(CMD_SET_PWM_PHASE, (const uint8_t*) &request, sizeof(request), &rc)) {
         communicationError();
         return;
     }
+    }
 
-    emit pwmPhaseSet(phase);
+    // Calculate actual frequency
+    pwm2.freq = F_CPU / period;
+
+    emit didSetPwm2(pwm2);
 }

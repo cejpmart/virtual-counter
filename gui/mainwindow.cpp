@@ -27,7 +27,12 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     ui->frequencyMeasurementRack->show();
     ui->intervalMeasurementRack->hide();
+    pwmOutputPlotController.setPlot(ui->pwmOutputPlot);
+    // TODO: call to set PWM
 
+    ui->instrumentDeviceLabel->setText("Not connected");
+    ui->instrumentFirmwareLabel->setText("");
+    ui->instrumentStatusLabel->setText("");
     setMeasuredValuesUnknown();
 
     connect(ui->menuOpenInterface, SIGNAL(triggered(QAction*)), this, SLOT(onOpenInterfaceTriggered(QAction*)));
@@ -56,7 +61,6 @@ MainWindow::MainWindow(QWidget *parent) :
     measurementControllerThread->start();
 
     connect(measurementController, SIGNAL (instrumentConnected()), this, SLOT (onInstrumentConnected()));
-    connect(measurementController, SIGNAL (instrumentInfoSet(QString)), this, SLOT (onInstrumentInfoSet(QString)));
     connect(measurementController, SIGNAL (instrumentFirmwareVersionSet(QString)), this, SLOT (onInstrumentFirmwareVersionSet(QString)));
     connect(measurementController, SIGNAL (measurementStarted()), this, SLOT (onMeasurementStarted()));
     connect(measurementController, SIGNAL (measurementFinishedCounting(double, double, double, double)),
@@ -64,16 +68,16 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(measurementController, SIGNAL (measurementFinishedReciprocal(double, double, double, double, double)),
             this, SLOT (onMeasurementFinishedReciprocal(double, double, double, double, double)));
     connect(measurementController, SIGNAL (measurementFinishedPhase(double, double, double, double)), this, SLOT (onMeasurementFinishedPhase(double, double, double, double)));
-    connect(measurementController, SIGNAL (pwmFrequencySet(double)), this, SLOT (onPwmFrequencySet(double)));
-    connect(measurementController, SIGNAL (pwmPhaseSet(int)), this, SLOT (onPwmPhaseSet(int)));
+    connect(measurementController, SIGNAL (didSetPwm1(PwmParameters)), this, SLOT (onPwm1Set(PwmParameters)));
+    connect(measurementController, SIGNAL (didSetPwm2(PwmParameters)), this, SLOT (onPwm2Set(PwmParameters)));
     connect(measurementController, SIGNAL (measurementTimedOut()), this, SLOT (onMeasurementTimedOut()));
 
     connect(this, SIGNAL (measurementShouldStartCounting(double)), measurementController, SLOT (doMeasurementCounting(double)));
     connect(this, SIGNAL (measurementShouldStartReciprocal(unsigned int)), measurementController, SLOT (doMeasurementReciprocal(unsigned int)));
     connect(this, SIGNAL (measurementShouldStartPhase(Edge)), measurementController, SLOT (doMeasurementPhase(Edge)));
     connect(this, SIGNAL (shouldOpenInterface(QString)), measurementController, SLOT (openInterface(QString)));
-    connect(this, SIGNAL (shouldSetPwmFrequency(double)), measurementController, SLOT (setPwmFrequency(double)));
-    connect(this, SIGNAL (shouldSetRelativePhase(int)), measurementController, SLOT (setRelativePhase(int)));
+    connect(this, SIGNAL (shouldSetPwm1(PwmParameters)), measurementController, SLOT (setPwm1(PwmParameters)));
+    connect(this, SIGNAL (shouldSetPwm2(PwmParameters)), measurementController, SLOT (setPwm2(PwmParameters)));
 
     // Auto-connect
     for (const QSerialPortInfo& port : ports) {
@@ -130,14 +134,22 @@ int MainWindow::getReciprocalIterations()
 
 void MainWindow::onInstrumentConnected()
 {
+    // TODO: port name
+    ui->instrumentDeviceLabel->setText("Connected");
+
     statusString("Ready.");
     ui->measureButton->setEnabled(true);
     ui->continuousMeasurementCheck->setEnabled(true);
 }
 
-void MainWindow::onInstrumentInfoSet(QString text)
+void MainWindow::onInstrumentFirmwareVersionSet(QString text)
 {
-    ui->instrumentInfoLabel->setText(text);
+    ui->instrumentFirmwareLabel->setText(text);
+}
+
+void MainWindow::onInstrumentStatusSet(QString text)
+{
+    ui->instrumentStatusLabel->setText(text);
 }
 
 void MainWindow::onMeasurementFinishedCounting(double frequency, double frequencyError, double period, double periodError)
@@ -184,30 +196,25 @@ void MainWindow::onOpenInterfaceTriggered(QAction* action)
     emit shouldOpenInterface(path);
 }
 
-void MainWindow::onPwmFrequencySet(double frequency)
+void MainWindow::onPwm1Set(PwmParameters params)
 {
-    ui->pwmFrequencyInfo->setText(QString::number(frequency) + " Hz");
+    ui->pwm1FreqLabel->setText(QString::asprintf("%.2f Hz", params.freq));
 
-    if (pendingPwmFrequency) {
-        pendingPwmFrequency = false;
-        emit shouldSetPwmFrequency(targetPwmFrequency);
-    }
-    else
-        settingPwmFrequency = false;
+    if (pwm1.continuePending())
+        emit shouldSetPwm1(pwm1.setpoint);
+
+    pwmOutputPlotController.redraw(pwm1.setpoint, pwm2.setpoint);
 }
 
-void MainWindow::onPwmPhaseSet(int phase)
+void MainWindow::onPwm2Set(PwmParameters params)
 {
-    QString relativePhaseDisplayText;
-    relativePhaseDisplayText.sprintf("%+d °", phase);
-    ui->relativePhaseDisplay->setText(relativePhaseDisplayText);
+    ui->pwm2FreqLabel->setText(QString::asprintf("%.2f Hz", params.freq));
+    ui->pwm2PhaseLabel->setText(QString::asprintf("%+d °", (int) params.phase));
 
-    if (pendingPwmPhase) {
-        pendingPwmPhase = false;
-        emit shouldSetPwmFrequency(targetPwmPhase);
-    }
-    else
-        settingPwmPhase = false;
+    if (pwm2.continuePending())
+        emit shouldSetPwm2(pwm2.setpoint);
+
+    pwmOutputPlotController.redraw(pwm1.setpoint, pwm2.setpoint);
 }
 
 void MainWindow::setMeasuredValuesFrequencyPeriodDuty(double frequency, double frequencyError, double period, double periodError, double duty)
@@ -344,18 +351,6 @@ void MainWindow::on_measurementMethodCounting_toggled(bool checked)
     updateMeasurementFrequencyInfo();
 }
 
-void MainWindow::on_pwmFreqSpinner_valueChanged(double arg1)
-{
-    targetPwmFrequency = arg1;
-
-    if (!settingPwmFrequency) {
-        settingPwmFrequency = true;
-        emit shouldSetPwmFrequency(arg1);
-    }
-    else
-        pendingPwmFrequency = true;
-}
-
 void MainWindow::on_measurementCountingGateSelect_currentIndexChanged(int index)
 {
     updateMeasurementFrequencyInfo();
@@ -393,16 +388,18 @@ void MainWindow::on_actionQuit_triggered()
     this->close();
 }
 
-void MainWindow::on_relativePhase_valueChanged(int value)
+void MainWindow::on_pwm1FreqSpinner_valueChanged(double arg1)
 {
-    /*QString relativePhaseDisplayText;
-    relativePhaseDisplayText.sprintf("%+d °", value);
-    ui->relativePhaseDisplay->setText(relativePhaseDisplayText);*/
+    pwm1.setpoint.freq = arg1;
 
-    targetPwmPhase = value;
+    if (pwm1.startSetting())
+        emit shouldSetPwm1(pwm1.setpoint);
+}
 
-    if (!settingPwmPhase) {
-        settingPwmPhase = true;
-        emit shouldSetRelativePhase(targetPwmPhase);
-    }
+void MainWindow::on_pwm2Phase_valueChanged(int value)
+{
+    pwm2.setpoint.phase = value;
+
+    if (pwm2.startSetting())
+        emit shouldSetPwm2(pwm2.setpoint);
 }

@@ -5,8 +5,7 @@ constexpr int timeout = 1000;
 constexpr bool enableLogging = false;
 
 void SerialSession::open(const char* filename) {
-    serialPort_.reset(new QSerialPort(filename));
-    serialPort = serialPort_.get();
+    serialPort.reset(new QSerialPort(filename));
 
     if (!serialPort->open(QIODevice::ReadWrite)) {
         auto error = (QString) filename + ": " + serialPort->errorString();

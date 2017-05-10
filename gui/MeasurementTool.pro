@@ -20,12 +20,15 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     serialsession.cpp \
     measurementcontroller.cpp \
-    qcustomplot/qcustomplot.cpp
+    qcustomplot/qcustomplot.cpp \
+    pwmoutputplotcontroller.cpp
 
 HEADERS  += mainwindow.h \
     serialsession.h \
     measurementcontroller.h \
-    qcustomplot/qcustomplot.h
+    qcustomplot/qcustomplot.h \
+    pwmoutputplotcontroller.h \
+    guicommon.h
     ../common/protocoldefs.h
 
 FORMS    += mainwindow.ui
