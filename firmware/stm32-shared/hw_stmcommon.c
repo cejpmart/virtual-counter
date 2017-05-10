@@ -5,11 +5,15 @@
 #include "stm32f0xx_hal.h"
 #endif
 
+enum { HW_PRESCALER_MAX = 3 };
+
+enum { SAMPLES_OVERHEAD = 2 };
+
 // ugh! can we fix this?
 extern DMA_HandleTypeDef    INPUT_CAPTURE_HDMA;
 extern TIM_HandleTypeDef    INPUT_CAPTURE_HTIM, TIMEFRAME_HTIM;
 
-static volatile uint32_t dmabuf[252];
+static volatile uint32_t dmabuf[(125 + SAMPLES_OVERHEAD) * 2];
 
 // If hardware pre-scaler is used, dma_num_samples < measurement_num_samples
 static volatile size_t dma_num_samples, measurement_num_samples;
@@ -20,8 +24,6 @@ enum {
     GATE_MODE_TIME,
     GATE_MODE_ETR,
 };
-
-enum { HW_PRESCALER_MAX = 3 };
 
 static int ConfigureAndStartGatedCounting(void) {
     TIM_ClockConfigTypeDef sClockSourceConfig;
@@ -102,7 +104,7 @@ static void DmaStart(size_t num_samples) {
     INPUT_CAPTURE_TIMER->DCR = (TIM_DMABASE_CCR2 | TIM_DMABURSTLENGTH_2TRANSFERS);
     __HAL_TIM_ENABLE_DMA(&INPUT_CAPTURE_HTIM, TIM_DMA_CC2);
 
-    HAL_DMA_Start(&INPUT_CAPTURE_HDMA, (uint32_t) &INPUT_CAPTURE_TIMER->DMAR, (uint32_t) dmabuf, (2 + num_samples) * 2);
+    HAL_DMA_Start(&INPUT_CAPTURE_HDMA, (uint32_t) &INPUT_CAPTURE_TIMER->DMAR, (uint32_t) dmabuf, (SAMPLES_OVERHEAD + num_samples) * 2);
 }
 
 static uint32_t GetHWPrescaler(size_t index) {
@@ -169,7 +171,7 @@ int HWStartPeriodMeasurement(size_t num_samples) {
     }
 #endif
 
-    if ((1 + dma_num_samples) * 8 > sizeof(dmabuf))
+    if ((SAMPLES_OVERHEAD + dma_num_samples) * 8 > sizeof(dmabuf))
         return -1;
 
     // clock

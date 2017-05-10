@@ -72,6 +72,8 @@ private slots:
 
     void on_pwmBEnabled_toggled(bool checked);
 
+    void on_pwmBFreqSpinner_valueChanged(double arg1);
+
 private:
     double getCountingGateTimeSeconds();
     int getReciprocalIterations();

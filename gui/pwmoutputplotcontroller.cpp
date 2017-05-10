@@ -4,13 +4,16 @@ static void renderWaveform(double period_us, QVector<QCPGraphData>& vector, cons
     double period = (1.0 / params.freq) * 1000000;
 
     double t = -period * params.phase / 360;
+
+    while (t > 0)
+        t -= period;
+
     while (t < period_us) {
         vector.push_back({t, 1});
         t += period * params.duty;
-        vector.push_back({t, 1});
+
         vector.push_back({t, 0});
         t += period * (1 - params.duty);
-        vector.push_back({t, 0});
     }
 }
 
@@ -59,11 +62,14 @@ void PwmOutputPlotController::setPlot(QCustomPlot* plot) {
     plot->yAxis->setTicks(false);
 
     pwmGraphs[0] = plot->addGraph();
+    pwmGraphs[0]->setLineStyle(QCPGraph::lsStepLeft);
     pwmGraphs[0]->setName("PWM A [A3]");        // FIXME: port name based on board
-    pwmGraphs[0]->addToLegend();
 
     pwmGraphs[1] = plot->addGraph();
+    pwmGraphs[1]->setLineStyle(QCPGraph::lsStepLeft);
     pwmGraphs[1]->setName("PWM B [A6]");        // FIXME: port name based on board
     pwmGraphs[1]->setPen(QPen(QColor(255, 0, 0)));
+
+    pwmGraphs[0]->addToLegend();
     pwmGraphs[1]->addToLegend();
 }

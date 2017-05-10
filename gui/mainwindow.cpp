@@ -426,6 +426,14 @@ void MainWindow::on_pwmBEnabled_toggled(bool checked)
         emit shouldSetPwm(1, pwm[1].setpoint);
 }
 
+void MainWindow::on_pwmBFreqSpinner_valueChanged(double arg1)
+{
+    pwm[1].setpoint.freq = arg1;
+
+    if (pwm[1].startSetting())
+        emit shouldSetPwm(1, pwm[1].setpoint);
+}
+
 void MainWindow::on_pwm1DutySlider_valueChanged(int value)
 {
     pwm[0].setpoint.duty = value / 100.0f;

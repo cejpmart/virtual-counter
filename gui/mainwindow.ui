@@ -723,7 +723,7 @@
            <item row="0" column="0">
             <widget class="QCheckBox" name="pwmAEnabled">
              <property name="text">
-              <string>enabled</string>
+              <string>Enabled</string>
              </property>
              <property name="checked">
               <bool>true</bool>
@@ -847,7 +847,7 @@
             </widget>
            </item>
            <item row="2" column="1">
-            <widget class="QDoubleSpinBox" name="pwm2FreqSpinner">
+            <widget class="QDoubleSpinBox" name="pwmBFreqSpinner">
              <property name="maximum">
               <double>48000000.000000000000000</double>
              </property>
@@ -893,7 +893,7 @@
            <item row="0" column="0">
             <widget class="QCheckBox" name="pwmBEnabled">
              <property name="text">
-              <string>enabled</string>
+              <string>Enabled</string>
              </property>
              <property name="checked">
               <bool>true</bool>
