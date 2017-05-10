@@ -10,6 +10,8 @@ build_script:
 
     qmake MeasurementTool.pro
 
-    mingw32-make
+    mingw32-make -j
+
 artifacts:
 - path: gui/release/MeasurementTool.exe
+- path: gui/release
