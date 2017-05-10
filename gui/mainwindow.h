@@ -74,6 +74,8 @@ private slots:
 
     void on_continuousMeasurementToggle_clicked();
 
+    void on_actionAbort_measurement_triggered();
+
 private:
     double getCountingGateTimeSeconds();
     int getReciprocalIterations();

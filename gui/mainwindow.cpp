@@ -140,8 +140,8 @@ int MainWindow::getReciprocalIterations()
 
 void MainWindow::onInstrumentConnected()
 {
-    pwm[0].setpoint = {true, 1000, 0.5, 0};
-    pwm[1].setpoint = {true, 1000, 0.5, -45};
+    pwm[0].setpoint = {true, (float) ui->pwm1FreqSpinner->value(), ui->pwm1DutySlider->value() / 100.0f, 0};
+    pwm[1].setpoint = {true, (float) ui->pwmBFreqSpinner->value(), ui->pwm2DutySlider->value() / 100.0f, (float) ui->pwm2Phase->value()};
 
     for (size_t i = 0; i < NUM_PWM; i++) {
         if (pwm[i].startSetting())
@@ -477,4 +477,11 @@ void MainWindow::on_pwm2Phase_valueChanged(int value)
 
     if (pwm[1].startSetting())
         emit shouldSetPwm(1, pwm[1].setpoint);
+}
+
+void MainWindow::on_actionAbort_measurement_triggered()
+{
+    //measurementController->abortMeasurement();
+
+    afterMeasurement();
 }

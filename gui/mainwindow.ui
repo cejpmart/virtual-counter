@@ -282,6 +282,11 @@
            <property name="enabled">
             <bool>false</bool>
            </property>
+           <property name="font">
+            <font>
+             <pointsize>16</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>Run</string>
            </property>
@@ -987,6 +992,7 @@
      </property>
     </widget>
     <addaction name="menuOpenInterface"/>
+    <addaction name="actionAbort_measurement"/>
     <addaction name="actionQuit"/>
    </widget>
    <widget class="QMenu" name="menuV1001">
@@ -1019,6 +1025,11 @@
   <action name="actionAbout_v1002">
    <property name="text">
     <string>About Measurement Tool v1004</string>
+   </property>
+  </action>
+  <action name="actionAbort_measurement">
+   <property name="text">
+    <string>Abort measurement</string>
    </property>
   </action>
  </widget>
