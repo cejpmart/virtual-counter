@@ -41,10 +41,11 @@ win32 {
 
     CONFIG( debug, debug|release ) {
         # debug
-        DEPLOY_TARGET = $$shell_path($${OUT_PWD}/debug/$${TARGET}$${TARGET_CUSTOM_EXT})
+        DEPLOY_TARGET = $$shell_quote($$shell_path($${OUT_PWD}/debug/$${TARGET}$${TARGET_CUSTOM_EXT}))
     } else {
         # release
-        DEPLOY_TARGET = $$shell_path($${OUT_PWD}/release/$${TARGET}$${TARGET_CUSTOM_EXT})
+        #DEPLOY_TARGET = $$shell_quote($$shell_path($${OUT_PWD}/release/$${TARGET}$${TARGET_CUSTOM_EXT}))
+        DEPLOY_TARGET = $$shell_quote($${OUT_PWD}/release/$${TARGET}$${TARGET_CUSTOM_EXT})
     }
 
     # Uncomment the following line to help debug the deploy command when running qmake
