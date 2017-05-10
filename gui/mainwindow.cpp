@@ -5,7 +5,10 @@
 
 #include <cstdio>
 
-enum { UNICODE_INFINITY = 0x221E };
+constexpr QChar UNICODE_INFINITY = 0x221E;
+
+constexpr auto MEASUREMENT_PULSE_COUNT_FREQ_RANGE_STRING =  "0 - 24 000 000 Hz";
+constexpr auto MEASUREMENT_PERIOD_FREQ_RANGE_STRING =       "0 - 12 000 000 Hz";
 
 // http://stackoverflow.com/a/13094362
 static double round_to_digits(double value, int digits)
@@ -105,7 +108,7 @@ double MainWindow::getCountingGateTimeSeconds()
 {
     static const double values[] = {0.1, 1.0, 10.0};
 
-    int index = ui->measurementCountingGateSelect->currentIndex();
+    int index = ui->measurementGateTimeSelect->currentIndex();
 
     if (index >= 0 && (size_t) index < sizeof(values) / sizeof(values[0]))
         return values[index];
@@ -117,7 +120,7 @@ int MainWindow::getReciprocalIterations()
 {
     static const int values[] = {1, 10, 100, 1000};
 
-    int index = ui->reciprocalIterationsSelect->currentIndex();
+    int index = ui->measurementNumPeriodsSelect->currentIndex();
 
     if (index >= 0 && (size_t) index < sizeof(values) / sizeof(values[0]))
         return values[index];
@@ -229,7 +232,7 @@ void MainWindow::setMeasuredValuesFrequencyPeriodDuty(double frequency, double f
     QString periodErrorText;
 
     if (period == INFINITY) {
-        periodText = QChar(UNICODE_INFINITY);
+        periodText = UNICODE_INFINITY;
     }
     else {
         // FIXME
@@ -294,19 +297,19 @@ void MainWindow::setMeasuredValuesUnknown()
 
 void MainWindow::statusString(QString text)
 {
-    ui->statusBar->showMessage(text);
+    ui->instrumentStatusLabel->setText(text);
 }
 
 void MainWindow::updateMeasurementFrequencyInfo()
 {
     if (ui->measurementMethodCounting->isChecked()) {
         ui->measurementResolutionInfo->setText(QString::number(1.0 / getCountingGateTimeSeconds()) + " Hz");
-        ui->measurementRangeInfo->setText("0 - 24 000 000 Hz");
+        ui->measurementRangeInfo->setText(MEASUREMENT_PULSE_COUNT_FREQ_RANGE_STRING);
     }
-    else if (ui->measurementMethodReciprocal->isChecked()) {
+    else if (ui->measurementMethodPeriod->isChecked()) {
         // FIXME
         ui->measurementResolutionInfo->setText(QString::number(1000000000.0 / 48000000.0) + " ns");
-        ui->measurementRangeInfo->setText("0 - 175 000 Hz");
+        ui->measurementRangeInfo->setText(MEASUREMENT_PERIOD_FREQ_RANGE_STRING);
     }
 }
 
@@ -321,11 +324,12 @@ void MainWindow::on_measureButton_clicked()
     if (ui->measurementMethodCounting->isChecked()) {
         emit measurementShouldStartCounting(getCountingGateTimeSeconds());
     }
-    else if (ui->measurementMethodReciprocal->isChecked()) {
+    else if (ui->measurementMethodPeriod->isChecked()) {
         emit measurementShouldStartReciprocal(getReciprocalIterations());
     }
     else if (ui->measurementMethodInterval->isChecked()) {
-        emit measurementShouldStartPhase(ui->intervalEdgeSelect->currentIndex() == 0 ? Edge::rising : Edge::falling);
+        //auto edge = ui->intervalEdgeSelect->currentIndex() == 0 ? Edge::rising : Edge::falling;
+        emit measurementShouldStartPhase(Edge::rising);
     }
 }
 
@@ -336,7 +340,7 @@ void MainWindow::on_measurementMethodCounting_toggled(bool checked)
         ui->intervalMeasurementRack->hide();
     }
 
-    ui->measurementCountingGateSelect->setEnabled(checked);
+    ui->measurementGateTimeSelect->setEnabled(checked);
     updateMeasurementFrequencyInfo();
 }
 
@@ -381,7 +385,7 @@ void MainWindow::on_measurementMethodReciprocal_toggled(bool checked)
         ui->intervalMeasurementRack->hide();
     }
 
-    ui->reciprocalIterationsSelect->setEnabled(checked);
+    ui->measurementNumPeriodsSelect->setEnabled(checked);
 }
 
 void MainWindow::on_actionQuit_triggered()
