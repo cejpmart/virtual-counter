@@ -312,5 +312,8 @@ void MeasurementController::setPwm(size_t index, PwmParameters params)
     params.duty = (float)request.pulse_width / request.period;
     params.phase = (float)request.phase / request.period * 360;
 
+    if (params.phase > 180)
+        params.phase -= 360;
+
     emit didSetPwm(index, params);
 }

@@ -139,7 +139,7 @@ int MainWindow::getReciprocalIterations()
 void MainWindow::onInstrumentConnected()
 {
     pwm[0].setpoint = {true, 1000, 0.5, 0};
-    pwm[1].setpoint = {true, 1000, 0.5, 45};
+    pwm[1].setpoint = {true, 1000, 0.5, -45};
 
     for (size_t i = 0; i < NUM_PWM; i++) {
         if (pwm[i].startSetting())
@@ -219,10 +219,12 @@ void MainWindow::onPwmSet(size_t index, PwmParameters params)
 {
     if (index == 0) {
         ui->pwm1FreqLabel->setText(QString::asprintf("%.2f Hz", params.freq));
+        ui->pwmADutyLabel->setText(QString::asprintf("%d %%", (int)(100 * params.duty)));
     }
     else if (index == 1) {
         ui->pwm2FreqLabel->setText(QString::asprintf("%.2f Hz", params.freq));
         ui->pwm2PhaseLabel->setText(QString::asprintf("%+d °", (int) params.phase));
+        ui->pwmBDutyLabel->setText(QString::asprintf("%d %%", (int)(100 * params.duty)));
     }
 
     if (pwm[index].continuePending())

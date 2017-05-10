@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1074</width>
-    <height>795</height>
+    <height>813</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -761,7 +761,7 @@
             </spacer>
            </item>
            <item row="4" column="2">
-            <widget class="QLabel" name="pwm1DutyLabel">
+            <widget class="QLabel" name="pwmADutyLabel">
              <property name="text">
               <string>50 %</string>
              </property>
@@ -870,7 +870,7 @@
             </widget>
            </item>
            <item row="4" column="2">
-            <widget class="QLabel" name="pwm2DutyLabel">
+            <widget class="QLabel" name="pwmBDutyLabel">
              <property name="text">
               <string>50 %</string>
              </property>
@@ -925,7 +925,7 @@
               <number>180</number>
              </property>
              <property name="value">
-              <number>45</number>
+              <number>-45</number>
              </property>
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
@@ -942,7 +942,7 @@
            <item row="5" column="2">
             <widget class="QLabel" name="pwm2PhaseLabel">
              <property name="text">
-              <string>+45 °</string>
+              <string>-45 °</string>
              </property>
             </widget>
            </item>
