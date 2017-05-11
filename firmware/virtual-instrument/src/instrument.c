@@ -3,8 +3,6 @@
 
 #include "../../../common/protocoldefs.h"
 
-static uint32_t s_cpu_units_per_second;
-
 static int s_instrument_state;
 
 static int s_pwm_phase;
@@ -14,8 +12,7 @@ static struct {
 	int gate_time;
 } s_measurement_state;
 
-void instrumentInit(uint32_t cpu_units_per_second) {
-	s_cpu_units_per_second = cpu_units_per_second;
+void instrumentInit(void) {
 	s_instrument_state = STATE_READY;
 }
 

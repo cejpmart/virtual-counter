@@ -55,13 +55,13 @@ bool SerialSession::awaitPacket(uint8_t* tag_out, uint8_t const** data_out, size
     return QString::fromLatin1(line);
 }*/
 
-bool SerialSession::readString(QString& string_out) {
+/*bool SerialSession::readString(QString& string_out) {
     QElapsedTimer et;
     et.start();
 
     string_out = "";
 
-    while (/*et.elapsed() < timeout*/ 1) {
+    while (et.elapsed() < timeout) {
         if (!serialPort->bytesAvailable())
             serialPort->waitForReadyRead(10);
         else {
@@ -79,7 +79,7 @@ bool SerialSession::readString(QString& string_out) {
 
     setTimeoutErrorFlag();
     return false;
-}
+}*/
 
 bool SerialSession::receivePacket(uint8_t* tag_out, uint8_t const** data_out, size_t* length_out) {
     if (!serialPort)

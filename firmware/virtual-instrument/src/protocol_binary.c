@@ -6,7 +6,10 @@
 
 #include <string.h>
 
-static const char* s_device_name;
+// TODO: compile defs maybe?
+static uint16_t s_board_id;
+static uint16_t s_instrument_version;
+static uint32_t s_f_cpu;
 
 static uint8_t s_rx_packet[32];
 static size_t s_rx_have;
@@ -17,8 +20,10 @@ struct packet {
     uint8_t data[];
 } __attribute__ ((packed));
 
-void protocolBinaryInit(const char* device_version) {
-	s_device_name = device_version;
+void protocolBinaryInit(uint16_t board_id, uint16_t instrument_version, uint32_t f_cpu) {
+	s_board_id = board_id;
+	s_instrument_version = instrument_version;
+	s_f_cpu = f_cpu;
 
 	s_rx_have = 0;
 }
@@ -75,9 +80,15 @@ void protocolBinaryHandle(const uint8_t* data, size_t length) {
         struct packet* reply_packet = (struct packet*) reply_buffer;
 
         switch (packet->tag) {
-        case CMD_QUERY_VERSION:
-            putstr(s_device_name);
+        case CMD_QUERY_INSTRUMENT: {
+            instrument_info_t info = {s_board_id, s_instrument_version, s_f_cpu};
+
+            reply_packet->tag = INFO_INSTRUMENT_INFO;
+            reply_packet->length = sizeof(info);
+            memcpy(reply_packet->data, &info, sizeof(info));
+            sendpacket(reply_packet);
             break;
+        }
 
         case CMD_RESET_INSTRUMENT:
             instrumentReset();

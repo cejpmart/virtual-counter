@@ -1,6 +1,10 @@
 #ifndef GUICOMMON_H
 #define GUICOMMON_H
 
+#include <QString>
+
+#include <qmetatype.h>
+
 template <typename P>
 struct Parameter {
     P setpoint;
@@ -31,9 +35,21 @@ struct Parameter {
     }
 };
 
+struct InstrumentInfo {
+    QString port;
+    QString board;
+    int firmware;
+    unsigned int f_cpu;
+
+    QString portNames[PortName::max];
+};
+
 struct PwmParameters {
     bool enabled = false;
     float freq = 0, duty = 0, phase = 0;
 };
+
+Q_DECLARE_METATYPE(InstrumentInfo);
+Q_DECLARE_METATYPE(PwmParameters);
 
 #endif // GUICOMMON_H

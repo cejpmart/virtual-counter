@@ -21,15 +21,14 @@ public:
     explicit MeasurementController(MainWindow* view);
 
 signals:
-    void instrumentConnected();
-    void instrumentFirmwareVersionSet(QString text);
+    void instrumentConnected(InstrumentInfo info);
     void instrumentStatusSet(QString text);
 
     void measurementStarted();
     void measurementFinishedCounting(double frequency, double frequencyError, double period, double periodError);
     void measurementFinishedReciprocal(double frequency, double frequencyError, double period, double periodError, double duty);
     void measurementFinishedPhase(double channelAFrequency, double channelAPeriod, double interval, double phase);
-    void measurementFinishedFreqRatio(double ratio);
+    void measurementFinishedFreqRatio(double freqRatio, double freqRatioError);
     void measurementTimedOut();
 
     void didSetPwm(size_t index, PwmParameters params);
@@ -61,7 +60,7 @@ private:
     void instrumentStateError();
     void error(QString&& error);
 
-    bool checkFirmwareVersion();
+    bool getInstrumentInfo(InstrumentInfo& info_out);
 
     MainWindow* view;
     std::unique_ptr<SerialSession> session;

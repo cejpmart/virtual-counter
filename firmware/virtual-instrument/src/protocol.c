@@ -38,15 +38,9 @@ void cdcDataIn(const uint8_t* data, size_t length) {
 	}
 }
 
-void protocolInit(const char* device_version, uint32_t cpu_units_per_second) {
-	/*s_device_name = device_name;
-	s_cpu_units_per_second = cpu_units_per_second;
-
-	strncpy((char*) s_device_id.device_name, device_name, sizeof(s_device_id.device_name));
-	s_device_id.cpu_units_per_second = cpu_units_per_second;*/
-
+void protocolInit(uint16_t board_id, uint16_t instrument_version, uint32_t f_cpu) {
 	protocolAsciiInit();
-	protocolBinaryInit(device_version);
+	protocolBinaryInit(board_id, instrument_version, f_cpu);
 
 #ifdef ENABLE_SCPI
 	protocolScpiInit();

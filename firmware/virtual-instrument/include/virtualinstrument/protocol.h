@@ -82,7 +82,7 @@ int cdcDataOut(const uint8_t* data, size_t length);
 
 // instrument.c -> protocol.c
 
-void protocolInit(const char* device_name, uint32_t cpu_units_per_second);
+void protocolInit(uint16_t board_id, uint16_t instrument_version, uint32_t f_cpu);
 void protocolProcess(void);
 
 //void protocolSendHeartbeat(void);	/* TODO: self-handle */

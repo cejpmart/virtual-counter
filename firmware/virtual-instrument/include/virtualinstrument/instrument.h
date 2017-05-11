@@ -12,13 +12,17 @@
 #include <stdint.h>
 
 enum {
-	STATE_READY = 1,
-	STATE_MEASURING = 2,
-	STATE_RESULT_PENDING = 3,
+    INSTRUMENT_VERSION = 1006,
+};
+
+enum {
+    STATE_READY =               1,
+    STATE_MEASURING =           2,
+    STATE_RESULT_PENDING =      3,
 };
 
 // Instrument lifecycle
-void instrumentInit(uint32_t cpu_units_per_second);
+void instrumentInit(void);
 void instrumentReset(void);
 void instrumentProcess(void);
 

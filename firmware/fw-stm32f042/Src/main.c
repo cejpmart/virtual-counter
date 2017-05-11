@@ -51,6 +51,7 @@
 #include "virtualinstrument/protocol.h"
 
 #include "hw_stm32f042.h"
+#include "../../../common/protocoldefs.h"
 
 #include <string.h>
 /* USER CODE END Includes */
@@ -164,15 +165,13 @@ int main(void)
   //HAL_TIM_Base_Start(&HTIM_INPUT_COMPARE);
   //HAL_TIM_Base_Start(&TIMEFRAME_HTIM);
 
-  protocolInit("VirtualInstrument,,1005", SystemCoreClock);
+#ifdef STM32F042F6
+  protocolInit(BOARD_F042F6, INSTRUMENT_VERSION, SystemCoreClock);
+#else
+  protocolInit(BOARD_F042K6_NUCLEO32, INSTRUMENT_VERSION, SystemCoreClock);
+#endif
 
-  instrumentInit(SystemCoreClock);
-
-  //HWSetGeneratorPWM(1, 48, 24);		// 1 MHz
-  //HWSetGeneratorPWM(1, 480, 240);		// 100 kHz
-  //HWSetGeneratorPWM(1, 4800, 2400);		// 10 kHz
-  //HWSetGeneratorPWM(1, 9600, 4800);		// 5 kHz
-  //HWSetGeneratorPWM(1, 48000, 24000, 45);		// 1 kHz
+  instrumentInit();
   /* USER CODE END 2 */
 
   /* Infinite loop */

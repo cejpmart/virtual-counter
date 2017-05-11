@@ -4,7 +4,6 @@
 #include <stdint.h>
 
 enum {
-    CMD_QUERY_VERSION =         '?',
     CMD_SET_MODE_COUNTING =     'q',
 
     CMD_START_MEASUREMENT =     's',
@@ -12,7 +11,8 @@ enum {
     CMD_ABORT_MEASUREMENT =     'a',
 
     CMD_SET_PWM =               0x80,
-    CMD_RESET_INSTRUMENT =      0xA0
+    CMD_RESET_INSTRUMENT =      0xA0,
+    CMD_QUERY_INSTRUMENT =      0xA1,
 };
 
 enum {
@@ -27,12 +27,25 @@ enum {
 enum {
     INFO_RESULT_CODE =          0x10,   // uint8 rc
     INFO_MEASUREMENT_DATA =     0x20,   // uint8 rc + uint8[] data
+    INFO_INSTRUMENT_INFO =      0xA1,   // instrument_info_t
 };
 
 enum {
     RESULT_CODE_BUSY =          0,
     RESULT_CODE_OK =            1,
 };
+
+enum {
+    BOARD_F042F6 =              0x0100,
+    BOARD_F042K6_NUCLEO32 =     0x0200,
+    BOARD_F303_NUCLEO64 =       0x0300,
+};
+
+typedef struct {
+    uint16_t board_id;
+    uint16_t fw_ver;
+    uint32_t f_cpu;
+} __attribute__((packed)) instrument_info_t;
 
 typedef struct {
     uint32_t gate_time;

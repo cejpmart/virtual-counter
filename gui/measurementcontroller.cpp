@@ -3,16 +3,24 @@
 
 #include "../common/protocoldefs.h"
 
-static const double F_CPU = 48000000;
-static const double MIN_REASONABLE_FREQUENCY = 0.000001;
-static const double MIN_REASONABLE_PERIOD = 1.0 / F_CPU;
-static const double USB_CLOCK_TOLERANCE = 0.0005;       // assuming USB 2.0
+constexpr double F_CPU = 48000000;                  // FIXME: use actual f_cpu
+constexpr double MIN_REASONABLE_FREQUENCY = 0.000001;
+constexpr double MIN_REASONABLE_PERIOD = 1.0 / F_CPU;
+constexpr double USB_CLOCK_TOLERANCE = 0.0005;      // assuming USB 2.0
 
-constexpr const char VERSION[] = "1005";
+constexpr uint16_t VERSION = 1006;
+
+constexpr const char* BOARDS[] {
+    "Unknown",
+    "F042F6",
+    "F042K6_Nucleo32",
+    "F303_Nucleo64",
+};
 
 MeasurementController::MeasurementController(MainWindow* view) : view(view)
 {
     qRegisterMetaType<Edge>("Edge");
+    qRegisterMetaType<InstrumentInfo>("InstrumentInfo");
     qRegisterMetaType<PwmParameters>("PwmParameters");
 }
 
@@ -54,32 +62,6 @@ bool MeasurementController::awaitMeasurementResult(uint8_t which, uint8_t const*
     }
 
     return false;
-}
-
-bool MeasurementController::checkFirmwareVersion()
-{
-    Q_ASSERT(session);
-
-    QString versionInfo;
-
-    if (!session->sendPacket(CMD_QUERY_VERSION, nullptr, 0)
-            || !session->readString(versionInfo)) {
-        communicationError();
-        return false;
-    }
-
-    QStringList tokens = versionInfo.split(",");
-
-    if (tokens.size() >= 3)
-        qInfo("%d `%s` `%s`", tokens.size(), qPrintable(tokens[2]), VERSION);
-
-    if (tokens.size() < 3 || tokens[2] != VERSION) {
-        error("Firmware version mismatch");
-        return false;
-    }
-
-    emit instrumentFirmwareVersionSet(versionInfo);
-    return true;
 }
 
 void MeasurementController::closeInterface()
@@ -166,7 +148,7 @@ void MeasurementController::doMeasurementFreqRatio(unsigned int periods)
     if (!doMeasurement(MEASUREMENT_FREQ_RATIO, &request, sizeof(request), &result, sizeof(result)))
         return;
 
-    emit measurementFinishedFreqRatio(result.ratio / 65536.0);
+    emit measurementFinishedFreqRatio(result.ratio / 65536.0, 0);
 }
 
 void MeasurementController::doMeasurementPhase(Edge edge)
@@ -220,6 +202,43 @@ void MeasurementController::error(QString&& error) {
     emit status("Error: " + error);
 }
 
+bool MeasurementController::getInstrumentInfo(InstrumentInfo& info_out)
+{
+    Q_ASSERT(session);
+
+    if (!session->sendPacket(CMD_QUERY_INSTRUMENT, nullptr, 0)) {
+        communicationError();
+        return false;
+    }
+
+    uint8_t reply_tag;
+    const uint8_t* reply_payload;
+    size_t reply_length;
+
+    if (!session->awaitPacket(&reply_tag, &reply_payload, &reply_length)
+            || reply_tag != INFO_INSTRUMENT_INFO
+            || reply_length < sizeof(instrument_info_t)) {
+        communicationError();
+        return false;
+    }
+
+    instrument_info_t iinfo;
+    memcpy(&iinfo, reply_payload, sizeof(iinfo));
+
+    qInfo("board_id=%04X, fw_ver=%d", iinfo.board_id, iinfo.fw_ver);
+
+    if (iinfo.fw_ver != VERSION) {
+        error("Firmware version mismatch");
+        return false;
+    }
+
+    info_out.board = BOARDS[iinfo.board_id >> 8];    // FIXME: overflow!!
+    info_out.firmware = iinfo.fw_ver;
+    info_out.f_cpu = iinfo.f_cpu;
+
+    return true;
+}
+
 void MeasurementController::instrumentStateError()
 {
     error("Instrument state error");
@@ -254,14 +273,19 @@ void MeasurementController::openInterface(QString path)
 
     this->session = std::move(session);
 
-    if (!checkFirmwareVersion()) {
+    InstrumentInfo info;
+    info.port = path;
+
+    if (!getInstrumentInfo(info)) {
         this->session.reset();
         return;
     }
 
+    // TODO: load port definitions
+
     this->session->sendPacket(CMD_RESET_INSTRUMENT, nullptr, 0);
 
-    emit instrumentConnected();
+    emit instrumentConnected(info);
     emit instrumentStatusSet("Connected " + path);
 }
 

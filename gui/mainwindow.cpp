@@ -8,7 +8,7 @@
 constexpr QChar UNICODE_INFINITY = 0x221E;
 
 constexpr auto MEASUREMENT_PULSE_COUNT_FREQ_RANGE_STRING =  "0 - 24 000 000 Hz";
-constexpr auto MEASUREMENT_PERIOD_FREQ_RANGE_STRING =       "0 - 12 000 000 Hz";
+constexpr auto MEASUREMENT_PERIOD_FREQ_RANGE_STRING =       "0 - 1 000 000 Hz";
 
 // http://stackoverflow.com/a/13094362
 static double round_to_digits(double value, int digits)
@@ -27,14 +27,13 @@ MainWindow::MainWindow(QWidget *parent) :
     qRegisterMetaType<size_t>("size_t");
 
     ui->setupUi(this);
-    ui->frequencyMeasurementRack->show();
-    ui->intervalMeasurementRack->hide();
     pwmOutputPlotController.setPlot(ui->pwmOutputPlot);
     pwmOutputPlotController.redraw(pwmActual[0], pwmActual[1]);
 
     ui->instrumentDeviceLabel->setText("Not connected");
     ui->instrumentFirmwareLabel->setText("--");
     ui->instrumentStatusLabel->setText("--");
+    onMeasurementMethodChanged();
     setMeasuredValuesUnknown();
 
     connect(ui->menuOpenInterface, SIGNAL(triggered(QAction*)), this, SLOT(onOpenInterfaceTriggered(QAction*)));
@@ -62,8 +61,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(measurementControllerThread, SIGNAL (finished()), measurementController, SLOT (deleteLater()));
     measurementControllerThread->start();
 
-    connect(measurementController, SIGNAL (instrumentConnected()), this, SLOT (onInstrumentConnected()));
-    connect(measurementController, SIGNAL (instrumentFirmwareVersionSet(QString)), this, SLOT (onInstrumentFirmwareVersionSet(QString)));
+    connect(measurementController, SIGNAL (instrumentConnected(InstrumentInfo)), this, SLOT (onInstrumentConnected(InstrumentInfo)));
     connect(measurementController, SIGNAL (measurementStarted()), this, SLOT (onMeasurementStarted()));
     connect(measurementController, SIGNAL (measurementFinishedCounting(double, double, double, double)),
             this, SLOT (onMeasurementFinishedCounting(double, double, double, double)));
@@ -72,8 +70,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(measurementController, SIGNAL (measurementFinishedPhase(double, double, double, double)),
             this, SLOT (onMeasurementFinishedPhase(double, double, double, double)));
     connect(measurementController, SIGNAL (didSetPwm(size_t, PwmParameters)), this, SLOT (onPwmSet(size_t, PwmParameters)));
-    connect(measurementController, SIGNAL (measurementFinishedFreqRatio(double)),
-            this, SLOT (onMeasurementFinishedFreqRatio(double)));
+    connect(measurementController, SIGNAL (measurementFinishedFreqRatio(double, double)),
+            this, SLOT (onMeasurementFinishedFreqRatio(double, double)));
     connect(measurementController, SIGNAL (measurementTimedOut()), this, SLOT (onMeasurementTimedOut()));
 
     connect(this, SIGNAL (measurementShouldStartCounting(double)), measurementController, SLOT (doMeasurementCounting(double)));
@@ -138,7 +136,7 @@ int MainWindow::getReciprocalIterations()
         return 1;
 }
 
-void MainWindow::onInstrumentConnected()
+void MainWindow::onInstrumentConnected(InstrumentInfo info)
 {
     pwm[0].setpoint = {true, (float) ui->pwm1FreqSpinner->value(), ui->pwm1DutySlider->value() / 100.0f, 0};
     pwm[1].setpoint = {true, (float) ui->pwmBFreqSpinner->value(), ui->pwm2DutySlider->value() / 100.0f, (float) ui->pwm2Phase->value()};
@@ -148,17 +146,12 @@ void MainWindow::onInstrumentConnected()
             emit shouldSetPwm(i, pwm[i].setpoint);
     }
 
-    // TODO: port name
-    ui->instrumentDeviceLabel->setText("Connected");
+    ui->instrumentDeviceLabel->setText("Connected (" + info.port + ")");
+    ui->instrumentFirmwareLabel->setText(info.board + "," + QString::number(info.firmware));
 
     statusString("Ready.");
     ui->measureButton->setEnabled(true);
     ui->continuousMeasurementToggle->setEnabled(true);
-}
-
-void MainWindow::onInstrumentFirmwareVersionSet(QString text)
-{
-    ui->instrumentFirmwareLabel->setText(text);
 }
 
 void MainWindow::onInstrumentStatusSet(QString text)
@@ -173,9 +166,9 @@ void MainWindow::onMeasurementFinishedCounting(double frequency, double frequenc
     afterMeasurement();
 }
 
-void MainWindow::onMeasurementFinishedFreqRatio(double ratio)
+void MainWindow::onMeasurementFinishedFreqRatio(double freqRatio, double freqRatioError)
 {
-    qInfo("freq ratio %.2f", ratio);
+    setMeasuredValuesFreqRatio(freqRatio, freqRatioError);
 
     afterMeasurement();
 }
@@ -192,6 +185,31 @@ void MainWindow::onMeasurementFinishedReciprocal(double frequency, double freque
     setMeasuredValuesFrequencyPeriodDuty(frequency, frequencyError, period, periodError, duty);
 
     afterMeasurement();
+}
+
+void MainWindow::onMeasurementMethodChanged()
+{
+    ui->measurementGateTimeSelect->setEnabled(ui->measurementMethodCounting->isChecked());
+    ui->measurementNumPeriodsSelect->setEnabled(ui->measurementMethodPeriod->isChecked() || ui->measurementMethodFreqRatio->isChecked());
+
+    // Racks
+    if (ui->measurementMethodCounting->isChecked() || ui->measurementMethodPeriod->isChecked()) {
+        ui->frequencyMeasurementRack->show();
+        ui->intervalMeasurementRack->hide();
+        ui->freqRatioMeasurementRack->hide();
+    }
+    else if (ui->measurementMethodInterval->isChecked()) {
+        ui->frequencyMeasurementRack->hide();
+        ui->intervalMeasurementRack->show();
+        ui->freqRatioMeasurementRack->hide();
+    }
+    else if (ui->measurementMethodFreqRatio->isChecked()) {
+        ui->frequencyMeasurementRack->hide();
+        ui->intervalMeasurementRack->hide();
+        ui->freqRatioMeasurementRack->show();
+    }
+
+    updateMeasurementFrequencyInfo();
 }
 
 void MainWindow::onMeasurementStarted()
@@ -270,7 +288,7 @@ void MainWindow::setMeasuredValuesFrequencyPeriodDuty(double frequency, double f
         periodText = UNICODE_INFINITY;
     }
     else {
-        // FIXME
+        // FIXME: number formating, number of decimal places
         periodText.sprintf("%11.9f", period);;
     }
 
@@ -280,6 +298,12 @@ void MainWindow::setMeasuredValuesFrequencyPeriodDuty(double frequency, double f
     unfade(ui->measuredPeriodErrorValue, periodErrorText);
 
     unfade(ui->measuredDutyValue, duty > 0.001 ? QString::number(duty) : QString("N/A"));
+}
+
+void MainWindow::setMeasuredValuesFreqRatio(double freqRatio, double freqRatioError)
+{
+    unfade(ui->measuredFreqRatioValue, QString::asprintf("%.2f", freqRatio));
+    unfade(ui->measuredFreqRatioError, QString::asprintf("+/- %.2f", freqRatioError));
 }
 
 void MainWindow::setMeasuredValuesInvalid()
@@ -296,6 +320,9 @@ void MainWindow::setMeasuredValuesInvalid()
     fade(ui->channelAPeriod);
     fade(ui->measuredInterval);
     fade(ui->measuredPhase);
+
+    fade(ui->measuredFreqRatioValue);
+    fade(ui->measuredFreqRatioError);
 }
 
 void MainWindow::setMeasuredValuesFrequencyPeriodIntervalPhase(double channelAFrequency, double channelAPeriod, double interval, double phase) {
@@ -328,6 +355,9 @@ void MainWindow::setMeasuredValuesUnknown()
     ui->channelAPeriod->setText("?");
     ui->measuredInterval->setText("?");
     ui->measuredPhase->setText("?");
+
+    ui->measuredFreqRatioValue->setText("?");
+    ui->measuredFreqRatioError->setText("?");
 }
 
 void MainWindow::statusString(QString text)
@@ -342,7 +372,7 @@ void MainWindow::updateMeasurementFrequencyInfo()
         ui->measurementRangeInfo->setText(MEASUREMENT_PULSE_COUNT_FREQ_RANGE_STRING);
     }
     else if (ui->measurementMethodPeriod->isChecked()) {
-        // FIXME
+        // FIXME: number formatting, correctnes
         ui->measurementResolutionInfo->setText(QString::number(1000000000.0 / 48000000.0) + " ns");
         ui->measurementRangeInfo->setText(MEASUREMENT_PERIOD_FREQ_RANGE_STRING);
     }
@@ -373,39 +403,29 @@ void MainWindow::on_measureButton_clicked()
     }
 }
 
-void MainWindow::on_measurementMethodCounting_toggled(bool checked)
+void MainWindow::on_measurementGateTimeSelect_currentIndexChanged(int index)
 {
-    if (checked) {
-        ui->frequencyMeasurementRack->show();
-        ui->intervalMeasurementRack->hide();
-    }
-
-    ui->measurementGateTimeSelect->setEnabled(checked);
     updateMeasurementFrequencyInfo();
 }
 
-void MainWindow::on_measurementCountingGateSelect_currentIndexChanged(int index)
+void MainWindow::on_measurementMethodCounting_toggled(bool checked)
 {
-    updateMeasurementFrequencyInfo();
+    onMeasurementMethodChanged();
+}
+
+void MainWindow::on_measurementMethodFreqRatio_toggled(bool checked)
+{
+    onMeasurementMethodChanged();
 }
 
 void MainWindow::on_measurementMethodInterval_toggled(bool checked)
 {
-    // FIXME: just add a measurementMethodChanged()
-    if (checked) {
-        ui->frequencyMeasurementRack->hide();
-        ui->intervalMeasurementRack->show();
-    }
+    onMeasurementMethodChanged();
 }
 
 void MainWindow::on_measurementMethodPeriod_toggled(bool checked)
 {
-    if (checked) {
-        ui->frequencyMeasurementRack->show();
-        ui->intervalMeasurementRack->hide();
-    }
-
-    ui->measurementNumPeriodsSelect->setEnabled(checked);
+    onMeasurementMethodChanged();
 }
 
 void MainWindow::on_actionQuit_triggered()

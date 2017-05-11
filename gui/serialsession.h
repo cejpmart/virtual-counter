@@ -20,7 +20,7 @@ public:
     bool receivePacket(uint8_t* tag_out, uint8_t const** data_out, size_t* length_out);
     bool sendPacket(uint8_t tag, const uint8_t* data, size_t length);
 
-    bool readString(QString& string_out);
+    //bool readString(QString& string_out);
 
 private:
     //size_t read(const uint8_t* bytes, size_t length);

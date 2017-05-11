@@ -34,14 +34,13 @@ signals:
     void shouldSetPwm(size_t index, PwmParameters params);
 
 private slots:
-    void onInstrumentConnected();
-    void onInstrumentFirmwareVersionSet(QString text);
+    void onInstrumentConnected(InstrumentInfo info);
     void onInstrumentStatusSet(QString text);
     void onMeasurementStarted();
     void onMeasurementFinishedCounting(double frequency, double frequencyError, double period, double periodError);
     void onMeasurementFinishedPhase(double channelAFrequency, double channelAPeriod, double interval, double phase);
     void onMeasurementFinishedReciprocal(double frequency, double frequencyError, double period, double periodError, double duty);
-    void onMeasurementFinishedFreqRatio(double ratio);
+    void onMeasurementFinishedFreqRatio(double freqRatio, double freqRatioError);
     void onMeasurementTimedOut();
     void onOpenInterfaceTriggered(QAction* action);
     void onPwmSet(size_t index, PwmParameters params);
@@ -49,8 +48,6 @@ private slots:
     void on_measureButton_clicked();
 
     void on_measurementMethodCounting_toggled(bool checked);
-
-    void on_measurementCountingGateSelect_currentIndexChanged(int index);
 
     void on_measurementMethodInterval_toggled(bool checked);
 
@@ -76,6 +73,10 @@ private slots:
 
     void on_actionAbort_measurement_triggered();
 
+    void on_measurementMethodFreqRatio_toggled(bool checked);
+
+    void on_measurementGateTimeSelect_currentIndexChanged(int index);
+
 private:
     double getCountingGateTimeSeconds();
     int getReciprocalIterations();
@@ -85,10 +86,12 @@ private:
     void fade(QLabel* label);
     void unfade(QLabel* label, const QString& text);
 
+    void onMeasurementMethodChanged();
     void setContinousMeasurement(bool enabled);
     void setMeasuredValuesFrequencyPeriodDuty(double frequency, double frequencyError, double period, double periodError, double duty);
     void setMeasuredValuesInvalid();
     void setMeasuredValuesFrequencyPeriodIntervalPhase(double channelAFrequency, double channelAPeriod, double interval, double phase);
+    void setMeasuredValuesFreqRatio(double freqRatio, double freqRatioError);
     void setMeasuredValuesUnknown();
     void statusString(QString text);
     void updateMeasurementFrequencyInfo();
