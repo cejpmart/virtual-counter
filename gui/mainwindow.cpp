@@ -23,13 +23,13 @@ static double round_to_digits(double value, int digits)
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    pwmOutputPlotController(ipm)
+    pwmOutputPlotView(ipm)
 {
     qRegisterMetaType<size_t>("size_t");
 
     ui->setupUi(this);
-    pwmOutputPlotController.init(ui->pwmOutputPlot);
-    pwmOutputPlotController.redraw(pwmActual[0], pwmActual[1]);
+    pwmOutputPlotView.init(ui->pwmOutputPlot);
+    pwmOutputPlotView.redraw(pwmActual[0], pwmActual[1]);
 
     ui->instrumentDeviceLabel->setText("Not connected");
     ui->instrumentFirmwareLabel->setText("--");
@@ -172,7 +172,7 @@ void MainWindow::loadIpm(QString boardName)
 void MainWindow::onInstrumentConnected(InstrumentInfo info)
 {
     loadIpm(info.board);
-    pwmOutputPlotController.resetInstrument();
+    pwmOutputPlotView.resetInstrument();
 
     pwm[0].setpoint = {true, (float) ui->pwm1FreqSpinner->value(), ui->pwm1DutySlider->value() / 100.0f, 0};
     pwm[1].setpoint = {true, (float) ui->pwmBFreqSpinner->value(), ui->pwm2DutySlider->value() / 100.0f, (float) ui->pwm2Phase->value()};
@@ -287,7 +287,7 @@ void MainWindow::onPwmSet(size_t index, PwmParameters params)
         emit shouldSetPwm(index, pwm[index].setpoint);
 
     pwmActual[index] = params;
-    pwmOutputPlotController.redraw(pwmActual[0], pwmActual[1]);
+    pwmOutputPlotView.redraw(pwmActual[0], pwmActual[1]);
 }
 
 void MainWindow::setContinousMeasurement(bool enabled)

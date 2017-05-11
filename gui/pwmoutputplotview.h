@@ -1,5 +1,5 @@
-#ifndef PWMOUTPUTPLOTCONTROLLER_H
-#define PWMOUTPUTPLOTCONTROLLER_H
+#ifndef PWMOUTPUTPLOTVIEW_H
+#define PWMOUTPUTPLOTVIEW_H
 
 #include <QObject>
 
@@ -9,11 +9,11 @@
 
 #include "guicommon.h"
 
-class PwmOutputPlotController : public QObject
+class PwmOutputPlotView : public QObject
 {
     Q_OBJECT
 public:
-    explicit PwmOutputPlotController(InstrumentParameterMap& ipm) : ipm(ipm) {}
+    explicit PwmOutputPlotView(InstrumentParameterMap& ipm) : ipm(ipm) {}
     void init(QtCharts::QChartView* view);
 
     void redraw(const PwmParameters& pwm1, const PwmParameters& pwm2);
@@ -30,4 +30,4 @@ private:
     QtCharts::QLineSeries* pwmGraphs[2] = {nullptr, nullptr};
 };
 
-#endif // PWMOUTPUTPLOTCONTROLLER_H
+#endif // PWMOUTPUTPLOTVIEW_H

@@ -1,4 +1,4 @@
-#include "pwmoutputplotcontroller.h"
+#include "pwmoutputplotview.h"
 
 #include <QtCharts/QValueAxis>
 
@@ -23,18 +23,20 @@ static void renderWaveform(double period_us, QtCharts::QXYSeries& series, const 
     }
 }
 
-void PwmOutputPlotController::init(QtCharts::QChartView* view) {
+void PwmOutputPlotView::init(QtCharts::QChartView* view) {
     chart = new QtCharts::QChart();
 
     chart->legend()->setVisible(true);
 
     pwmGraphs[0] = new QtCharts::QLineSeries();
-
     pwmGraphs[1] = new QtCharts::QLineSeries();
-    pwmGraphs[1]->setPen(QPen(QColor(255, 0, 0)));
 
     chart->addSeries(pwmGraphs[0]);
     chart->addSeries(pwmGraphs[1]);
+
+    // Must be done after adding to chart
+    auto pen0 = pwmGraphs[0]->pen(); pen0.setStyle(Qt::DotLine); pwmGraphs[0]->setPen(pen0);
+    auto pen1 = pwmGraphs[1]->pen(); pen1.setStyle(Qt::DotLine); pwmGraphs[1]->setPen(pen1);
 
     auto axisX = new QtCharts::QValueAxis();
     axisX->setTitleText("Time [us]");
@@ -55,7 +57,7 @@ void PwmOutputPlotController::init(QtCharts::QChartView* view) {
     view->setChart(chart);
 }
 
-void PwmOutputPlotController::redraw(const PwmParameters& pwm1, const PwmParameters& pwm2)
+void PwmOutputPlotView::redraw(const PwmParameters& pwm1, const PwmParameters& pwm2)
 {
     if (!chart)
         return;
@@ -82,7 +84,7 @@ void PwmOutputPlotController::redraw(const PwmParameters& pwm1, const PwmParamet
         chart->axisX()->setRange(0, totalPeriod_us);
 }
 
-void PwmOutputPlotController::resetInstrument()
+void PwmOutputPlotView::resetInstrument()
 {
     pwmGraphs[0]->setName("PWM A [" + ipm.value("port.pwm_a") + "]");
     pwmGraphs[1]->setName("PWM B [" + ipm.value("port.pwm_b") + "]");
