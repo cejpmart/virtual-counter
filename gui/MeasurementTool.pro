@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui serialport
+QT       += core charts gui serialport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -20,13 +20,11 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     serialsession.cpp \
     measurementcontroller.cpp \
-    qcustomplot/qcustomplot.cpp \
     pwmoutputplotcontroller.cpp
 
 HEADERS  += mainwindow.h \
     serialsession.h \
     measurementcontroller.h \
-    qcustomplot/qcustomplot.h \
     pwmoutputplotcontroller.h \
     guicommon.h
     ../common/protocoldefs.h

@@ -305,7 +305,7 @@
      </widget>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="measurementShelf" stretch="0,0,0,1">
+     <layout class="QHBoxLayout" name="measurementShelf" stretch="0,0,0,0">
       <item>
        <widget class="QWidget" name="frequencyMeasurementRack" native="true">
         <layout class="QVBoxLayout" name="_2">
@@ -806,7 +806,19 @@
        </widget>
       </item>
       <item>
-       <widget class="QCustomPlot" name="meausrementPlot" native="true"/>
+       <widget class="QStackedWidget" name="stackedWidget">
+        <property name="currentIndex">
+         <number>1</number>
+        </property>
+        <widget class="QWidget" name="page"/>
+        <widget class="QWidget" name="page_2">
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <item>
+           <widget class="QtCharts::QChartView" name="measurementChart" native="true"/>
+          </item>
+         </layout>
+        </widget>
+       </widget>
       </item>
      </layout>
     </item>
@@ -1062,7 +1074,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QCustomPlot" name="pwmOutputPlot" native="true"/>
+       <widget class="QtCharts::QChartView" name="pwmOutputPlot" native="true"/>
       </item>
      </layout>
     </item>
@@ -1131,9 +1143,9 @@
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>QCustomPlot</class>
+   <class>QtCharts::QChartView</class>
    <extends>QWidget</extends>
-   <header>qcustomplot.h</header>
+   <header location="global">QtCharts/QChartView</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

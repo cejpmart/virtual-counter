@@ -1,6 +1,10 @@
 #include "pwmoutputplotcontroller.h"
 
-static void renderWaveform(double period_us, QVector<QCPGraphData>& vector, const PwmParameters& params) {
+#include <QtCharts/QValueAxis>
+
+#include <QLayout>
+
+static void renderWaveform(double period_us, QtCharts::QXYSeries& series, const PwmParameters& params) {
     double period = (1.0 / params.freq) * 1000000;
 
     double t = -period * params.phase / 360;
@@ -9,37 +13,51 @@ static void renderWaveform(double period_us, QVector<QCPGraphData>& vector, cons
         t -= period;
 
     while (t < period_us) {
-        vector.push_back({t, 1});
+        series.append(t, 1);
         t += period * params.duty;
+        series.append(t, 1);
 
-        vector.push_back({t, 0});
+        series.append(t, 0);
         t += period * (1 - params.duty);
+        series.append(t, 0);
     }
 }
 
-void PwmOutputPlotController::init(QCustomPlot* plot) {
-    this->plot = plot;
+void PwmOutputPlotController::init(QtCharts::QChartView* view) {
+    chart = new QtCharts::QChart();
 
-    plot->legend->setVisible(true);
-    plot->xAxis->setLabel("Time [us]");
-    plot->yAxis->setLabel("Signal");
-    plot->yAxis->setRange(0, 2);
-    plot->yAxis->setTicks(false);
+    chart->legend()->setVisible(true);
 
-    pwmGraphs[0] = plot->addGraph();
-    pwmGraphs[0]->setLineStyle(QCPGraph::lsStepLeft);
+    pwmGraphs[0] = new QtCharts::QLineSeries();
 
-    pwmGraphs[1] = plot->addGraph();
-    pwmGraphs[1]->setLineStyle(QCPGraph::lsStepLeft);
+    pwmGraphs[1] = new QtCharts::QLineSeries();
     pwmGraphs[1]->setPen(QPen(QColor(255, 0, 0)));
 
-    pwmGraphs[0]->addToLegend();
-    pwmGraphs[1]->addToLegend();
+    chart->addSeries(pwmGraphs[0]);
+    chart->addSeries(pwmGraphs[1]);
+
+    auto axisX = new QtCharts::QValueAxis();
+    axisX->setTitleText("Time [us]");
+    chart->setAxisX(axisX);
+    pwmGraphs[0]->attachAxis(axisX);
+    pwmGraphs[1]->attachAxis(axisX);
+
+    auto axisY = new QtCharts::QValueAxis();
+    axisY->setTitleText("Signal");
+    axisY->setMinorTickCount(0);
+    axisY->setRange(0, 2);
+    axisY->setTickCount(0);
+    chart->setAxisY(axisY);
+    pwmGraphs[0]->attachAxis(axisY);
+    pwmGraphs[1]->attachAxis(axisY);
+
+    chart->setMargins(QMargins());
+    view->setChart(chart);
 }
 
 void PwmOutputPlotController::redraw(const PwmParameters& pwm1, const PwmParameters& pwm2)
 {
-    if (!plot)
+    if (!chart)
         return;
 
     double pwm1period_us = (pwm1.enabled) ? (1.0 / pwm1.freq) * 1000000 : 1e-9;
@@ -48,24 +66,20 @@ void PwmOutputPlotController::redraw(const PwmParameters& pwm1, const PwmParamet
     double totalPeriod_us = std::max(pwm1period_us * 3, pwm2period_us * 3);
 
     if (pwm1.enabled) {
-        QVector<QCPGraphData> newData;
-        renderWaveform(totalPeriod_us, newData, pwm1);
-        pwmGraphs[0]->data()->set(newData, true);
+        pwmGraphs[0]->clear();
+        renderWaveform(totalPeriod_us, *pwmGraphs[0], pwm1);
     }
 
     if (pwm2.enabled) {
-        QVector<QCPGraphData> newData;
-        renderWaveform(totalPeriod_us, newData, pwm2);
-        pwmGraphs[1]->data()->set(newData, true);
+        pwmGraphs[1]->clear();
+        renderWaveform(totalPeriod_us, *pwmGraphs[1], pwm2);
     }
 
     pwmGraphs[0]->setVisible(pwm1.enabled);
     pwmGraphs[1]->setVisible(pwm2.enabled);
 
     if (totalPeriod_us > 1e-6)
-        plot->xAxis->setRange(0, totalPeriod_us);
-
-    plot->replot();
+        chart->axisX()->setRange(0, totalPeriod_us);
 }
 
 void PwmOutputPlotController::resetInstrument()

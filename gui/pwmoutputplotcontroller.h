@@ -3,7 +3,9 @@
 
 #include <QObject>
 
-#include "qcustomplot.h"
+#include <QtCharts/QChart>
+#include <QtCharts/QChartView>
+#include <QtCharts/QLineSeries>
 
 #include "guicommon.h"
 
@@ -12,7 +14,7 @@ class PwmOutputPlotController : public QObject
     Q_OBJECT
 public:
     explicit PwmOutputPlotController(InstrumentParameterMap& ipm) : ipm(ipm) {}
-    void init(QCustomPlot* plot);
+    void init(QtCharts::QChartView* view);
 
     void redraw(const PwmParameters& pwm1, const PwmParameters& pwm2);
     void resetInstrument();
@@ -24,8 +26,8 @@ public slots:
 private:
     InstrumentParameterMap& ipm;
 
-    QCustomPlot* plot = nullptr;
-    QCPGraph* pwmGraphs[2] = {nullptr, nullptr};
+    QtCharts::QChart* chart = nullptr;
+    QtCharts::QLineSeries* pwmGraphs[2] = {nullptr, nullptr};
 };
 
 #endif // PWMOUTPUTPLOTCONTROLLER_H
