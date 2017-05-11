@@ -37,50 +37,6 @@ bool SerialSession::awaitPacket(uint8_t* tag_out, uint8_t const** data_out, size
     return false;
 }
 
-/*QString SerialSession::readLine(int timeout) {
-    if (!serialPort->canReadLine())
-        serialPort->waitForReadyRead(timeout);
-
-    if (!serialPort->canReadLine())
-        return "ERROR";
-
-    QByteArray line = serialPort->readLine();
-    printf("%s", line.data());
-
-    while (line.size() && isspace(line[line.size() - 1])) {
-        line[line.size() - 1] = 0;      // this is needed, but why?!
-        line.truncate(line.size() - 1);
-    }
-
-    return QString::fromLatin1(line);
-}*/
-
-/*bool SerialSession::readString(QString& string_out) {
-    QElapsedTimer et;
-    et.start();
-
-    string_out = "";
-
-    while (et.elapsed() < timeout) {
-        if (!serialPort->bytesAvailable())
-            serialPort->waitForReadyRead(10);
-        else {
-            char c;
-
-            if (!serialPort->read(&c, 1))
-                continue;
-
-            if (!c)
-                return true;
-
-            string_out.append(c);
-        }
-    }
-
-    setTimeoutErrorFlag();
-    return false;
-}*/
-
 bool SerialSession::receivePacket(uint8_t* tag_out, uint8_t const** data_out, size_t* length_out) {
     if (!serialPort)
         return false;
@@ -146,18 +102,3 @@ size_t SerialSession::write(const uint8_t* bytes, size_t length) {
     auto written = serialPort->write((const char*) bytes, length);
     return written;
 }
-
-/*void SerialSession::writeLine(QString text) {
-    text += "\n";
-
-    QByteArray bytes = text.toLatin1();
-    serialPort->write(bytes);
-
-    printf("%s", bytes.data());
-
-    // Needed because of bugs in USB device implementation :(
-    QThread::msleep(50);
-
-    //serialPort->flush();
-    //serialPort->waitForBytesWritten(-1);
-}*/
