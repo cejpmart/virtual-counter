@@ -96,10 +96,12 @@ private:
     void statusString(QString text);
     void updateMeasurementFrequencyInfo();
 
+    void loadIpm(QString boardName);
     void updatePwm1();
     void updatePwm2();
 
     Ui::MainWindow *ui;
+    InstrumentParameterMap ipm;
 
     MeasurementController* measurementController;
     QThread* measurementControllerThread;

@@ -11,18 +11,21 @@ class PwmOutputPlotController : public QObject
 {
     Q_OBJECT
 public:
-    explicit PwmOutputPlotController();
+    explicit PwmOutputPlotController(InstrumentParameterMap& ipm) : ipm(ipm) {}
+    void init(QCustomPlot* plot);
 
     void redraw(const PwmParameters& pwm1, const PwmParameters& pwm2);
-    void setPlot(QCustomPlot* plot);
+    void resetInstrument();
 
 signals:
 
 public slots:
 
 private:
+    InstrumentParameterMap& ipm;
+
     QCustomPlot* plot = nullptr;
-    QCPGraph* pwmGraphs[2];// = {nullptr, nullptr};
+    QCPGraph* pwmGraphs[2] = {nullptr, nullptr};
 };
 
 #endif // PWMOUTPUTPLOTCONTROLLER_H

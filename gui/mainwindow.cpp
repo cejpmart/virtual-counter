@@ -22,12 +22,13 @@ static double round_to_digits(double value, int digits)
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    pwmOutputPlotController(ipm)
 {
     qRegisterMetaType<size_t>("size_t");
 
     ui->setupUi(this);
-    pwmOutputPlotController.setPlot(ui->pwmOutputPlot);
+    pwmOutputPlotController.init(ui->pwmOutputPlot);
     pwmOutputPlotController.redraw(pwmActual[0], pwmActual[1]);
 
     ui->instrumentDeviceLabel->setText("Not connected");
@@ -136,8 +137,43 @@ int MainWindow::getReciprocalIterations()
         return 1;
 }
 
+void MainWindow::loadIpm(QString boardName)
+{
+    ipm.clear();
+
+    auto dir = QCoreApplication::applicationDirPath();
+    auto fileName = dir + "/" + boardName + ".txt";
+
+    QFile inputFile(fileName);
+    QVector<QString> tokens;
+
+    if (inputFile.open(QIODevice::ReadOnly)) {
+        QTextStream in(&inputFile);
+
+        while (!in.atEnd()) {
+            QString line = in.readLine();
+
+            if (line.size() == 0 || line[0] == '#')
+                continue;
+
+            auto tokens = line.split('=');
+
+            if (tokens.size() >= 2) {
+                ipm.insert(tokens[0], tokens[1]);
+            }
+        }
+
+        inputFile.close();
+    }
+    else
+        qWarning("Failed to open '%s'", qPrintable(fileName));
+}
+
 void MainWindow::onInstrumentConnected(InstrumentInfo info)
 {
+    loadIpm(info.board);
+    pwmOutputPlotController.resetInstrument();
+
     pwm[0].setpoint = {true, (float) ui->pwm1FreqSpinner->value(), ui->pwm1DutySlider->value() / 100.0f, 0};
     pwm[1].setpoint = {true, (float) ui->pwmBFreqSpinner->value(), ui->pwm2DutySlider->value() / 100.0f, (float) ui->pwm2Phase->value()};
 

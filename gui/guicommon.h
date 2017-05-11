@@ -1,6 +1,7 @@
 #ifndef GUICOMMON_H
 #define GUICOMMON_H
 
+#include <QHash>
 #include <QString>
 
 #include <qmetatype.h>
@@ -40,9 +41,9 @@ struct InstrumentInfo {
     QString board;
     int firmware;
     unsigned int f_cpu;
-
-    QString portNames[PortName::max];
 };
+
+typedef QHash<QString, QString> InstrumentParameterMap;
 
 struct PwmParameters {
     bool enabled = false;

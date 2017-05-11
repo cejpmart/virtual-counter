@@ -17,8 +17,24 @@ static void renderWaveform(double period_us, QVector<QCPGraphData>& vector, cons
     }
 }
 
-PwmOutputPlotController::PwmOutputPlotController()
-{
+void PwmOutputPlotController::init(QCustomPlot* plot) {
+    this->plot = plot;
+
+    plot->legend->setVisible(true);
+    plot->xAxis->setLabel("Time [us]");
+    plot->yAxis->setLabel("Signal");
+    plot->yAxis->setRange(0, 2);
+    plot->yAxis->setTicks(false);
+
+    pwmGraphs[0] = plot->addGraph();
+    pwmGraphs[0]->setLineStyle(QCPGraph::lsStepLeft);
+
+    pwmGraphs[1] = plot->addGraph();
+    pwmGraphs[1]->setLineStyle(QCPGraph::lsStepLeft);
+    pwmGraphs[1]->setPen(QPen(QColor(255, 0, 0)));
+
+    pwmGraphs[0]->addToLegend();
+    pwmGraphs[1]->addToLegend();
 }
 
 void PwmOutputPlotController::redraw(const PwmParameters& pwm1, const PwmParameters& pwm2)
@@ -52,24 +68,8 @@ void PwmOutputPlotController::redraw(const PwmParameters& pwm1, const PwmParamet
     plot->replot();
 }
 
-void PwmOutputPlotController::setPlot(QCustomPlot* plot) {
-    this->plot = plot;
-
-    plot->legend->setVisible(true);
-    plot->xAxis->setLabel("Time [us]");
-    plot->yAxis->setLabel("Signal");
-    plot->yAxis->setRange(0, 2);
-    plot->yAxis->setTicks(false);
-
-    pwmGraphs[0] = plot->addGraph();
-    pwmGraphs[0]->setLineStyle(QCPGraph::lsStepLeft);
-    pwmGraphs[0]->setName("PWM A [A3]");        // FIXME: port name based on board
-
-    pwmGraphs[1] = plot->addGraph();
-    pwmGraphs[1]->setLineStyle(QCPGraph::lsStepLeft);
-    pwmGraphs[1]->setName("PWM B [A6]");        // FIXME: port name based on board
-    pwmGraphs[1]->setPen(QPen(QColor(255, 0, 0)));
-
-    pwmGraphs[0]->addToLegend();
-    pwmGraphs[1]->addToLegend();
+void PwmOutputPlotController::resetInstrument()
+{
+    pwmGraphs[0]->setName("PWM A [" + ipm.value("port.pwm_a") + "]");
+    pwmGraphs[1]->setName("PWM B [" + ipm.value("port.pwm_b") + "]");
 }

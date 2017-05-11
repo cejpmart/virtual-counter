@@ -225,7 +225,7 @@ bool MeasurementController::getInstrumentInfo(InstrumentInfo& info_out)
     instrument_info_t iinfo;
     memcpy(&iinfo, reply_payload, sizeof(iinfo));
 
-    qInfo("board_id=%04X, fw_ver=%d", iinfo.board_id, iinfo.fw_ver);
+    qInfo("board_id=%04X, fw_ver=%d, f_cpu=%d", iinfo.board_id, iinfo.fw_ver, iinfo.f_cpu);
 
     if (iinfo.fw_ver != VERSION) {
         error("Firmware version mismatch");
