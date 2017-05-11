@@ -5,6 +5,7 @@
 
 #include "guicommon.h"
 #include "measurementcontroller.h"
+#include "measurementplotview.h"
 #include "pwmoutputplotview.h"
 
 constexpr size_t NUM_PWM = 2;
@@ -109,6 +110,7 @@ private:
     bool continuousMeasurement = false;
 
     PwmOutputPlotView pwmOutputPlotView;
+    std::unique_ptr<MeasurementPlotView> measurementPlotView;
 
     Parameter<PwmParameters> pwm[NUM_PWM];
     PwmParameters pwmActual[NUM_PWM];

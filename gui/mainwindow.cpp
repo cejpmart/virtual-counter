@@ -28,6 +28,7 @@ MainWindow::MainWindow(QWidget *parent) :
     qRegisterMetaType<size_t>("size_t");
 
     ui->setupUi(this);
+    measurementPlotView = std::make_unique<MeasurementPlotView>(ui->measurementChart);
     pwmOutputPlotView.init(ui->pwmOutputPlot);
     pwmOutputPlotView.redraw(pwmActual[0], pwmActual[1]);
 
@@ -95,6 +96,7 @@ MainWindow::~MainWindow()
 {
     measurementControllerThread->quit();
 
+    measurementPlotView.reset();
     delete ui;
 }
 
@@ -197,6 +199,10 @@ void MainWindow::onInstrumentStatusSet(QString text)
 
 void MainWindow::onMeasurementFinishedCounting(double frequency, double frequencyError, double period, double periodError)
 {
+    double timestamp = QDateTime::currentMSecsSinceEpoch() * 10e-3;
+    measurementPlotView->addDataPoints(Series::frequency,   &timestamp,    &frequency, &frequencyError,    1);
+    measurementPlotView->addDataPoints(Series::period,      &timestamp,    &period,    &periodError,       1);
+
     setMeasuredValuesFrequencyPeriodDuty(frequency, frequencyError, period, periodError, 0.0);
 
     afterMeasurement();

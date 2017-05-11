@@ -25,6 +25,7 @@ static void renderWaveform(double period_us, QtCharts::QXYSeries& series, const 
 
 void PwmOutputPlotView::init(QtCharts::QChartView* view) {
     chart = new QtCharts::QChart();
+    chart->setTheme(QtCharts::QChart::ChartThemeBlueNcs);
 
     chart->legend()->setVisible(true);
 
@@ -44,16 +45,14 @@ void PwmOutputPlotView::init(QtCharts::QChartView* view) {
     pwmGraphs[0]->attachAxis(axisX);
     pwmGraphs[1]->attachAxis(axisX);
 
-    auto axisY = new QtCharts::QValueAxis();
+    /*auto axisY = new QtCharts::QValueAxis();
     axisY->setTitleText("Signal");
-    axisY->setMinorTickCount(0);
     axisY->setRange(0, 2);
-    axisY->setTickCount(0);
     chart->setAxisY(axisY);
     pwmGraphs[0]->attachAxis(axisY);
-    pwmGraphs[1]->attachAxis(axisY);
+    pwmGraphs[1]->attachAxis(axisY);*/
 
-    chart->setMargins(QMargins());
+    //chart->setMargins(QMargins());
     view->setChart(chart);
 }
 

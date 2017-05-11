@@ -806,15 +806,29 @@
        </widget>
       </item>
       <item>
-       <widget class="QStackedWidget" name="stackedWidget">
-        <property name="currentIndex">
-         <number>1</number>
+       <widget class="QtCharts::QChartView" name="measurementChart" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
-        <widget class="QWidget" name="page"/>
-        <widget class="QWidget" name="page_2">
-         <layout class="QVBoxLayout" name="verticalLayout_3">
+        <widget class="QWidget" name="horizontalLayoutWidget">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>10</y>
+           <width>160</width>
+           <height>80</height>
+          </rect>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
-           <widget class="QtCharts::QChartView" name="measurementChart" native="true"/>
+           <widget class="QPushButton" name="pushButton">
+            <property name="text">
+             <string>PushButton</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -1145,7 +1159,7 @@
   <customwidget>
    <class>QtCharts::QChartView</class>
    <extends>QWidget</extends>
-   <header location="global">QtCharts/QChartView</header>
+   <header>QtCharts/QChartView</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

@@ -20,13 +20,15 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     serialsession.cpp \
     measurementcontroller.cpp \
-    pwmoutputplotview.cpp
+    pwmoutputplotview.cpp \
+    measurementplotview.cpp
 
 HEADERS  += mainwindow.h \
     serialsession.h \
     measurementcontroller.h \
     guicommon.h \
-    pwmoutputplotview.h
+    pwmoutputplotview.h \
+    measurementplotview.h
     ../common/protocoldefs.h
 
 FORMS    += mainwindow.ui
