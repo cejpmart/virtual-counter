@@ -33,6 +33,7 @@ enum {
 enum {
     RESULT_CODE_BUSY =          0,
     RESULT_CODE_OK =            1,
+    RESULT_CODE_PROTOCOL_ERROR = 2,
 };
 
 enum {

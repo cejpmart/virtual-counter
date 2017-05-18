@@ -234,6 +234,14 @@ void protocolBinaryHandle(const uint8_t* data, size_t length) {
             sendpacket(reply_packet);
             break;
         }
+
+        default: {
+            reply_packet->tag = INFO_RESULT_CODE;
+            reply_packet->length = 1;
+            reply_packet->data[0] = RESULT_CODE_PROTOCOL_ERROR;
+            sendpacket(reply_packet);
+            break;
+        }
         }
 
         memmove(s_rx_packet, s_rx_packet + used, s_rx_have);
