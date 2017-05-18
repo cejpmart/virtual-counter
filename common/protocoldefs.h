@@ -18,8 +18,9 @@ enum {
 enum {
     MEASUREMENT_PULSE_COUNT =   0x01,
     MEASUREMENT_PERIOD =        0x02,
-    MEASUREMENT_PHASE =         0x03,       // TODO: rename to INTERVAL
-    MEASUREMENT_FREQ_RATIO =    0x04,
+    MEASUREMENT_PWM =           0x03,
+    MEASUREMENT_INTERVAL =      0x04,
+    MEASUREMENT_FREQ_RATIO =    0x05,
 
     MEASUREMENT_FLAG_CONTINUOUS =   0x01,
 };
@@ -57,7 +58,7 @@ typedef struct {
 } __attribute__((packed)) measurement_pulse_count_result_t;
 
 typedef struct {
-    uint32_t iterations;
+    uint32_t num_periods;
 } __attribute__((packed)) measurement_period_request_t;
 
 typedef struct {

@@ -8,7 +8,7 @@ constexpr double MIN_REASONABLE_FREQUENCY = 0.000001;
 constexpr double MIN_REASONABLE_PERIOD = 1.0 / F_CPU;
 constexpr double USB_CLOCK_TOLERANCE = 0.0005;      // assuming USB 2.0
 
-constexpr uint16_t VERSION = 1006;
+constexpr uint16_t VERSION = 1007;
 
 constexpr const char* BOARDS[] {
     "Unknown",
@@ -159,7 +159,7 @@ void MeasurementController::doMeasurementPhase(Edge edge)
     measurement_phase_request_t request;
     measurement_phase_result_t result;
 
-    if (!doMeasurement(MEASUREMENT_PHASE, &request, sizeof(request), &result, sizeof(result)))
+    if (!doMeasurement(MEASUREMENT_INTERVAL, &request, sizeof(request), &result, sizeof(result)))
         return;
 
     const double period = result.period * (1.0 / F_CPU);
@@ -171,7 +171,7 @@ void MeasurementController::doMeasurementPhase(Edge edge)
     emit measurementFinishedPhase(frequency, period, -interval, phase);
 }
 
-void MeasurementController::doMeasurementReciprocal(unsigned int iterations)
+void MeasurementController::doMeasurementPeriod(unsigned int numPeriods, bool withPhase)
 {
     if (!session)
         return;
@@ -179,9 +179,9 @@ void MeasurementController::doMeasurementReciprocal(unsigned int iterations)
     measurement_period_request_t request;
     measurement_period_result_t result;
 
-    request.iterations = iterations;
+    request.num_periods = numPeriods;
 
-    if (!doMeasurement(MEASUREMENT_PERIOD, &request, sizeof(request), &result, sizeof(result)))
+    if (!doMeasurement(withPhase? MEASUREMENT_PWM : MEASUREMENT_PERIOD, &request, sizeof(request), &result, sizeof(result)))
         return;
 
     const double period = result.period * (1.0 / 65536 / F_CPU);
@@ -195,7 +195,7 @@ void MeasurementController::doMeasurementReciprocal(unsigned int iterations)
 
     const double duty = 100.0 * result.pulse_width / result.period;
 
-    emit measurementFinishedReciprocal(frequency, frequencyError, period, periodError, duty);
+    emit measurementFinishedPeriod(frequency, frequencyError, period, periodError, duty);
 }
 
 void MeasurementController::error(QString&& error) {

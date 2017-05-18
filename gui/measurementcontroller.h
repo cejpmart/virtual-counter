@@ -26,7 +26,7 @@ signals:
 
     void measurementStarted();
     void measurementFinishedCounting(double frequency, double frequencyError, double period, double periodError);
-    void measurementFinishedReciprocal(double frequency, double frequencyError, double period, double periodError, double duty);
+    void measurementFinishedPeriod(double frequency, double frequencyError, double period, double periodError, double duty);
     void measurementFinishedPhase(double channelAFrequency, double channelAPeriod, double interval, double phase);
     void measurementFinishedFreqRatio(double freqRatio, double freqRatioError);
     void measurementTimedOut();
@@ -38,7 +38,7 @@ signals:
 
 public slots:
     void doMeasurementCounting(double gateTime);
-    void doMeasurementReciprocal(unsigned int iterations);
+    void doMeasurementPeriod(unsigned int numPeriods, bool withPhase);
     void doMeasurementPhase(Edge edge);
     void doMeasurementFreqRatio(unsigned int periods);
 

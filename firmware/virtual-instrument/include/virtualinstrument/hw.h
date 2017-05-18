@@ -11,7 +11,12 @@ int     HWPollPulseCountMeasurement(uint32_t* value_out);
 // Period measurement
 int     HWStartPeriodMeasurement(size_t num_periods);
 // 48.16 frac
-int     HWPollPeriodMeasurement(uint64_t* period_out, uint64_t* pulse_width_out);
+int     HWPollPeriodMeasurement(uint64_t* period_out);
+
+// PWM measurement
+int     HWStartPwmMeasurement(size_t num_periods);
+// 48.16 frac
+int     HWPollPwmMeasurement(uint64_t* period_out, uint64_t* pulse_width_out);
 
 // Interval measurement
 int     HWStartIntervalMeasurement(void);

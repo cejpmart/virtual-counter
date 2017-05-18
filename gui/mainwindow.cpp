@@ -67,8 +67,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(measurementController, SIGNAL (measurementStarted()), this, SLOT (onMeasurementStarted()));
     connect(measurementController, SIGNAL (measurementFinishedCounting(double, double, double, double)),
             this, SLOT (onMeasurementFinishedCounting(double, double, double, double)));
-    connect(measurementController, SIGNAL (measurementFinishedReciprocal(double, double, double, double, double)),
-            this, SLOT (onMeasurementFinishedReciprocal(double, double, double, double, double)));
+    connect(measurementController, SIGNAL (measurementFinishedPeriod(double, double, double, double, double)),
+            this, SLOT (onMeasurementFinishedPeriod(double, double, double, double, double)));
     connect(measurementController, SIGNAL (measurementFinishedPhase(double, double, double, double)),
             this, SLOT (onMeasurementFinishedPhase(double, double, double, double)));
     connect(measurementController, SIGNAL (didSetPwm(size_t, PwmParameters)), this, SLOT (onPwmSet(size_t, PwmParameters)));
@@ -77,7 +77,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(measurementController, SIGNAL (measurementTimedOut()), this, SLOT (onMeasurementTimedOut()));
 
     connect(this, SIGNAL (measurementShouldStartCounting(double)), measurementController, SLOT (doMeasurementCounting(double)));
-    connect(this, SIGNAL (measurementShouldStartReciprocal(unsigned int)), measurementController, SLOT (doMeasurementReciprocal(unsigned int)));
+    connect(this, SIGNAL (measurementShouldStartPeriod(unsigned int, bool)), measurementController, SLOT (doMeasurementPeriod(unsigned int, bool)));
     connect(this, SIGNAL (measurementShouldStartPhase(Edge)), measurementController, SLOT (doMeasurementPhase(Edge)));
     connect(this, SIGNAL (measurementShouldStartFreqRatio(unsigned int)), measurementController, SLOT (doMeasurementFreqRatio(unsigned int)));
     connect(this, SIGNAL (shouldOpenInterface(QString)), measurementController, SLOT (openInterface(QString)));
@@ -222,7 +222,7 @@ void MainWindow::onMeasurementFinishedPhase(double channelAFrequency, double cha
     afterMeasurement();
 }
 
-void MainWindow::onMeasurementFinishedReciprocal(double frequency, double frequencyError, double period, double periodError, double duty)
+void MainWindow::onMeasurementFinishedPeriod(double frequency, double frequencyError, double period, double periodError, double duty)
 {
     setMeasuredValuesFrequencyPeriodDuty(frequency, frequencyError, period, periodError, duty);
 
@@ -434,7 +434,7 @@ void MainWindow::on_measureButton_clicked()
         emit measurementShouldStartCounting(getCountingGateTimeSeconds());
     }
     else if (ui->measurementMethodPeriod->isChecked()) {
-        emit measurementShouldStartReciprocal(getReciprocalIterations());
+        emit measurementShouldStartPeriod(getReciprocalIterations(), ui->measurementPulseWidthEnable->isChecked());
     }
     else if (ui->measurementMethodInterval->isChecked()) {
         //auto edge = ui->intervalEdgeSelect->currentIndex() == 0 ? Edge::rising : Edge::falling;

@@ -130,6 +130,14 @@ static void StopGate(void) {
     TIMEFRAME_TIM->CR1 &= ~TIM_CR1_CEN;
 }
 
+int HWStartPeriodMeasurement(size_t num_samples) {
+    return -1;
+}
+
+int HWPollPeriodMeasurement(uint64_t* period_out) {
+    return -1;
+}
+
 int HWStartPulseCountMeasurement(uint32_t gate_time_ms) {
     __HAL_TIM_DISABLE(&COUNTER_HTIM);
     StopGate();
@@ -153,7 +161,7 @@ int HWPollPulseCountMeasurement(uint32_t *value_out) {
         return 0;
 }
 
-int HWStartPeriodMeasurement(size_t num_samples) {
+int HWStartPwmMeasurement(size_t num_samples) {
     TIM_ClockConfigTypeDef sClockSourceConfig;
     TIM_IC_InitTypeDef sConfigIC;
 
@@ -213,7 +221,7 @@ int HWStartPeriodMeasurement(size_t num_samples) {
     return 1;
 }
 
-int HWPollPeriodMeasurement(uint64_t* period_out, uint64_t* pulse_width_out) {
+int HWPollPwmMeasurement(uint64_t* period_out, uint64_t* pulse_width_out) {
     if (!(__HAL_DMA_GET_FLAG(&INPUT_CAPTURE_HDMA, INPUT_CAPTURE_DMA_TC_FLAG)))
         return 0;
 

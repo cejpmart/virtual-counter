@@ -28,7 +28,7 @@ signals:
     void shouldOpenInterface(QString path);
 
     void measurementShouldStartCounting(double gateTime);
-    void measurementShouldStartReciprocal(unsigned int iterations);
+    void measurementShouldStartPeriod(unsigned int numPeriods, bool withPhase);
     void measurementShouldStartPhase(Edge edge);
     void measurementShouldStartFreqRatio(unsigned int periods);
 
@@ -40,7 +40,7 @@ private slots:
     void onMeasurementStarted();
     void onMeasurementFinishedCounting(double frequency, double frequencyError, double period, double periodError);
     void onMeasurementFinishedPhase(double channelAFrequency, double channelAPeriod, double interval, double phase);
-    void onMeasurementFinishedReciprocal(double frequency, double frequencyError, double period, double periodError, double duty);
+    void onMeasurementFinishedPeriod(double frequency, double frequencyError, double period, double periodError, double duty);
     void onMeasurementFinishedFreqRatio(double freqRatio, double freqRatioError);
     void onMeasurementTimedOut();
     void onOpenInterfaceTriggered(QAction* action);

@@ -114,19 +114,20 @@ void protocolBinaryHandle(const uint8_t* data, size_t length) {
                 break;
             }
 
-            case MEASUREMENT_PERIOD: {
-                uint32_t iterations = 1;
+            case MEASUREMENT_PERIOD:
+            case MEASUREMENT_PWM: {
+                uint32_t num_periods = 1;
 
                 if (packet->length >= 5) {
-                    memcpy(&iterations, &packet->data[1], 4);
+                    memcpy(&num_periods, &packet->data[1], 4);
                 }
 
-                rc = instrumentStartMeasurePeriod(iterations);
+                rc = instrumentStartMeasurePeriod(num_periods, (which == MEASUREMENT_PWM));
                 break;
             }
 
-            case MEASUREMENT_PHASE:
-                rc = instrumentStartMeasurePhaseShift();
+            case MEASUREMENT_INTERVAL:
+                rc = instrumentStartMeasureInterval();
                 break;
 
             case MEASUREMENT_FREQ_RATIO: {
@@ -169,7 +170,8 @@ void protocolBinaryHandle(const uint8_t* data, size_t length) {
                 break;
             }
 
-            case MEASUREMENT_PERIOD: {
+            case MEASUREMENT_PERIOD:
+            case MEASUREMENT_PWM: {
                 uint64_t period, pulse_width;
 
                 if ((rc = instrumentFinishMeasurePeriod(&period, &pulse_width)) > 0) {
@@ -182,11 +184,11 @@ void protocolBinaryHandle(const uint8_t* data, size_t length) {
                 break;
             }
 
-            case MEASUREMENT_PHASE: {
+            case MEASUREMENT_INTERVAL: {
                 uint32_t period;
                 int32_t interval;
 
-                if ((rc = instrumentFinishMeasurePhaseShift(&period, &interval)) > 0) {
+                if ((rc = instrumentFinishMeasureInterval(&period, &interval)) > 0) {
                     reply_packet->tag = INFO_MEASUREMENT_DATA;
                     reply_packet->length = 9;
                     reply_packet->data[0] = rc;

@@ -36,6 +36,26 @@ int instrumentStartMeasurePulseCount(int gate_time) {
 	return 1;
 }
 
+int instrumentFinishMeasurePeriod(uint64_t* period_out, uint64_t* pulse_width_out) {
+    if (s_instrument_state == STATE_MEASURING && s_measurement_state.mode == MEASUREMENT_PERIOD) {
+        if (!HWPollPeriodMeasurement(period_out))
+            return 0;
+
+        *pulse_width_out = 0;
+        s_instrument_state = STATE_READY;
+        return 1;
+    }
+    else if (s_instrument_state == STATE_MEASURING && s_measurement_state.mode == MEASUREMENT_PWM) {
+        if (!HWPollPwmMeasurement(period_out, pulse_width_out))
+            return 0;
+
+        s_instrument_state = STATE_READY;
+        return 1;
+    }
+    else
+        return -1;
+}
+
 int instrumentFinishMeasurePulseCount(uint32_t* count_out) {
 	if (s_instrument_state != STATE_MEASURING || s_measurement_state.mode != MEASUREMENT_PULSE_COUNT)
 		return -1;
@@ -47,19 +67,29 @@ int instrumentFinishMeasurePulseCount(uint32_t* count_out) {
 	return 1;
 }
 
-int instrumentStartMeasurePeriod(uint32_t iterations) {
+int instrumentStartMeasurePeriod(uint32_t num_periods, int with_pulse_width) {
     if (s_instrument_state != STATE_READY)
         return -1;
 
-    if (HWStartPeriodMeasurement(iterations) <= 0)
-        return -1;
+    if (!with_pulse_width) {
+        if (HWStartPeriodMeasurement(num_periods) <= 0)
+            return -1;
 
-    s_instrument_state = STATE_MEASURING;
-    s_measurement_state.mode = MEASUREMENT_PERIOD;
+        s_instrument_state = STATE_MEASURING;
+        s_measurement_state.mode = MEASUREMENT_PERIOD;
+    }
+    else {
+        if (HWStartPwmMeasurement(num_periods) <= 0)
+            return -1;
+
+        s_instrument_state = STATE_MEASURING;
+        s_measurement_state.mode = MEASUREMENT_PWM;
+    }
+
     return 1;
 }
 
-int instrumentStartMeasurePhaseShift() {
+int instrumentStartMeasureInterval() {
     if (s_instrument_state != STATE_READY)
         return -1;
 
@@ -67,23 +97,12 @@ int instrumentStartMeasurePhaseShift() {
         return -1;
 
     s_instrument_state = STATE_MEASURING;
-    s_measurement_state.mode = MEASUREMENT_PHASE;
+    s_measurement_state.mode = MEASUREMENT_INTERVAL;
     return 1;
 }
 
-int instrumentFinishMeasurePeriod(uint64_t* period_out, uint64_t* pulse_width_out) {
-    if (s_instrument_state != STATE_MEASURING || s_measurement_state.mode != MEASUREMENT_PERIOD)
-        return -1;
-
-    if (!HWPollPeriodMeasurement(period_out, pulse_width_out))
-        return 0;
-
-    s_instrument_state = STATE_READY;
-    return 1;
-}
-
-int instrumentFinishMeasurePhaseShift(uint32_t* period_out, int32_t* interval_out) {
-    if (s_instrument_state != STATE_MEASURING || s_measurement_state.mode != MEASUREMENT_PHASE)
+int instrumentFinishMeasureInterval(uint32_t* period_out, int32_t* interval_out) {
+    if (s_instrument_state != STATE_MEASURING || s_measurement_state.mode != MEASUREMENT_INTERVAL)
         return -1;
 
     uint32_t period, pulse_width;

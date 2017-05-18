@@ -236,6 +236,13 @@
             </widget>
            </item>
            <item>
+            <widget class="QCheckBox" name="measurementPulseWidthEnable">
+             <property name="text">
+              <string>Measure pulse width</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <spacer name="verticalSpacer_2">
              <property name="orientation">
               <enum>Qt::Vertical</enum>

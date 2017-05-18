@@ -12,7 +12,7 @@
 #include <stdint.h>
 
 enum {
-    INSTRUMENT_VERSION = 1006,
+    INSTRUMENT_VERSION = 1007,
 };
 
 enum {
@@ -30,11 +30,11 @@ void instrumentProcess(void);
 int instrumentStartMeasurePulseCount(int gate_time);
 int instrumentFinishMeasurePulseCount(uint32_t* count_out);
 
-int instrumentStartMeasurePeriod(uint32_t iterations);
+int instrumentStartMeasurePeriod(uint32_t num_periods, int with_pulse_width);
 int instrumentFinishMeasurePeriod(uint64_t* period_out, uint64_t* pulse_width_out);
 
-int instrumentStartMeasurePhaseShift();
-int instrumentFinishMeasurePhaseShift(uint32_t* period_out, int32_t* interval_out);
+int instrumentStartMeasureInterval();
+int instrumentFinishMeasureInterval(uint32_t* period_out, int32_t* interval_out);
 
 int instrumentStartMeasureFreqRatio(uint32_t iterations);
 int instrumentFinishMeasureFreqRatio(uint64_t* ratio_out);
