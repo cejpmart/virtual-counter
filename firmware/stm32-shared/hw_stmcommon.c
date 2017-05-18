@@ -49,6 +49,7 @@ static int ConfigureGate(int mode, unsigned int prescaler, unsigned int period) 
     TIM_OC_InitTypeDef sConfigOC;
 
     __HAL_TIM_DISABLE(&TIMEFRAME_HTIM);
+    TIMEFRAME_TIM->CR1 &= ~TIM_CR1_OPM;
 
     TIMEFRAME_HTIM.Instance = TIMEFRAME_TIM;
     TIMEFRAME_HTIM.Init.Prescaler = prescaler;
@@ -290,11 +291,13 @@ int HWPollIntervalMeasurement(uint32_t* period_out, uint32_t* pulse_width_out) {
     return 1;
 }
 
+enum { CCR_value = 1 };
+
 int HWStartFreqRatioMeasurement(size_t num_periods) {
     __HAL_TIM_DISABLE(&COUNTER_HTIM);
     StopGate();
 
-    if (ConfigureGate(GATE_MODE_ETR, 0, 65535) <= 0)
+    if (ConfigureGate(GATE_MODE_ETR, 0, CCR_value + num_periods - 1) <= 0)
         return -1;
 
     ConfigureAndStartGatedCounting();
@@ -302,27 +305,26 @@ int HWStartFreqRatioMeasurement(size_t num_periods) {
     // configure parameters
     TIMEFRAME_TIM->CNT = 0;
 
-    TIMEFRAME_CCR = num_periods;
-    TIMEFRAME_TIM->CCMR1 = (0b101 << TIM_CCMR1_OC2M_Pos);       // force to 1
-    TIMEFRAME_TIM->CCMR1 = (0b010 << TIM_CCMR1_OC2M_Pos);       // clear when CNT == CCR
+    TIMEFRAME_CCR = CCR_value;
+    TIMEFRAME_TIM->CCMR1 = (0b100 << TIM_CCMR1_OC2M_Pos);       // clear output bit
+    TIMEFRAME_TIM->CCMR1 = (0b111 << TIM_CCMR1_OC2M_Pos);       // PWM-modus 2
+    TIMEFRAME_TIM->EGR = TIM_EGR_UG;
 
     // start timer
-    TIMEFRAME_TIM->CR1 |= TIM_CR1_CEN;
+    TIMEFRAME_TIM->CR1 |= TIM_CR1_CEN | TIM_CR1_OPM;
 
     return 1;
 }
 
 int HWPollFreqRatioMeasurement(uint64_t* ratio_out) {
-    if (TIMEFRAME_TIM->CNT < TIMEFRAME_TIM->CCR2)
+    // When the measurement is done, the timer stops and clears CEN flag
+    if ((TIMEFRAME_TIM->CR1 & TIM_CR1_CEN))
         return 0;
 
     __HAL_TIM_DISABLE(&COUNTER_HTIM);
     __HAL_TIM_DISABLE(&TIMEFRAME_HTIM);
 
-    uint32_t cnt1 = COUNTER_TIM->CNT;
-    uint32_t cnt2 = TIMEFRAME_TIM->CCR2;
-
-    *ratio_out = (cnt1 << 16) / cnt2;
+    *ratio_out = ((uint64_t)(COUNTER_TIM->CNT) << 16) / (TIMEFRAME_TIM->ARR + 1 - CCR_value);
     return 1;
 }
 
