@@ -145,19 +145,11 @@ int instrumentFinishMeasureFreqRatio(uint64_t* ratio_out) {
     return 1;
 }
 
-int instrumentSetPwm(size_t index, uint32_t period, uint32_t pulse_width, uint32_t phase) {
-    unsigned int prescaler = 1;
-    unsigned int prescaled = period;
-
-    while (prescaled >= 65535) {
-        prescaler++;
-        prescaled = period / prescaler;
-    }
-
+int instrumentSetPwm(size_t index, uint16_t prescaler, uint16_t period, uint16_t pulse_width, uint16_t phase) {
     if (index == 1)
         s_pwm_phase = phase;
 
-    if (HWSetPwm(index, prescaler, prescaled, pulse_width / prescaler, phase) <= 0)
+    if (HWSetPwm(index, prescaler, period, pulse_width, phase) <= 0)
         return -1;
 
     if (HWSetPwmPhase(s_pwm_phase) <= 0)

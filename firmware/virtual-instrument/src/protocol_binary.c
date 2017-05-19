@@ -228,7 +228,7 @@ void protocolBinaryHandle(const uint8_t* data, size_t length) {
 
             memcpy(&request, &packet->data[0], sizeof(request));
 
-            int rc = instrumentSetPwm(request.index, request.period, request.pulse_width, request.phase);
+            int rc = instrumentSetPwm(request.index, request.prescaler, request.period, request.pulse_width, request.phase);
 
             reply_packet->tag = INFO_RESULT_CODE;
             reply_packet->length = 1;

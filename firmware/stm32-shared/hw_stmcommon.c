@@ -25,9 +25,29 @@ enum {
     GATE_MODE_ETR,
 };
 
+enum { CCR_value = 1 };
+
 static int ConfigureAndStartGatedCounting(void) {
     TIM_ClockConfigTypeDef sClockSourceConfig;
     sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_ETRMODE2;
+    sClockSourceConfig.ClockPolarity = TIM_CLOCKPOLARITY_NONINVERTED;
+    sClockSourceConfig.ClockPrescaler = TIM_CLOCKPRESCALER_DIV1;
+    sClockSourceConfig.ClockFilter = 0;
+    HAL_TIM_ConfigClockSource(&COUNTER_HTIM, &sClockSourceConfig);
+
+    TIM_SlaveConfigTypeDef sSlaveConfig;
+    sSlaveConfig.SlaveMode = TIM_SLAVEMODE_GATED;
+    sSlaveConfig.InputTrigger = COUNTER_TIM_GATE_IT;
+    HAL_TIM_SlaveConfigSynchronization(&COUNTER_HTIM, &sSlaveConfig);
+
+    COUNTER_TIM->CNT = 0;
+    COUNTER_TIM->CR1 |= TIM_CR1_CEN_Msk;
+    return 1;
+}
+
+static int ConfigureAndStartGatedInternal(void) {
+    TIM_ClockConfigTypeDef sClockSourceConfig;
+    sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
     sClockSourceConfig.ClockPolarity = TIM_CLOCKPOLARITY_NONINVERTED;
     sClockSourceConfig.ClockPrescaler = TIM_CLOCKPRESCALER_DIV1;
     sClockSourceConfig.ClockFilter = 0;
@@ -130,12 +150,38 @@ static void StopGate(void) {
     TIMEFRAME_TIM->CR1 &= ~TIM_CR1_CEN;
 }
 
-int HWStartPeriodMeasurement(size_t num_samples) {
-    return -1;
+int HWStartPeriodMeasurement(size_t num_periods) {
+    __HAL_TIM_DISABLE(&COUNTER_HTIM);
+    StopGate();
+
+    if (ConfigureGate(GATE_MODE_ETR, 0, CCR_value + num_periods - 1) <= 0)
+        return -1;
+
+    ConfigureAndStartGatedInternal();
+
+    // configure parameters
+    TIMEFRAME_TIM->CNT = 0;
+
+    TIMEFRAME_CCR = CCR_value;
+    TIMEFRAME_TIM->CCMR1 = (0b100 << TIM_CCMR1_OC2M_Pos);       // clear output bit
+    TIMEFRAME_TIM->CCMR1 = (0b111 << TIM_CCMR1_OC2M_Pos);       // PWM-modus 2
+    TIMEFRAME_TIM->EGR = TIM_EGR_UG;
+
+    // start timer
+    TIMEFRAME_TIM->CR1 |= TIM_CR1_CEN | TIM_CR1_OPM;
+
+    return 1;
 }
 
 int HWPollPeriodMeasurement(uint64_t* period_out) {
-    return -1;
+    // When the measurement is done, the timer stops and clears CEN flag
+    if ((TIMEFRAME_TIM->CR1 & TIM_CR1_CEN))
+        return 0;
+
+    __HAL_TIM_DISABLE(&COUNTER_HTIM);
+
+    *period_out = ((uint64_t)(COUNTER_TIM->CNT) << 16) / (TIMEFRAME_TIM->ARR + 1 - CCR_value);
+    return 1;
 }
 
 int HWStartPulseCountMeasurement(uint32_t gate_time_ms) {
@@ -299,8 +345,6 @@ int HWPollIntervalMeasurement(uint32_t* period_out, uint32_t* pulse_width_out) {
     return 1;
 }
 
-enum { CCR_value = 1 };
-
 int HWStartFreqRatioMeasurement(size_t num_periods) {
     __HAL_TIM_DISABLE(&COUNTER_HTIM);
     StopGate();
@@ -330,7 +374,6 @@ int HWPollFreqRatioMeasurement(uint64_t* ratio_out) {
         return 0;
 
     __HAL_TIM_DISABLE(&COUNTER_HTIM);
-    __HAL_TIM_DISABLE(&TIMEFRAME_HTIM);
 
     *ratio_out = ((uint64_t)(COUNTER_TIM->CNT) << 16) / (TIMEFRAME_TIM->ARR + 1 - CCR_value);
     return 1;
@@ -339,14 +382,14 @@ int HWPollFreqRatioMeasurement(uint64_t* ratio_out) {
 int HWSetPwm(size_t index, uint16_t prescaler, uint16_t period, uint16_t pulse_time, int phase) {
     // TODO: we should do our own init of PWM -- or not?
     if (index == 0) {
-        PWM1_TIM->PSC = prescaler - 1;
-        PWM1_TIM->ARR = period - 1;
+        PWM1_TIM->PSC = prescaler;
+        PWM1_TIM->ARR = period;
         PWM1_CCR = pulse_time;
         PWM1_TIM->EGR |= TIM_EGR_UG;
     }
     else if (index == 1) {
-        PWM2_TIM->PSC = prescaler - 1;
-        PWM2_TIM->ARR = period - 1;
+        PWM2_TIM->PSC = prescaler;
+        PWM2_TIM->ARR = period;
         PWM2_CCR = pulse_time;
         PWM2_TIM->EGR |= TIM_EGR_UG;
     }

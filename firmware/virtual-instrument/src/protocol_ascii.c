@@ -46,7 +46,7 @@ static void doOneMeasurement() {
 		s_burstTotal += freq;
 	}
 	else if (s_mode == MEASUREMENT_PERIOD) {
-	    if (instrumentStartMeasurePeriod(1) < 0) {
+	    if (instrumentStartMeasurePeriod(1, 1) < 0) {
 	        printError();
 	        return;
 	    }
@@ -70,15 +70,15 @@ static void doOneMeasurement() {
 
         s_burstTotal += freq;
 	}
-	else if (s_mode == MEASUREMENT_PHASE) {
-		if (instrumentStartMeasurePhaseShift() < 0) {
+	else if (s_mode == MEASUREMENT_INTERVAL) {
+		if (instrumentStartMeasureInterval() < 0) {
             printError();
             return;
         }
 
 		uint32_t period;
 		int32_t interval;
-		while (instrumentFinishMeasurePhaseShift(&period, &interval) <= 0) {
+		while (instrumentFinishMeasureInterval(&period, &interval) <= 0) {
 		}
 
 		sprintf(outbuf, "%u Hz, %+d deg phase shift\r\n", (unsigned int)(SystemCoreClock / period), (int)interval * 360 / (int)period);
@@ -106,14 +106,14 @@ void protocolAsciiHandle(const uint8_t* data, size_t length) {
 		case '?':
 		case 'h':
 			putstr("\r\nCommands:\r\n");
-			putstr("[q] Counting\t[w] Reciprocal\t[e] Interval\r\n");
+			putstr("[q] Counting\t[w] Reciprocal\t[e] Interval/Phase\r\n");
 			putstr("[a] 0.1s Gate\t[s] 1s Gate\t[d] 10s Gate\r\n");
 			putstr("[z] Single measurement\t[x] Continous measurement\t[c] Burst (10) measurement\r\n\r\n");
 			break;
 
 		case 'q': s_mode = MEASUREMENT_PULSE_COUNT; break;
 		case 'w': s_mode = MEASUREMENT_PERIOD; break;
-		case 'e': s_mode = MEASUREMENT_PHASE; break;
+		case 'e': s_mode = MEASUREMENT_INTERVAL; break;
 
 		case 'a': s_gate_time = 100; break;
 		case 's': s_gate_time = 1000; break;

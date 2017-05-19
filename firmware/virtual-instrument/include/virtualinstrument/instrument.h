@@ -12,7 +12,7 @@
 #include <stdint.h>
 
 enum {
-    INSTRUMENT_VERSION = 1007,
+    INSTRUMENT_VERSION = 1008,
 };
 
 enum {
@@ -40,6 +40,6 @@ int instrumentStartMeasureFreqRatio(uint32_t iterations);
 int instrumentFinishMeasureFreqRatio(uint64_t* ratio_out);
 
 // PWM
-int instrumentSetPwm(size_t index, uint32_t period, uint32_t pulse_width, uint32_t phase);
+int instrumentSetPwm(size_t index, uint16_t prescaler, uint16_t period, uint16_t pulse_width, uint16_t phase);
 
 #endif /* VIRTUALINSTRUMENT_INSTRUMENT_H_ */
