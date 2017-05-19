@@ -59,12 +59,12 @@ void MeasurementPlotView::addDataPoints(Series series, const double* timestamps,
             if (maxValue < data[i])
                 maxValue = data[i];
 
-            currentSeries->append(timestamps[i], data[i]);
+            currentSeries->append(timestamps[i] - minTime, data[i]);
         }
     }
 
     maxTime = timestamps[count - 1];
-    axisX->setRange(minTime, maxTime);
+    axisX->setRange(minTime - minTime, maxTime - minTime);
 
     double min, max;
     getAppropriateAxisRange(minValue, maxValue, min, max);

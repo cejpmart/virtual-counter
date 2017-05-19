@@ -83,10 +83,11 @@ typedef struct {
 } __attribute__((packed)) measurement_freq_ratio_result_t;
 
 typedef struct {
-    uint32_t index;             // 0 or 1
-    uint32_t period;            // in CPU units
-    uint32_t pulse_width;       // in CPU units
-    uint32_t phase;             // in CPU units (0..period-1)
+    uint16_t index;             // 0 or 1
+    uint16_t prescaler;         // in CPU units
+    uint16_t period;            // in CPU units
+    uint16_t pulse_width;       // in CPU units
+    uint16_t phase;             // in CPU units (0..period-1)
 } __attribute__((packed)) set_pwm_request_t;
 
 #endif // PROTOCOLDEFS_H

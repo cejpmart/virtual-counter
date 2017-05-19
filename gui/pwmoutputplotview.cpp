@@ -4,7 +4,7 @@
 
 #include <QLayout>
 
-static void renderWaveform(double period_us, QtCharts::QXYSeries& series, const PwmParameters& params) {
+static bool renderWaveform(double period_us, QtCharts::QXYSeries& series, const PwmParameters& params) {
     double period = (1.0 / params.freq) * 1000000;
 
     double t = -period * params.phase / 360;
@@ -12,7 +12,10 @@ static void renderWaveform(double period_us, QtCharts::QXYSeries& series, const 
     while (t > 0)
         t -= period;
 
-    while (t < period_us) {
+    constexpr size_t MAX_ITERATIONS = 100;
+    size_t i = 0;
+
+    for (; t < period_us && i < MAX_ITERATIONS; i++) {
         series.append(t, 1);
         t += period * params.duty;
         series.append(t, 1);
@@ -21,6 +24,11 @@ static void renderWaveform(double period_us, QtCharts::QXYSeries& series, const 
         t += period * (1 - params.duty);
         series.append(t, 0);
     }
+
+    if (i >= MAX_ITERATIONS)
+        return false;
+
+    return true;
 }
 
 void PwmOutputPlotView::init(QtCharts::QChartView* view) {
@@ -68,16 +76,17 @@ void PwmOutputPlotView::redraw(const PwmParameters& pwm1, const PwmParameters& p
 
     if (pwm1.enabled) {
         pwmGraphs[0]->clear();
-        renderWaveform(totalPeriod_us, *pwmGraphs[0], pwm1);
+        pwmGraphs[0]->setVisible(renderWaveform(totalPeriod_us, *pwmGraphs[0], pwm1));
     }
+    else
+        pwmGraphs[0]->setVisible(false);
 
     if (pwm2.enabled) {
         pwmGraphs[1]->clear();
-        renderWaveform(totalPeriod_us, *pwmGraphs[1], pwm2);
+        pwmGraphs[1]->setVisible(renderWaveform(totalPeriod_us, *pwmGraphs[1], pwm2));
     }
-
-    pwmGraphs[0]->setVisible(pwm1.enabled);
-    pwmGraphs[1]->setVisible(pwm2.enabled);
+    else
+        pwmGraphs[1]->setVisible(false);
 
     if (totalPeriod_us > 1e-6)
         chart->axisX()->setRange(0, totalPeriod_us);

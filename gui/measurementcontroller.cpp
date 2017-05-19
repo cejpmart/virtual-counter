@@ -8,7 +8,7 @@ constexpr double MIN_REASONABLE_FREQUENCY = 0.000001;
 constexpr double MIN_REASONABLE_PERIOD = 1.0 / F_CPU;
 constexpr double USB_CLOCK_TOLERANCE = 0.0005;      // assuming USB 2.0
 
-constexpr uint16_t VERSION = 1007;
+constexpr uint16_t VERSION = 1008;
 
 constexpr const char* BOARDS[] {
     "Unknown",
@@ -319,10 +319,19 @@ void MeasurementController::setPwm(size_t index, PwmParameters params)
     while (params.phase < 0)
         params.phase += 360;
 
+    unsigned int prescaler = 1;
+    unsigned int prescaled = (unsigned int)round(period);
+
+    while (prescaled >= 65535) {
+        prescaler++;
+        prescaled = (unsigned int)round(period / prescaler);
+    }
+
     set_pwm_request_t request;
     request.index = index;
-    request.period = (unsigned int)round(period);
-    request.pulse_width = (unsigned int)round(pulse_width);
+    request.prescaler = prescaler - 1;
+    request.period = prescaled - 1;
+    request.pulse_width = (unsigned int)ceil((float)pulse_width / prescaler);
     request.phase = (unsigned int)round(params.phase * period / 360);
 
     int rc;
@@ -332,8 +341,8 @@ void MeasurementController::setPwm(size_t index, PwmParameters params)
     }
 
     // Calculate actual frequency
-    params.freq = F_CPU / request.period;
-    params.duty = (float)request.pulse_width / request.period;
+    params.freq = F_CPU / (prescaler * prescaled);
+    params.duty = (float)request.pulse_width / period;
     params.phase = (float)request.phase / request.period * 360;
 
     if (params.phase > 180)

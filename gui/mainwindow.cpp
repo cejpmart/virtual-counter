@@ -32,10 +32,10 @@ MainWindow::MainWindow(QWidget *parent) :
     pwmOutputPlotView.init(ui->pwmOutputPlot);
     pwmOutputPlotView.redraw(pwmActual[0], pwmActual[1]);
 
+    onMeasurementMethodChanged();
     ui->instrumentDeviceLabel->setText("Not connected");
     ui->instrumentFirmwareLabel->setText("--");
     ui->instrumentStatusLabel->setText("--");
-    onMeasurementMethodChanged();
     setMeasuredValuesUnknown();
 
     connect(ui->menuOpenInterface, SIGNAL(triggered(QAction*)), this, SLOT(onOpenInterfaceTriggered(QAction*)));
@@ -199,7 +199,7 @@ void MainWindow::onInstrumentStatusSet(QString text)
 
 void MainWindow::onMeasurementFinishedCounting(double frequency, double frequencyError, double period, double periodError)
 {
-    double timestamp = QDateTime::currentMSecsSinceEpoch() * 10e-3;
+    double timestamp = QDateTime::currentMSecsSinceEpoch() * 1e-3;
     measurementPlotView->addDataPoints(Series::frequency,   &timestamp,    &frequency, &frequencyError,    1);
     measurementPlotView->addDataPoints(Series::period,      &timestamp,    &period,    &periodError,       1);
 
@@ -224,6 +224,10 @@ void MainWindow::onMeasurementFinishedPhase(double channelAFrequency, double cha
 
 void MainWindow::onMeasurementFinishedPeriod(double frequency, double frequencyError, double period, double periodError, double duty)
 {
+    double timestamp = QDateTime::currentMSecsSinceEpoch() * 1e-3;
+    measurementPlotView->addDataPoints(Series::frequency,   &timestamp,    &frequency, &frequencyError,    1);
+    measurementPlotView->addDataPoints(Series::period,      &timestamp,    &period,    &periodError,       1);
+
     setMeasuredValuesFrequencyPeriodDuty(frequency, frequencyError, period, periodError, duty);
 
     afterMeasurement();
@@ -249,6 +253,20 @@ void MainWindow::onMeasurementMethodChanged()
         ui->frequencyMeasurementRack->hide();
         ui->intervalMeasurementRack->hide();
         ui->freqRatioMeasurementRack->show();
+    }
+
+    // Port labels (TODO)
+    if (ui->measurementMethodCounting->isChecked()) {
+        ui->instrumentStatusLabel->setText("Port: " + ipm.value("port.pulse_count"));
+    }
+    else if (ui->measurementMethodPeriod->isChecked()) {
+        ui->instrumentStatusLabel->setText("Ports: " + ipm.value("port.period_1") + ", " + ipm.value("port.period_2"));
+    }
+    else if (ui->measurementMethodInterval->isChecked()) {
+        ui->instrumentStatusLabel->setText("Ports: " + ipm.value("port.interval_a") + ", " + ipm.value("port.interval_b"));
+    }
+    else if (ui->measurementMethodFreqRatio->isChecked()) {
+        ui->instrumentStatusLabel->setText("Ports: " + ipm.value("port.freq_ratio_a") + ", " + ipm.value("port.freq_ratio_b"));
     }
 
     updateMeasurementFrequencyInfo();
