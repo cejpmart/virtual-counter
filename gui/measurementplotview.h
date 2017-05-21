@@ -13,7 +13,7 @@ enum class Series {
     period,
     interval,
     phase,
-    ratio,
+    freqRatio,
 };
 
 class MeasurementPlotView : public QObject
@@ -23,6 +23,10 @@ public:
     explicit MeasurementPlotView(QtCharts::QChartView* view, QObject *parent = 0);
 
     void addDataPoints(Series series, const double* timestamps, const double* data, const double* errors, size_t count);
+
+    void clear();
+
+    void showSeries(Series series);
 
 signals:
 
@@ -36,7 +40,8 @@ private:
     double minTime, maxTime;
     double minValue, maxValue;
 
-    QtCharts::QLineSeries* currentSeries;
+    Series displayedSeries;
+    QtCharts::QLineSeries* currentSeriesLine;
 };
 
 #endif // MEASUREMENTPLOTVIEW_H

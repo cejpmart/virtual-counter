@@ -269,6 +269,8 @@ void MainWindow::onMeasurementMethodChanged()
         ui->instrumentStatusLabel->setText("Ports: " + ipm.value("port.freq_ratio_a") + ", " + ipm.value("port.freq_ratio_b"));
     }
 
+    // FIXME: abort measurement
+
     updateMeasurementFrequencyInfo();
 }
 
@@ -501,6 +503,11 @@ void MainWindow::on_continuousMeasurementToggle_clicked()
         ui->continuousMeasurementToggle->setText("Stop");
     else
         ui->continuousMeasurementToggle->setText("Run");
+}
+
+void MainWindow::on_plotClear_clicked()
+{
+    measurementPlotView->clear();
 }
 
 void MainWindow::on_pwmAEnabled_toggled(bool checked)

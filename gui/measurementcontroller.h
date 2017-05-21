@@ -64,6 +64,8 @@ private:
 
     MainWindow* view;
     std::unique_ptr<SerialSession> session;
+
+    double f_cpu = 1;
 };
 
 #endif // MEASUREMENTCONTROLLER_H

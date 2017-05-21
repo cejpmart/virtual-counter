@@ -37,11 +37,12 @@ static void doOneMeasurement() {
             return;
         }
 
-	    uint32_t freq;
-		while (instrumentFinishMeasurePulseCount(&freq) <= 0) {
+	    uint32_t count;
+		while (instrumentFinishMeasurePulseCount(&count) <= 0) {
 		}
 
-		sprintf(outbuf, "%u Hz\r\n", (unsigned int) freq);
+		unsigned int freq = (unsigned int) (count * 1000 / s_gate_time);
+		sprintf(outbuf, "%u Hz\r\n", freq);
 
 		s_burstTotal += freq;
 	}
@@ -105,10 +106,11 @@ void protocolAsciiHandle(const uint8_t* data, size_t length) {
 		switch (*data) {
 		case '?':
 		case 'h':
+		    // FIXME: print current settings
 			putstr("\r\nCommands:\r\n");
 			putstr("[q] Counting\t[w] Reciprocal\t[e] Interval/Phase\r\n");
 			putstr("[a] 0.1s Gate\t[s] 1s Gate\t[d] 10s Gate\r\n");
-			putstr("[z] Single measurement\t[x] Continous measurement\t[c] Burst (10) measurement\r\n\r\n");
+			putstr("[z] Single measurement\t[x] Continuous measurement\t[c] Burst (10) measurement\r\n\r\n");
 			break;
 
 		case 'q': s_mode = MEASUREMENT_PULSE_COUNT; break;
@@ -128,8 +130,11 @@ void protocolAsciiHandle(const uint8_t* data, size_t length) {
 			break;
 
 		case 'c':
-			for (int i = 0; i < s_burstCount; i++)
+		    s_burstTotal = 0;
+
+			for (int i = 0; i < s_burstCount; i++) {
 				doOneMeasurement();
+			}
 
 			if (s_mode == MEASUREMENT_PULSE_COUNT || s_mode == MEASUREMENT_PERIOD) {
 				sprintf(outbuf, "\r\nAverage: %u Hz\r\n", (unsigned int)(s_burstTotal / s_burstCount));
@@ -137,6 +142,8 @@ void protocolAsciiHandle(const uint8_t* data, size_t length) {
 			}
 			break;
 		}
+
+		putstr("Ready >\r\n");
 	}
 
 	if (s_running) {

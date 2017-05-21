@@ -49,6 +49,13 @@ add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
         COMMAND ${CMAKE_SIZE} $<TARGET_FILE:${PROJECT_NAME}.elf>
         )
 
+if (TARGET_CPU STREQUAL "STM32F042F6")
+add_custom_target(flash
+		DEPENDS ${PROJECT_NAME}.elf
+		COMMAND dfu-util -a 0 -D ${BIN_FILE} --dfuse-address 0x08000000
+		COMMENT "Uploading ${BIN_FILE}")
+endif()
+
 if (TARGET_CPU STREQUAL "STM32F042K6")
 add_custom_target(flash
 		DEPENDS ${PROJECT_NAME}.elf

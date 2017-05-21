@@ -3,9 +3,6 @@
 
 #include "../common/protocoldefs.h"
 
-constexpr double F_CPU = 48000000;                  // FIXME: use actual f_cpu
-constexpr double MIN_REASONABLE_FREQUENCY = 0.000001;
-constexpr double MIN_REASONABLE_PERIOD = 1.0 / F_CPU;
 constexpr double USB_CLOCK_TOLERANCE = 0.0005;      // assuming USB 2.0
 
 constexpr uint16_t VERSION = 1008;
@@ -124,7 +121,7 @@ void MeasurementController::doMeasurementCounting(double gateTime)
 
     auto frequency = result.count / gateTime;
 
-    const double period = (frequency > MIN_REASONABLE_FREQUENCY) ? (1.0 / frequency) : INFINITY;
+    const double period = (result.count > 0) ? (1.0 / frequency) : INFINITY;
 
     const double relativeError = USB_CLOCK_TOLERANCE;
 
@@ -162,11 +159,11 @@ void MeasurementController::doMeasurementPhase(Edge edge)
     if (!doMeasurement(MEASUREMENT_INTERVAL, &request, sizeof(request), &result, sizeof(result)))
         return;
 
-    const double period = result.period * (1.0 / F_CPU);
-    const double frequency = (period > MIN_REASONABLE_PERIOD) ? (1.0 / period) : 0.0;
+    const double period = result.period * (1.0 / f_cpu);
+    const double frequency = (result.period > 0) ? (1.0 / period) : 0.0;
 
-    const double interval = result.interval * (1.0 / F_CPU);
-    const double phase = (period > MIN_REASONABLE_PERIOD) ? (interval / period * 360) : 0.0;
+    const double interval = result.interval * (1.0 / f_cpu);
+    const double phase = (result.period > 0) ? (interval / period * 360) : 0.0;
 
     emit measurementFinishedPhase(frequency, period, -interval, phase);
 }
@@ -184,12 +181,12 @@ void MeasurementController::doMeasurementPeriod(unsigned int numPeriods, bool wi
     if (!doMeasurement(withPhase? MEASUREMENT_PWM : MEASUREMENT_PERIOD, &request, sizeof(request), &result, sizeof(result)))
         return;
 
-    const double period = result.period * (1.0 / 65536 / F_CPU);
-    const double frequency = (period > MIN_REASONABLE_PERIOD) ? (1.0 / period) : 0.0;
+    const double period = result.period * (1.0 / 65536 / f_cpu);
+    const double frequency = (result.period > 0) ? (1.0 / period) : 0.0;
 
     const double relativeError = USB_CLOCK_TOLERANCE;
 
-    const double periodError = (1 / F_CPU /* quantization error */) + period * relativeError;
+    const double periodError = (1 / f_cpu /* quantization error */) + period * relativeError;
     const double frequencyErrorPoint = qMax(1.0 / (period - periodError), 0.0);
     const double frequencyError = frequencyErrorPoint - frequency;
 
@@ -235,6 +232,8 @@ bool MeasurementController::getInstrumentInfo(InstrumentInfo& info_out)
     info_out.board = BOARDS[iinfo.board_id >> 8];    // FIXME: overflow!!
     info_out.firmware = iinfo.fw_ver;
     info_out.f_cpu = iinfo.f_cpu;
+
+    this->f_cpu = iinfo.f_cpu;
 
     return true;
 }
@@ -313,7 +312,7 @@ void MeasurementController::setPwm(size_t index, PwmParameters params)
     if (!session)
         return;
 
-    auto period = F_CPU / params.freq;
+    auto period = f_cpu / params.freq;
     auto pulse_width = period * params.duty;
 
     while (params.phase < 0)
@@ -341,7 +340,7 @@ void MeasurementController::setPwm(size_t index, PwmParameters params)
     }
 
     // Calculate actual frequency
-    params.freq = F_CPU / (prescaler * prescaled);
+    params.freq = f_cpu / (prescaler * prescaled);
     params.duty = (float)request.pulse_width / period;
     params.phase = (float)request.phase / request.period * 360;
 

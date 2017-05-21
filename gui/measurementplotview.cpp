@@ -22,24 +22,23 @@ static void getAppropriateAxisRange(double min, double max, double& min_out, dou
 MeasurementPlotView::MeasurementPlotView(QtCharts::QChartView* view, QObject *parent) : QObject(parent)
 {
     chart = new QtCharts::QChart();
-
     chart->createDefaultAxes();
+    view->setChart(chart);
 
-    currentSeries = new QtCharts::QLineSeries();
-
-    chart->addSeries(currentSeries);
+    currentSeriesLine = new QtCharts::QLineSeries();
+    chart->addSeries(currentSeriesLine);
 
     axisX = new QtCharts::QValueAxis();
     axisX->setTitleText("Time [s]");
     chart->setAxisX(axisX);
-    currentSeries->attachAxis(axisX);
+    currentSeriesLine->attachAxis(axisX);
 
     axisY = new QtCharts::QValueAxis();
-    axisY->setTitleText("Value???");
+    //axisY->setTitleText("Value???");
     chart->setAxisY(axisY);
-    currentSeries->attachAxis(axisY);
+    currentSeriesLine->attachAxis(axisY);
 
-    view->setChart(chart);
+    showSeries(Series::frequency);
 }
 
 void MeasurementPlotView::addDataPoints(Series series, const double* timestamps, const double* data, const double* errors, size_t count) {
@@ -59,7 +58,7 @@ void MeasurementPlotView::addDataPoints(Series series, const double* timestamps,
             if (maxValue < data[i])
                 maxValue = data[i];
 
-            currentSeries->append(timestamps[i] - minTime, data[i]);
+            currentSeriesLine->append(timestamps[i] - minTime, data[i]);
         }
     }
 
@@ -69,4 +68,33 @@ void MeasurementPlotView::addDataPoints(Series series, const double* timestamps,
     double min, max;
     getAppropriateAxisRange(minValue, maxValue, min, max);
     axisY->setRange(min, max);
+}
+
+void MeasurementPlotView::clear() {
+    currentSeriesLine->clear();
+    haveMinTime = false;
+}
+
+void MeasurementPlotView::showSeries(Series series) {
+    this->displayedSeries = series;
+
+    switch (series) {
+    case Series::frequency:
+        axisY->setTitleText("Frequency [Hz]");
+        break;
+    case Series::period:
+        axisY->setTitleText("Period [s]");
+        break;
+    case Series::interval:
+        axisY->setTitleText("Interval [s]");
+        break;
+    case Series::phase:
+        axisY->setTitleText("Phase [°]");
+        break;
+    case Series::freqRatio:
+        axisY->setTitleText("Frequency Ratio [-]");
+        break;
+    }
+
+    this->clear();
 }

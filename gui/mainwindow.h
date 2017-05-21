@@ -78,6 +78,8 @@ private slots:
 
     void on_measurementGateTimeSelect_currentIndexChanged(int index);
 
+    void on_plotClear_clicked();
+
 private:
     double getCountingGateTimeSeconds();
     int getReciprocalIterations();

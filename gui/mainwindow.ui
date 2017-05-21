@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1074</width>
-    <height>819</height>
+    <height>840</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -823,18 +823,56 @@
         <widget class="QWidget" name="horizontalLayoutWidget">
          <property name="geometry">
           <rect>
-           <x>10</x>
-           <y>10</y>
-           <width>160</width>
-           <height>80</height>
+           <x>7</x>
+           <y>0</y>
+           <width>294</width>
+           <height>61</height>
           </rect>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
-           <widget class="QPushButton" name="pushButton">
+           <widget class="QPushButton" name="plotClear">
             <property name="text">
-             <string>PushButton</string>
+             <string>Clear</string>
             </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="plotParamSelect">
+            <item>
+             <property name="text">
+              <string>frequency</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>period</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>duty cycle</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="plotWindowSelect">
+            <item>
+             <property name="text">
+              <string>10s window</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>60s window</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>All data</string>
+             </property>
+            </item>
            </widget>
           </item>
          </layout>
