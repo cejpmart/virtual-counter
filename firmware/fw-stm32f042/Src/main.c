@@ -44,7 +44,6 @@
 #include "main.h"
 #include "stm32f0xx_hal.h"
 #include "usb_device.h"
-#include "usbd_cdc_if.h"
 
 /* USER CODE BEGIN Includes */
 #include "virtualinstrument/hw.h"
@@ -52,6 +51,7 @@
 #include "virtualinstrument/protocol.h"
 
 #include "hw_stm32f042.h"
+#include "usbd_cdc_if.h"
 #include "../../../common/protocoldefs.h"
 
 #include <string.h>
@@ -481,7 +481,7 @@ static void MX_USART2_UART_Init(void)
 {
 
   huart2.Instance = USART2;
-  huart2.Init.BaudRate = 115200;
+  huart2.Init.BaudRate = 57600;
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
   huart2.Init.StopBits = UART_STOPBITS_1;
   huart2.Init.Parity = UART_PARITY_NONE;

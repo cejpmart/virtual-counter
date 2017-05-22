@@ -1,7 +1,7 @@
 #include "serialsession.h"
 
 constexpr int timeout = 1000;
-constexpr int baudrate = 115200;
+constexpr int baudrate = 57600;
 
 constexpr bool enableLogging = false;
 
