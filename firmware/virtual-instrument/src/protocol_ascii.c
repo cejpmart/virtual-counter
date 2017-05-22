@@ -11,6 +11,7 @@ static int s_mode = MEASUREMENT_PULSE_COUNT;
 static int s_running = 0;
 
 static int s_gate_time = 1000;
+static int s_num_periods = 1;
 
 static const int s_continuousInterval = 500;
 
@@ -23,7 +24,30 @@ static char outbuf[100];
 extern uint32_t SystemCoreClock;
 
 static void putstr(const char* str) {
-	cdcDataOut((const uint8_t*) str, strlen(str));
+	DataOut((const uint8_t*) str, strlen(str));
+}
+
+static void printCurrentConfig(void) {
+    switch (s_mode) {
+    case MEASUREMENT_PULSE_COUNT:
+        sprintf(outbuf, "Current Mode: Pulse Count, Gate Time: %d msec\r\n", s_gate_time);
+        break;
+
+    case MEASUREMENT_PERIOD:
+    case MEASUREMENT_PWM:
+        sprintf(outbuf, "Current Mode: Period (Reciprocal), Measured Periods: %d\r\n", s_num_periods);
+        break;
+
+    case MEASUREMENT_INTERVAL:
+        sprintf(outbuf, "Current Mode: Interval\r\n");
+        break;
+
+    case MEASUREMENT_FREQ_RATIO:
+        sprintf(outbuf, "Current Mode: Freq. Ratio\r\n");
+        break;
+    }
+
+    putstr(outbuf);
 }
 
 static void printError(void) {
@@ -47,7 +71,7 @@ static void doOneMeasurement() {
 		s_burstTotal += freq;
 	}
 	else if (s_mode == MEASUREMENT_PERIOD) {
-	    if (instrumentStartMeasurePeriod(1, 1) < 0) {
+	    if (instrumentStartMeasurePeriod(s_num_periods, 1) < 0) {
 	        printError();
 	        return;
 	    }
@@ -100,26 +124,45 @@ void protocolAsciiHandle(const uint8_t* data, size_t length) {
 			continue;
 		}
 
-		cdcDataOut(data, 1);
+		DataOut(data, 1);
 		putstr("\r\n");
 
 		switch (*data) {
 		case '?':
 		case 'h':
 		    // FIXME: print current settings
-			putstr("\r\nCommands:\r\n");
-			putstr("[q] Counting\t[w] Reciprocal\t[e] Interval/Phase\r\n");
-			putstr("[a] 0.1s Gate\t[s] 1s Gate\t[d] 10s Gate\r\n");
-			putstr("[z] Single measurement\t[x] Continuous measurement\t[c] Burst (10) measurement\r\n\r\n");
+			putstr("\r\nCommands:\r\n"
+			        "[q] Counting\t[w] Reciprocal\t[e] Interval/Phase\r\n"
+			        "[a] 0.1s Gate / 1 period\t[s] 1s Gate / 10 periods\t[d] 10s Gate / 100 periods\t[f] 1000 periods\t[g] 10000 periods\r\n"
+			        "[z] Single measurement\t[x] Continuous measurement\t[c] Burst (10) measurement\r\n"
+			        "[n] Disable PWM / [m] Enable PWM (1 kHz)\r\n"
+			        "\r\n");
+			printCurrentConfig();
 			break;
 
-		case 'q': s_mode = MEASUREMENT_PULSE_COUNT; break;
-		case 'w': s_mode = MEASUREMENT_PERIOD; break;
-		case 'e': s_mode = MEASUREMENT_INTERVAL; break;
+		case 'q':
+		    s_mode = MEASUREMENT_PULSE_COUNT;
+		    printCurrentConfig();
+		    break;
 
-		case 'a': s_gate_time = 100; break;
-		case 's': s_gate_time = 1000; break;
-		case 'd': s_gate_time = 10000; break;
+		case 'w': s_mode = MEASUREMENT_PERIOD; printCurrentConfig(); break;
+		case 'e': s_mode = MEASUREMENT_INTERVAL; printCurrentConfig(); break;
+
+		case 'a': s_gate_time = 100; s_num_periods = 1; printCurrentConfig(); break;
+		case 's': s_gate_time = 1000; s_num_periods = 10; printCurrentConfig(); break;
+		case 'd': s_gate_time = 10000; s_num_periods = 100; printCurrentConfig(); break;
+		case 'f': s_num_periods = 1000; printCurrentConfig(); break;
+		case 'g': s_num_periods = 10000; printCurrentConfig(); break;
+
+		case 'n':
+            instrumentSetPwm(0, SystemCoreClock / 1000000 - 1, 1000 - 1, 0, 0);
+            instrumentSetPwm(1, SystemCoreClock / 1000000 - 1, 1000 - 1, 0, 250);
+            break;
+
+		case 'm':
+		    instrumentSetPwm(0, SystemCoreClock / 1000000 - 1, 1000 - 1, 500, 0);
+		    instrumentSetPwm(1, SystemCoreClock / 1000000 - 1, 1000 - 1, 500, 250);
+		    break;
 
 		case 'z':
 			doOneMeasurement();
@@ -143,7 +186,7 @@ void protocolAsciiHandle(const uint8_t* data, size_t length) {
 			break;
 		}
 
-		putstr("Ready >\r\n");
+		putstr("Ready >");
 	}
 
 	if (s_running) {

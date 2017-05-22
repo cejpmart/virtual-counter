@@ -51,7 +51,7 @@ static size_t getpacket(const uint8_t* data, size_t length, struct packet** pack
 }
 
 static int sendpacket(struct packet* packet) {
-    return cdcDataOut((const uint8_t*) packet, 2 + packet->length);
+    return DataOut((const uint8_t*) packet, 2 + packet->length);
 }
 
 /*static void putbyte(uint8_t value) {

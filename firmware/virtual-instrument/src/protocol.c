@@ -26,18 +26,6 @@ static size_t pendingDataWritePos = 0;
 void cdcInitDone(void) {
 }
 
-void cdcDataIn(const uint8_t* data, size_t length) {
-	for (; length; data++, length--) {
-		size_t nextWritePos = (pendingDataWritePos + 1) & (sizeof(pendingData) - 1);
-
-		if (nextWritePos == pendingDataReadPos)
-			break;
-
-		pendingData[pendingDataWritePos] = *data;
-		pendingDataWritePos = nextWritePos;
-	}
-}
-
 void protocolInit(uint16_t board_id, uint16_t instrument_version, uint32_t f_cpu) {
 	protocolAsciiInit();
 	protocolBinaryInit(board_id, instrument_version, f_cpu);
@@ -60,6 +48,18 @@ enum {
 //#else
 static int controlMode = CONTROL_ASCII;
 //#endif
+
+void protocolDataIn(const uint8_t* data, size_t length) {
+    for (; length; data++, length--) {
+        size_t nextWritePos = (pendingDataWritePos + 1) & (sizeof(pendingData) - 1);
+
+        if (nextWritePos == pendingDataReadPos)
+            break;
+
+        pendingData[pendingDataWritePos] = *data;
+        pendingDataWritePos = nextWritePos;
+    }
+}
 
 void protocolProcess(void) {
 	if (pendingDataReadPos != pendingDataWritePos) {

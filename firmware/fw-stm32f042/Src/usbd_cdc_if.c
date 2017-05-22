@@ -111,6 +111,7 @@ uint8_t UserTxBufferFS[APP_TX_DATA_SIZE];
   */ 
   extern USBD_HandleTypeDef hUsbDeviceFS;
 /* USER CODE BEGIN EXPORTED_VARIABLES */
+extern volatile int last_data_usb;
 /* USER CODE END EXPORTED_VARIABLES */
 
 /**
@@ -265,7 +266,10 @@ static int8_t CDC_Receive_FS (uint8_t* Buf, uint32_t *Len)
   /* USER CODE BEGIN 6 */
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
   USBD_CDC_ReceivePacket(&hUsbDeviceFS);
-  cdcDataIn(Buf, *Len);
+  last_data_usb = 1;
+  __disable_irq();
+  protocolDataIn(Buf, *Len);
+  __enable_irq();
   return (USBD_OK);
   /* USER CODE END 6 */ 
 }
@@ -296,19 +300,6 @@ uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
 }
 
 /* USER CODE BEGIN PRIVATE_FUNCTIONS_IMPLEMENTATION */
-int cdcDataOut(const uint8_t* data, size_t length) {
-	int rc;
-
-	uint32_t startTime = HAL_GetTick();
-	static const uint32_t kTimeout = 2000;
-
-	do {
-		rc = CDC_Transmit_FS((uint8_t*) data, length);
-	}
-	while (rc == USBD_BUSY && HAL_GetTick() < startTime + kTimeout);
-
-	return rc;
-}
 /* USER CODE END PRIVATE_FUNCTIONS_IMPLEMENTATION */
 
 /**

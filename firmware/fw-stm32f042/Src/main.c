@@ -44,6 +44,7 @@
 #include "main.h"
 #include "stm32f0xx_hal.h"
 #include "usb_device.h"
+#include "usbd_cdc_if.h"
 
 /* USER CODE BEGIN Includes */
 #include "virtualinstrument/hw.h"
@@ -134,6 +135,26 @@ static int HWTryEnableHSE(void) {
   return 0;
 }
 
+volatile int last_data_usb;     // 1=usb, 0=uart (VCP)
+
+int DataOut(const uint8_t* data, size_t length) {
+    uint32_t startTime = HAL_GetTick();
+    static const uint32_t kTimeout = 2000;
+
+    if (last_data_usb) {
+        int rc;
+
+        do {
+            rc = CDC_Transmit_FS((uint8_t*) data, length);
+        }
+        while (rc == USBD_BUSY && HAL_GetTick() < startTime + kTimeout);
+
+        return rc;
+    }
+    else {
+        return HAL_UART_Transmit(&huart2, data, length, kTimeout);
+    }
+}
 /* USER CODE END 0 */
 
 int main(void)
@@ -174,6 +195,8 @@ int main(void)
 #else
   protocolInit(BOARD_F042K6_NUCLEO32, INSTRUMENT_VERSION, SystemCoreClock);
 #endif
+
+  __HAL_UART_ENABLE_IT(&huart2, UART_IT_RXNE);
 
   instrumentInit();
   /* USER CODE END 2 */
@@ -458,8 +481,8 @@ static void MX_USART2_UART_Init(void)
 {
 
   huart2.Instance = USART2;
-  huart2.Init.BaudRate = 38400;
-  huart2.Init.WordLength = UART_WORDLENGTH_7B;
+  huart2.Init.BaudRate = 115200;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
   huart2.Init.StopBits = UART_STOPBITS_1;
   huart2.Init.Parity = UART_PARITY_NONE;
   huart2.Init.Mode = UART_MODE_TX_RX;
