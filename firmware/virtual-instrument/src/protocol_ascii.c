@@ -43,7 +43,7 @@ static void printCurrentConfig(void) {
         break;
 
     case MEASUREMENT_FREQ_RATIO:
-        sprintf(outbuf, "Current Mode: Freq. Ratio\r\n");
+        sprintf(outbuf, "Current Mode: Freq. Ratio, Measured Periods: %d\r\n", s_num_periods);
         break;
     }
 
@@ -108,6 +108,18 @@ static void doOneMeasurement() {
 
 		sprintf(outbuf, "%u Hz, %+d deg phase shift\r\n", (unsigned int)(SystemCoreClock / period), (int)interval * 360 / (int)period);
 	}
+	else if (s_mode == MEASUREMENT_FREQ_RATIO) {
+        if (instrumentStartMeasureFreqRatio(s_num_periods) < 0) {
+            printError();
+            return;
+        }
+
+        uint64_t freq_ratio;
+        while (instrumentFinishMeasureFreqRatio(&freq_ratio) <= 0) {
+        }
+
+        sprintf(outbuf, "%u.%06u\r\n", (unsigned int)(freq_ratio / 65536), (unsigned int)((freq_ratio % 65536) * 1000000 / 65536));
+    }
 
 	putstr(outbuf);
 }
@@ -132,7 +144,7 @@ void protocolAsciiHandle(const uint8_t* data, size_t length) {
 		case 'h':
 		    // FIXME: print current settings
 			putstr("\r\nCommands:\r\n"
-			        "[q] Counting\t[w] Reciprocal\t[e] Interval/Phase\r\n"
+			        "[q] Counting\t[w] Reciprocal\t[e] Interval/Phase\t[r] Frequency Ratio\r\n"
 			        "[a] 0.1s Gate / 1 period\t[s] 1s Gate / 10 periods\t[d] 10s Gate / 100 periods\t[f] 1000 periods\t[g] 10000 periods\r\n"
 			        "[z] Single measurement\t[x] Continuous measurement\t[c] Burst (10) measurement\r\n"
 			        "[n] Disable PWM / [m] Enable PWM (1 kHz)\r\n"
@@ -143,10 +155,26 @@ void protocolAsciiHandle(const uint8_t* data, size_t length) {
 		case 'q':
 		    s_mode = MEASUREMENT_PULSE_COUNT;
 		    printCurrentConfig();
+		    putstr("Input pin: " PORT_PULSE_COUNT "\r\n");
 		    break;
 
-		case 'w': s_mode = MEASUREMENT_PERIOD; printCurrentConfig(); break;
-		case 'e': s_mode = MEASUREMENT_INTERVAL; printCurrentConfig(); break;
+		case 'w':
+		    s_mode = MEASUREMENT_PERIOD;
+		    printCurrentConfig();
+		    putstr("Input pins: " PORT_PERIOD_1 " " PORT_PERIOD_2 "\r\n");
+		    break;
+
+		case 'e':
+		    s_mode = MEASUREMENT_INTERVAL;
+		    printCurrentConfig();
+		    putstr("Input pins: " PORT_INTERVAL_A " " PORT_INTERVAL_B "\r\n");
+		    break;
+
+		case 'r':
+            s_mode = MEASUREMENT_FREQ_RATIO;
+            printCurrentConfig();
+            putstr("Input pins: " PORT_FREQ_RATIO_A " " PORT_FREQ_RATIO_B "\r\n");
+            break;
 
 		case 'a': s_gate_time = 100; s_num_periods = 1; printCurrentConfig(); break;
 		case 's': s_gate_time = 1000; s_num_periods = 10; printCurrentConfig(); break;
@@ -162,6 +190,7 @@ void protocolAsciiHandle(const uint8_t* data, size_t length) {
 		case 'm':
 		    instrumentSetPwm(0, SystemCoreClock / 1000000 - 1, 1000 - 1, 500, 0);
 		    instrumentSetPwm(1, SystemCoreClock / 1000000 - 1, 1000 - 1, 500, 250);
+		    putstr("Output pins: " PORT_PWM_A " " PORT_PWM_B "\r\n");
 		    break;
 
 		case 'z':

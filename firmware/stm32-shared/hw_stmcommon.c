@@ -1,7 +1,6 @@
 #include "virtualinstrument/hw.h"
 
 #ifdef STM32F042x6
-#include "hw_stm32f042.h"
 #include "stm32f0xx_hal.h"
 #endif
 
