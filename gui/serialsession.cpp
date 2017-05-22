@@ -1,11 +1,17 @@
 #include "serialsession.h"
 
 constexpr int timeout = 1000;
+constexpr int baudrate = 115200;
 
 constexpr bool enableLogging = false;
 
 void SerialSession::open(const char* filename) {
     serialPort.reset(new QSerialPort(filename));
+    serialPort->setBaudRate(baudrate, QSerialPort::AllDirections);
+    serialPort->setDataBits(QSerialPort::Data8);
+    serialPort->setParity(QSerialPort::NoParity);
+    serialPort->setStopBits(QSerialPort::OneStop);
+    serialPort->setFlowControl(QSerialPort::NoFlowControl);
 
     if (!serialPort->open(QIODevice::ReadWrite)) {
         auto error = (QString) filename + ": " + serialPort->errorString();
@@ -16,6 +22,8 @@ void SerialSession::open(const char* filename) {
     if (!this->write<uint8_t>(0xf0)) {
         throw std::runtime_error("Communication initialization failed");
     }
+
+    serialPort->flush();
 }
 
 bool SerialSession::awaitPacket(uint8_t* tag_out, uint8_t const** data_out, size_t* length_out) {
@@ -49,7 +57,15 @@ bool SerialSession::receivePacket(uint8_t* tag_out, uint8_t const** data_out, si
         auto length = header[1];
 
         receivedPacketData.resize(length);
-        if (serialPort->read((char*) &receivedPacketData[0], length) == length) {
+        auto rx = serialPort->read((char*) &receivedPacketData[0], length);
+
+        if (enableLogging) {
+            char buffer[1000];
+            sprintf(buffer, "tag %02X, length %02X, rx +%d", header[0], header[1], (int)rx);
+            qInfo("%s", buffer);
+        }
+
+        if (rx == length) {
             *tag_out = header[0];
             *length_out = header[1];
             *data_out = &receivedPacketData[0];
@@ -66,7 +82,7 @@ bool SerialSession::receivePacket(uint8_t* tag_out, uint8_t const** data_out, si
                     }
                     strcat(buffer, "]");
                 }
-                qInfo(buffer);
+                qInfo("%s", buffer);
             }
 
             serialPort->commitTransaction();

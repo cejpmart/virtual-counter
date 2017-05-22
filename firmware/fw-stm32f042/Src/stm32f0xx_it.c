@@ -36,7 +36,7 @@
 #include "stm32f0xx_it.h"
 
 /* USER CODE BEGIN 0 */
-
+extern volatile int last_data_usb;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -105,10 +105,14 @@ void TIM2_IRQHandler(void)
 void USART2_IRQHandler(void)
 {
   /* USER CODE BEGIN USART2_IRQn 0 */
-    uint8_t data = USART2->RDR;
-    __disable_irq();
-    protocolDataIn(&data, 1);
-    __enable_irq();
+  uint8_t data = USART2->RDR;
+  last_data_usb = 0;
+  __disable_irq();
+  protocolDataIn(&data, 1);
+  __enable_irq();
+  //__HAL_UART_SEND_REQ(&huart2, UART_RXDATA_FLUSH_REQUEST);
+  __HAL_UART_CLEAR_OREFLAG(&huart2);
+  return;
   /* USER CODE END USART2_IRQn 0 */
   HAL_UART_IRQHandler(&huart2);
   /* USER CODE BEGIN USART2_IRQn 1 */
