@@ -42,7 +42,6 @@ extern volatile int last_data_usb;
 /* External variables --------------------------------------------------------*/
 extern PCD_HandleTypeDef hpcd_USB_FS;
 extern DMA_HandleTypeDef hdma_tim2_ch2;
-extern TIM_HandleTypeDef htim2;
 extern UART_HandleTypeDef huart2;
 
 /******************************************************************************/
@@ -86,20 +85,6 @@ void DMA1_Channel2_3_IRQHandler(void)
 }
 
 /**
-* @brief This function handles TIM2 global interrupt.
-*/
-void TIM2_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM2_IRQn 0 */
-
-  /* USER CODE END TIM2_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim2);
-  /* USER CODE BEGIN TIM2_IRQn 1 */
-
-  /* USER CODE END TIM2_IRQn 1 */
-}
-
-/**
 * @brief This function handles USART2 global interrupt.
 */
 void USART2_IRQHandler(void)
@@ -112,11 +97,11 @@ void USART2_IRQHandler(void)
   __enable_irq();
   //__HAL_UART_SEND_REQ(&huart2, UART_RXDATA_FLUSH_REQUEST);
   __HAL_UART_CLEAR_OREFLAG(&huart2);
-  return;
+#if 0
   /* USER CODE END USART2_IRQn 0 */
   HAL_UART_IRQHandler(&huart2);
   /* USER CODE BEGIN USART2_IRQn 1 */
-
+#endif
   /* USER CODE END USART2_IRQn 1 */
 }
 

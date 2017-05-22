@@ -14,6 +14,8 @@ static uint32_t s_f_cpu;
 static uint8_t s_rx_packet[32];
 static size_t s_rx_have;
 
+static uint8_t reply_buffer[32];
+
 struct packet {
     uint8_t tag;
     uint8_t length;
@@ -76,7 +78,6 @@ void protocolBinaryHandle(const uint8_t* data, size_t length) {
 
         s_rx_have -= used;
 
-        uint8_t reply_buffer[32];
         struct packet* reply_packet = (struct packet*) reply_buffer;
 
         switch (packet->tag) {

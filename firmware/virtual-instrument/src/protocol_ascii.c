@@ -13,10 +13,10 @@ static int s_running = 0;
 static int s_gate_time = 1000;
 static int s_num_periods = 1;
 
-static const int s_continuousInterval = 500;
+static const unsigned int s_continuousInterval = 500;
 
-static const int s_burstCount = 10;
-static float s_burstTotal;
+static const unsigned int s_burstCount = 10;
+static uint64_t s_burstTotal;
 
 static char outbuf[100];
 

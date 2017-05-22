@@ -187,8 +187,6 @@ int main(void)
   HWTryEnableHSE();
   HAL_TIM_PWM_Start(&PWM1_HTIM, PWM1_CHANNEL);
   HAL_TIM_PWM_Start(&PWM2_HTIM, PWM2_CHANNEL);
-  //HAL_TIM_Base_Start(&HTIM_INPUT_COMPARE);
-  //HAL_TIM_Base_Start(&TIMEFRAME_HTIM);
 
 #ifdef STM32F042F6
   protocolInit(BOARD_F042F6, INSTRUMENT_VERSION, SystemCoreClock);
