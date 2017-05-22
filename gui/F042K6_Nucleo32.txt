@@ -1,10 +1,10 @@
 # stm32f042k6 nucleo-32
 
 port.pulse_count=A0
-port.period_1=A1
-port.period_2=A7
-port.interval_a=A1
-port.interval_b=A7
+port.period_1=A0
+port.period_2=A1
+port.interval_a=A0
+port.interval_b=A1
 port.freq_ratio_a=A0
 port.freq_ratio_b=A5
 port.pwm_a=A3
