@@ -12,6 +12,8 @@ constexpr const char* BOARDS[] {
     "F042F6",
     "F042K6_Nucleo32",
     "F303_Nucleo64",
+    "F411_Nucleo64",
+    "F373_Eval",
 };
 
 MeasurementController::MeasurementController(MainWindow* view) : view(view)

@@ -41,6 +41,8 @@ enum {
     BOARD_F042F6 =              0x0100,
     BOARD_F042K6_NUCLEO32 =     0x0200,
     BOARD_F303_NUCLEO64 =       0x0300,
+    BOARD_F411_NUCLEO64 =       0x0400,
+    BOARD_F373_EVAL =           0x0500,
 };
 
 typedef struct {
