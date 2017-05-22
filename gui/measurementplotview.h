@@ -14,6 +14,7 @@ enum class Series {
     interval,
     phase,
     freqRatio,
+    dutyCycle,
 };
 
 class MeasurementPlotView : public QObject
@@ -23,9 +24,9 @@ public:
     explicit MeasurementPlotView(QtCharts::QChartView* view, QObject *parent = 0);
 
     void addDataPoints(Series series, const double* timestamps, const double* data, const double* errors, size_t count);
-
     void clear();
-
+    void savePNG(QString path);
+    void saveSeries(QString path);
     void showSeries(Series series);
 
 signals:
@@ -33,6 +34,7 @@ signals:
 public slots:
 
 private:
+    QtCharts::QChartView* view;
     QtCharts::QChart* chart;
     QtCharts::QValueAxis* axisX, * axisY;
 

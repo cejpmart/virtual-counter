@@ -80,6 +80,14 @@ private slots:
 
     void on_plotClear_clicked();
 
+    void on_plotParamSelect_currentIndexChanged(int index);
+
+    void on_measurementPulseWidthEnable_toggled(bool checked);
+
+    void on_menuSavePNG_triggered();
+
+    void on_menuSaveCSV_triggered();
+
 private:
     double getCountingGateTimeSeconds();
     int getReciprocalIterations();

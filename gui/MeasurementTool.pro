@@ -33,6 +33,10 @@ HEADERS  += mainwindow.h \
 
 FORMS    += mainwindow.ui
 
+DISTFILES += \
+    F042F6.txt \
+    F042K6_Nucleo32.txt
+
 # Deployment - Automatically Detect and Copy Dependencies to Build Folder
 
 win32 {
@@ -55,6 +59,3 @@ win32 {
 }
 
 #QMAKE_POST_LINK += $$QMAKE_COPY $${PWD}/F042K6_Nucleo32.txt $${OUT_PWD}/
-
-DISTFILES += \
-    F042K6_Nucleo32.txt

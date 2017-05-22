@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include <QFileDialog>
 #include <QtSerialPort/QSerialPortInfo>
 
 #include <cstdio>
@@ -227,6 +228,7 @@ void MainWindow::onMeasurementFinishedPeriod(double frequency, double frequencyE
     double timestamp = QDateTime::currentMSecsSinceEpoch() * 1e-3;
     measurementPlotView->addDataPoints(Series::frequency,   &timestamp,    &frequency, &frequencyError,    1);
     measurementPlotView->addDataPoints(Series::period,      &timestamp,    &period,    &periodError,       1);
+    measurementPlotView->addDataPoints(Series::dutyCycle,   &timestamp,    &duty,      nullptr,            1);
 
     setMeasuredValuesFrequencyPeriodDuty(frequency, frequencyError, period, periodError, duty);
 
@@ -260,7 +262,10 @@ void MainWindow::onMeasurementMethodChanged()
         ui->instrumentStatusLabel->setText("Port: " + ipm.value("port.pulse_count"));
     }
     else if (ui->measurementMethodPeriod->isChecked()) {
-        ui->instrumentStatusLabel->setText("Ports: " + ipm.value("port.period_1") + ", " + ipm.value("port.period_2"));
+        if (!ui->measurementPulseWidthEnable->isChecked())
+            ui->instrumentStatusLabel->setText("Port: " + ipm.value("port.period"));
+        else
+            ui->instrumentStatusLabel->setText("Ports: " + ipm.value("port.period_pwm_1") + ", " + ipm.value("port.period_pwm_2"));
     }
     else if (ui->measurementMethodInterval->isChecked()) {
         ui->instrumentStatusLabel->setText("Ports: " + ipm.value("port.interval_a") + ", " + ipm.value("port.interval_b"));
@@ -490,6 +495,13 @@ void MainWindow::on_measurementMethodPeriod_toggled(bool checked)
     onMeasurementMethodChanged();
 }
 
+void MainWindow::on_actionAbort_measurement_triggered()
+{
+    //measurementController->abortMeasurement();
+
+    afterMeasurement();
+}
+
 void MainWindow::on_actionQuit_triggered()
 {
     this->close();
@@ -505,9 +517,53 @@ void MainWindow::on_continuousMeasurementToggle_clicked()
         ui->continuousMeasurementToggle->setText("Run");
 }
 
+void MainWindow::on_measurementPulseWidthEnable_toggled(bool checked)
+{
+    onMeasurementMethodChanged();
+}
+
+void MainWindow::on_menuSaveCSV_triggered()
+{
+    if (this->measurementPlotView) {
+        auto fileName = QFileDialog::getSaveFileName(this, QString(), QString(), "*.csv");
+
+        if (!fileName.isEmpty())
+            this->measurementPlotView->saveSeries(fileName);
+    }
+}
+
+void MainWindow::on_menuSavePNG_triggered()
+{
+    if (this->measurementPlotView) {
+        auto fileName = QFileDialog::getSaveFileName(this, QString(), QString(), "*.png");
+
+        if (!fileName.isEmpty())
+            this->measurementPlotView->savePNG(fileName);
+    }
+}
+
 void MainWindow::on_plotClear_clicked()
 {
     measurementPlotView->clear();
+}
+
+void MainWindow::on_plotParamSelect_currentIndexChanged(int index)
+{
+    if (index == 0) {
+        // frequency
+        if (this->measurementPlotView)
+            this->measurementPlotView->showSeries(Series::frequency);
+    }
+    else if (index == 1) {
+        // period
+        if (this->measurementPlotView)
+            this->measurementPlotView->showSeries(Series::period);
+    }
+    else if (index == 2) {
+        // duty cycle
+        if (this->measurementPlotView)
+            this->measurementPlotView->showSeries(Series::dutyCycle);
+    }
 }
 
 void MainWindow::on_pwmAEnabled_toggled(bool checked)
@@ -564,11 +620,4 @@ void MainWindow::on_pwm2Phase_valueChanged(int value)
 
     if (pwm[1].startSetting())
         emit shouldSetPwm(1, pwm[1].setpoint);
-}
-
-void MainWindow::on_actionAbort_measurement_triggered()
-{
-    //measurementController->abortMeasurement();
-
-    afterMeasurement();
 }

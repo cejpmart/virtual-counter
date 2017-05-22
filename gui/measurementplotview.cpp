@@ -2,6 +2,8 @@
 
 #include <cmath>
 
+#include <QTextStream>
+
 static void getAppropriateAxisRange(double min, double max, double& min_out, double& max_out)
 {
     double delta = max - min;
@@ -19,10 +21,24 @@ static void getAppropriateAxisRange(double min, double max, double& min_out, dou
     }
 }
 
-MeasurementPlotView::MeasurementPlotView(QtCharts::QChartView* view, QObject *parent) : QObject(parent)
+static QString getSeriesTitle(Series series)
+{
+    switch (series) {
+    case Series::frequency: return "Frequency [Hz]";
+    case Series::period:    return "Period [s]";
+    case Series::interval:  return "Interval [s]";
+    case Series::phase:     return "Phase [°]";
+    case Series::freqRatio: return "Frequency Ratio [-]";
+    case Series::dutyCycle: return "Duty Cycle [%]";
+    default:                return "Unknown";
+    }
+}
+
+MeasurementPlotView::MeasurementPlotView(QtCharts::QChartView* view, QObject *parent) : QObject(parent), view(view)
 {
     chart = new QtCharts::QChart();
     chart->createDefaultAxes();
+    chart->legend()->setVisible(false);
     view->setChart(chart);
 
     currentSeriesLine = new QtCharts::QLineSeries();
@@ -42,6 +58,9 @@ MeasurementPlotView::MeasurementPlotView(QtCharts::QChartView* view, QObject *pa
 }
 
 void MeasurementPlotView::addDataPoints(Series series, const double* timestamps, const double* data, const double* errors, size_t count) {
+    if (series != displayedSeries)
+        return;
+
     if (!haveMinTime && count) {
         minTime = timestamps[0];
         maxTime = timestamps[0];
@@ -50,7 +69,12 @@ void MeasurementPlotView::addDataPoints(Series series, const double* timestamps,
         haveMinTime = true;
     }
 
-    if (series == Series::frequency) {
+    if (series == Series::dutyCycle) {
+        for (size_t i = 0; i < count; i++) {
+            currentSeriesLine->append(timestamps[i] - minTime, data[i] * 100);
+        }
+    }
+    else {
         for (size_t i = 0; i < count; i++) {
             if (minValue > data[i])
                 minValue = data[i];
@@ -65,9 +89,14 @@ void MeasurementPlotView::addDataPoints(Series series, const double* timestamps,
     maxTime = timestamps[count - 1];
     axisX->setRange(minTime - minTime, maxTime - minTime);
 
-    double min, max;
-    getAppropriateAxisRange(minValue, maxValue, min, max);
-    axisY->setRange(min, max);
+    if (displayedSeries == Series::dutyCycle) {
+        axisY->setRange(0, 100);
+    }
+    else {
+        double min, max;
+        getAppropriateAxisRange(minValue, maxValue, min, max);
+        axisY->setRange(min, max);
+    }
 }
 
 void MeasurementPlotView::clear() {
@@ -75,26 +104,43 @@ void MeasurementPlotView::clear() {
     haveMinTime = false;
 }
 
+#include <QtPrintSupport/QPrinter>
+
+void MeasurementPlotView::savePNG(QString path) {
+    int w = view->width();
+    int h = view->height();
+    double scale = 2;
+
+    QImage img(w * scale, h * scale, QImage::Format_RGB888);
+
+    QPainter painter;
+    painter.begin(&img);
+    //painter.scale(1, 1);
+    view->render(&painter);
+    painter.end();
+
+    img.save(path);
+}
+
+void MeasurementPlotView::saveSeries(QString path) {
+    QFile outputFile(path);
+
+    if (outputFile.open(QIODevice::WriteOnly)) {
+        QTextStream out(&outputFile);
+        out << getSeriesTitle(displayedSeries) << ",Value\n";
+
+        auto points = currentSeriesLine->points();
+
+        for (const auto& point : points) {
+            out << point.x() << "," << point.y() << "\n";
+        }
+    }
+}
+
 void MeasurementPlotView::showSeries(Series series) {
     this->displayedSeries = series;
 
-    switch (series) {
-    case Series::frequency:
-        axisY->setTitleText("Frequency [Hz]");
-        break;
-    case Series::period:
-        axisY->setTitleText("Period [s]");
-        break;
-    case Series::interval:
-        axisY->setTitleText("Interval [s]");
-        break;
-    case Series::phase:
-        axisY->setTitleText("Phase [°]");
-        break;
-    case Series::freqRatio:
-        axisY->setTitleText("Frequency Ratio [-]");
-        break;
-    }
+    axisY->setTitleText(getSeriesTitle(series));
 
     this->clear();
 }
