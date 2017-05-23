@@ -23,9 +23,6 @@ static uint8_t pendingData[64];
 static size_t pendingDataReadPos = 0;
 static size_t pendingDataWritePos = 0;
 
-void cdcInitDone(void) {
-}
-
 void protocolInit(uint16_t board_id, uint16_t instrument_version, uint32_t f_cpu) {
 	protocolAsciiInit();
 	protocolBinaryInit(board_id, instrument_version, f_cpu);

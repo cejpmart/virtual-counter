@@ -132,7 +132,7 @@ void MeasurementPlotView::saveSeries(QString path) {
         auto points = currentSeriesLine->points();
 
         for (const auto& point : points) {
-            out << point.x() << "," << point.y() << "\n";
+            out << QString::asprintf("%.9f,%.9f\n", point.x(), point.y());
         }
     }
 }

@@ -25,6 +25,7 @@ enum {
 void instrumentInit(void);
 void instrumentReset(void);
 void instrumentProcess(void);
+int instrumentAbortMeasurement(int mode);
 
 // Measurement Start
 int instrumentStartMeasurePulseCount(int gate_time);

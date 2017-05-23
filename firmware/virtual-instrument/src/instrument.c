@@ -17,10 +17,23 @@ void instrumentInit(void) {
 }
 
 void instrumentReset(void) {
+    // TODO: should actually abort the measurement
+
     s_instrument_state = STATE_READY;
 }
 
 void instrumentProcess(void) {
+}
+
+int instrumentAbortMeasurement(int mode) {
+    if (s_instrument_state == STATE_MEASURING && s_measurement_state.mode == mode) {
+        // TODO: should actually abort the measurement
+
+        s_instrument_state = STATE_READY;
+        return 0;
+    }
+
+    return -1;
 }
 
 int instrumentStartMeasurePulseCount(int gate_time) {

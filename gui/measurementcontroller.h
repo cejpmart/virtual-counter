@@ -20,6 +20,8 @@ class MeasurementController : public QObject
 public:
     explicit MeasurementController(MainWindow* view);
 
+    void pleaseAbortMeasurement();
+
 signals:
     void instrumentConnected(InstrumentInfo info);
     void instrumentStatusSet(QString text);
@@ -53,6 +55,7 @@ private:
     void closeInterface();
 
     bool awaitMeasurementResult(uint8_t which, uint8_t const** reply_payload_out, size_t* reply_length_out);
+    bool doAbortMeasurement(uint8_t which);
     bool doMeasurement(uint8_t which, const void* request_data, size_t request_length, void* result_data, size_t result_length);
     bool sendPacketAndAwaitResultCode(uint8_t tag, const uint8_t* data, size_t length, int* rc_out);
 

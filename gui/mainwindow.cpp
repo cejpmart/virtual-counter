@@ -274,7 +274,7 @@ void MainWindow::onMeasurementMethodChanged()
         ui->instrumentStatusLabel->setText("Ports: " + ipm.value("port.freq_ratio_a") + ", " + ipm.value("port.freq_ratio_b"));
     }
 
-    // FIXME: abort measurement
+    measurementController->pleaseAbortMeasurement();
 
     updateMeasurementFrequencyInfo();
 }
@@ -497,7 +497,7 @@ void MainWindow::on_measurementMethodPeriod_toggled(bool checked)
 
 void MainWindow::on_actionAbort_measurement_triggered()
 {
-    //measurementController->abortMeasurement();
+    measurementController->pleaseAbortMeasurement();
 
     afterMeasurement();
 }

@@ -16,6 +16,9 @@ constexpr const char* BOARDS[] {
     "F373_Eval",
 };
 
+// This is awful, oh, so awful!
+static volatile bool measurementAborted = false;
+
 MeasurementController::MeasurementController(MainWindow* view) : view(view)
 {
     qRegisterMetaType<Edge>("Edge");
@@ -24,7 +27,13 @@ MeasurementController::MeasurementController(MainWindow* view) : view(view)
 }
 
 bool MeasurementController::awaitMeasurementResult(uint8_t which, uint8_t const** reply_payload_out, size_t* reply_length_out) {
+    measurementAborted = false;
+
     for (;;) {
+        if (measurementAborted) {
+            doAbortMeasurement(which);
+        }
+
         uint8_t payload[1];
         payload[0] = which;
 
@@ -71,6 +80,19 @@ void MeasurementController::closeInterface()
 void MeasurementController::communicationError()
 {
     error("Communication error");
+}
+
+bool MeasurementController::doAbortMeasurement(uint8_t which)
+{
+    abort_measurement_request_t request { which };
+    int rc;
+
+    if (!sendPacketAndAwaitResultCode(CMD_ABORT_MEASUREMENT, (const uint8_t*) &request, sizeof(request), &rc)) {
+        communicationError();
+        return false;
+    }
+
+    return true;
 }
 
 bool MeasurementController::doMeasurement(uint8_t which, const void* request_data, size_t request_length, void* result_data, size_t result_length)
@@ -288,6 +310,11 @@ void MeasurementController::openInterface(QString path)
 
     emit instrumentConnected(info);
     emit instrumentStatusSet("Connected " + path);
+}
+
+void MeasurementController::pleaseAbortMeasurement()
+{
+    measurementAborted = true;
 }
 
 bool MeasurementController::sendPacketAndAwaitResultCode(uint8_t tag, const uint8_t* data, size_t length, int* rc_out) {

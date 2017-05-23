@@ -91,6 +91,23 @@ void protocolBinaryHandle(const uint8_t* data, size_t length) {
             break;
         }
 
+        case CMD_ABORT_MEASUREMENT: {
+            abort_measurement_request_t request;
+
+            if (packet->length != sizeof(request))
+                break;
+
+            memcpy(&request, &packet->data[0], sizeof(request));
+
+            int rc = instrumentAbortMeasurement(request.which);
+
+            reply_packet->tag = INFO_RESULT_CODE;
+            reply_packet->length = 1;
+            reply_packet->data[0] = (uint8_t) (rc & 0xff);
+            sendpacket(reply_packet);
+            break;
+        }
+
         case CMD_RESET_INSTRUMENT:
             instrumentReset();
             break;

@@ -85,6 +85,10 @@ typedef struct {
 } __attribute__((packed)) measurement_freq_ratio_result_t;
 
 typedef struct {
+    uint8_t which;
+} __attribute__((packed)) abort_measurement_request_t;
+
+typedef struct {
     uint16_t index;             // 0 or 1
     uint16_t prescaler;         // in CPU units
     uint16_t period;            // in CPU units
