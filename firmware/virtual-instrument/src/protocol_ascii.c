@@ -62,10 +62,16 @@ static void doOneMeasurement() {
         }
 
 	    uint32_t count;
-		while (instrumentFinishMeasurePulseCount(&count) <= 0) {
-		}
+	    while (instrumentFinishMeasurePulseCount(&count) <= 0) {
+	    }
 
-		unsigned int freq = (unsigned int) (count * 1000 / s_gate_time);
+	    unsigned int freq;
+
+        if (s_gate_time < 1000)
+            freq = (unsigned int) (count * 1000 / s_gate_time);
+        else
+            freq = (unsigned int) (count / (s_gate_time / 1000));
+
 		sprintf(outbuf, "%u Hz\r\n", freq);
 
 		s_burstTotal += freq;

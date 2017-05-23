@@ -46,6 +46,7 @@
 								</option>
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.1417555390" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__weak=&quot;__attribute__((weak))&quot;" />
+									<listOptionValue builtIn="false" value="STM32F042K6" />
 									<listOptionValue builtIn="false" value="SCPI_USER_CONFIG=1" />
 									<listOptionValue builtIn="false" value="__packed=&quot;__attribute__((__packed__))&quot;" />
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER" />
@@ -140,6 +141,7 @@
 								</option>
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.801741857" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__weak=&quot;__attribute__((weak))&quot;" />
+									<listOptionValue builtIn="false" value="STM32F042K6" />
 									<listOptionValue builtIn="false" value="SCPI_USER_CONFIG=1" />
 									<listOptionValue builtIn="false" value="__packed=&quot;__attribute__((__packed__))&quot;" />
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER" />

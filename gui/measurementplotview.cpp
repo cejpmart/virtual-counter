@@ -127,7 +127,7 @@ void MeasurementPlotView::saveSeries(QString path) {
 
     if (outputFile.open(QIODevice::WriteOnly)) {
         QTextStream out(&outputFile);
-        out << getSeriesTitle(displayedSeries) << ",Value\n";
+        out << "Time [s]," << getSeriesTitle(displayedSeries) << "\n";
 
         auto points = currentSeriesLine->points();
 
