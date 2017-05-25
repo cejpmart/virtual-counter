@@ -211,6 +211,9 @@ void MainWindow::onMeasurementFinishedCounting(double frequency, double frequenc
 
 void MainWindow::onMeasurementFinishedFreqRatio(double freqRatio, double freqRatioError)
 {
+    double timestamp = QDateTime::currentMSecsSinceEpoch() * 1e-3;
+    measurementPlotView->addDataPoints(Series::freqRatio,   &timestamp,    &freqRatio,  &freqRatioError,    1);
+
     setMeasuredValuesFreqRatio(freqRatio, freqRatioError);
 
     afterMeasurement();
@@ -218,6 +221,10 @@ void MainWindow::onMeasurementFinishedFreqRatio(double freqRatio, double freqRat
 
 void MainWindow::onMeasurementFinishedPhase(double channelAFrequency, double channelAPeriod, double interval, double phase)
 {
+    double timestamp = QDateTime::currentMSecsSinceEpoch() * 1e-3;
+    measurementPlotView->addDataPoints(Series::interval,    &timestamp, &interval,  nullptr,    1);
+    measurementPlotView->addDataPoints(Series::phase,       &timestamp, &phase,     nullptr,    1);
+
     setMeasuredValuesFrequencyPeriodIntervalPhase(channelAFrequency, channelAPeriod, interval, phase);
 
     afterMeasurement();
@@ -563,6 +570,21 @@ void MainWindow::on_plotParamSelect_currentIndexChanged(int index)
         // duty cycle
         if (this->measurementPlotView)
             this->measurementPlotView->showSeries(Series::dutyCycle);
+    }
+    else if (index == 3) {
+        // phase
+        if (this->measurementPlotView)
+            this->measurementPlotView->showSeries(Series::phase);
+    }
+    else if (index == 4) {
+        // interval
+        if (this->measurementPlotView)
+            this->measurementPlotView->showSeries(Series::interval);
+    }
+    else if (index == 5) {
+        // frequency ratio
+        if (this->measurementPlotView)
+            this->measurementPlotView->showSeries(Series::freqRatio);
     }
 }
 

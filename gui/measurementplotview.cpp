@@ -50,7 +50,6 @@ MeasurementPlotView::MeasurementPlotView(QtCharts::QChartView* view, QObject *pa
     currentSeriesLine->attachAxis(axisX);
 
     axisY = new QtCharts::QValueAxis();
-    //axisY->setTitleText("Value???");
     chart->setAxisY(axisY);
     currentSeriesLine->attachAxis(axisY);
 
@@ -91,6 +90,9 @@ void MeasurementPlotView::addDataPoints(Series series, const double* timestamps,
 
     if (displayedSeries == Series::dutyCycle) {
         axisY->setRange(0, 100);
+    }
+    else if (displayedSeries == Series::phase) {
+        axisY->setRange(-180, 180);
     }
     else {
         double min, max;

@@ -187,7 +187,10 @@ void MeasurementController::doMeasurementPhase(Edge edge)
     const double frequency = (result.period > 0) ? (1.0 / period) : 0.0;
 
     const double interval = result.interval * (1.0 / f_cpu);
-    const double phase = (result.period > 0) ? (interval / period * 360) : 0.0;
+    double phase = (result.period > 0) ? (interval / period * 360) : 0.0;
+
+    if (phase > 180)
+        phase -= 360;
 
     emit measurementFinishedPhase(frequency, period, -interval, phase);
 }
@@ -360,7 +363,7 @@ void MeasurementController::setPwm(size_t index, PwmParameters params)
     request.prescaler = prescaler - 1;
     request.period = prescaled - 1;
     request.pulse_width = (unsigned int)ceil((float)pulse_width / prescaler);
-    request.phase = (unsigned int)round(params.phase * period / 360);
+    request.phase = (unsigned int)round(params.phase * period / prescaler / 360);
 
     int rc;
     if (!sendPacketAndAwaitResultCode(CMD_SET_PWM, (const uint8_t*) &request, sizeof(request), &rc)) {

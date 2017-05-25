@@ -852,6 +852,21 @@
               <string>duty cycle</string>
              </property>
             </item>
+            <item>
+             <property name="text">
+              <string>phase</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>interval</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>frequency ratio</string>
+             </property>
+            </item>
            </widget>
           </item>
           <item>
