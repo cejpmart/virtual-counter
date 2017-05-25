@@ -56,14 +56,6 @@ static int sendpacket(struct packet* packet) {
     return DataOut((const uint8_t*) packet, 2 + packet->length);
 }
 
-/*static void putbyte(uint8_t value) {
-	cdcDataOut(&value, 1);
-}*/
-
-static void putstr(const char* str) {
-	cdcDataOut((const uint8_t*) str, strlen(str) + 1);
-}
-
 void protocolBinaryHandle(const uint8_t* data, size_t length) {
     memcpy(s_rx_packet + s_rx_have, data, length);
     s_rx_have += length;

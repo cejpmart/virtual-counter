@@ -36,6 +36,7 @@ int     HWSetPwm(size_t index, uint16_t prescaler, uint16_t period, uint16_t pul
 int     HWSetPwmPhase(uint32_t phase);
 
 void    utilDelayMs(uint32_t milliseconds);
+int     DataOut(const uint8_t* data, size_t length);        // todo rename protocolDataOut
 
 
 #endif /* VIRTUALINSTRUMENT_HW_H_ */

@@ -12,10 +12,13 @@ else()
 	message(FATAL_ERROR "Invalid or undefined TARGET_CPU")
 endif()
 
-add_subdirectory(../virtual-instrument ${CMAKE_BINARY_DIR}/build-virtual-instrument)
+# sometime in the next lifetime we'll fix this
+#add_subdirectory(../virtual-instrument ${CMAKE_BINARY_DIR}/build-virtual-instrument)
 
 file(GLOB_RECURSE USER_SOURCES "Src/*.c"
-		"../stm32-shared/*.c")
+		"../stm32-shared/*.c"
+		"../virtual-instrument/src/*.c"
+		)
 file(GLOB_RECURSE HAL_SOURCES "Drivers/STM32F0xx_HAL_Driver/Src/*.c"
         "Middlewares/ST/STM32_USB_Device_Library/*.c")
 
@@ -32,9 +35,15 @@ include_directories(Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc)
 
 add_executable(${PROJECT_NAME}.elf ${USER_SOURCES} ${HAL_SOURCES} ${LINKER_SCRIPT})
 
-target_include_directories(${PROJECT_NAME}.elf PRIVATE ../stm32-shared)
+target_include_directories(${PROJECT_NAME}.elf PRIVATE
+		../stm32-shared
+		../virtual-instrument/include
+		)
 
-target_link_libraries(${PROJECT_NAME}.elf CMSIS virtual-instrument)
+target_link_libraries(${PROJECT_NAME}.elf
+		CMSIS
+		#virtual-instrument
+		)
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Map=${CMAKE_BINARY_DIR}/${PROJECT_NAME}.map")
 
