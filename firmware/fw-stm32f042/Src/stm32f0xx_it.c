@@ -95,8 +95,10 @@ void USART2_IRQHandler(void)
   __disable_irq();
   protocolDataIn(&data, 1);
   __enable_irq();
+  if (__HAL_UART_GET_FLAG(&huart2, UART_FLAG_ORE)) {
+      __HAL_UART_CLEAR_OREFLAG(&huart2);
+  }
   //__HAL_UART_SEND_REQ(&huart2, UART_RXDATA_FLUSH_REQUEST);
-  __HAL_UART_CLEAR_OREFLAG(&huart2);
 #if 0
   /* USER CODE END USART2_IRQn 0 */
   HAL_UART_IRQHandler(&huart2);

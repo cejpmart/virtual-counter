@@ -137,12 +137,14 @@ static int HWTryEnableHSE(void) {
 
 volatile int last_data_usb;     // 1=usb, 0=uart (VCP)
 
+int error_flag;
+
 int DataOut(const uint8_t* data, size_t length) {
-    uint32_t startTime = HAL_GetTick();
     static const uint32_t kTimeout = 2000;
+    int rc;
 
     if (last_data_usb) {
-        int rc;
+        uint32_t startTime = HAL_GetTick();
 
         do {
             rc = CDC_Transmit_FS((uint8_t*) data, length);
@@ -152,7 +154,11 @@ int DataOut(const uint8_t* data, size_t length) {
         return rc;
     }
     else {
-        return HAL_UART_Transmit(&huart2, data, length, kTimeout);
+        rc = HAL_UART_Transmit(&huart2, data, length, kTimeout);
+
+        if (rc != HAL_OK) {
+            error_flag = 1;
+        }
     }
 }
 /* USER CODE END 0 */

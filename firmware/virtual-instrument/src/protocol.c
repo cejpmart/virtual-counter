@@ -20,8 +20,8 @@
 //static const uint8_t heartbeat[] = {0xAF};
 
 static uint8_t pendingData[64];
-static size_t pendingDataReadPos = 0;
-static size_t pendingDataWritePos = 0;
+static volatile size_t pendingDataReadPos = 0;
+static volatile size_t pendingDataWritePos = 0;
 
 void protocolInit(uint16_t board_id, uint16_t instrument_version, uint32_t f_cpu) {
 	protocolAsciiInit();
@@ -59,7 +59,9 @@ void protocolDataIn(const uint8_t* data, size_t length) {
 }
 
 void protocolProcess(void) {
-	if (pendingDataReadPos != pendingDataWritePos) {
+    size_t writePos = pendingDataWritePos;
+
+	if (pendingDataReadPos != writePos) {
 		if (pendingData[pendingDataReadPos] == 0xf0) {
 			controlMode = CONTROL_BINARY;
 			pendingDataReadPos = (pendingDataReadPos + 1) & (sizeof(pendingData) - 1);
@@ -76,7 +78,7 @@ void protocolProcess(void) {
 #endif
 	}
 
-	size_t end = (pendingDataWritePos >= pendingDataReadPos) ? pendingDataWritePos : sizeof(pendingData);
+	size_t end = (writePos >= pendingDataReadPos) ? writePos : sizeof(pendingData);
 
 	size_t dataAvailable = (end - pendingDataReadPos) & (sizeof(pendingData) - 1);
 	size_t nextReadPos = end & (sizeof(pendingData) - 1);

@@ -285,7 +285,12 @@ int HWPollPwmMeasurement(uint64_t* period_out, uint64_t* pulse_width_out) {
         uint32_t prev = dmabuf[2 * (i - 1)];
 
         uint32_t period = (dmabuf[2 * i] - prev) & mask;
-        uint32_t pulse_width = (dmabuf[2 * i + 1] - prev - 1) & mask;       // FIXME: is the -1 correct here??
+        uint32_t pulse_width;
+
+        if (dmabuf[2 * i + 1] < dmabuf[2 * i])
+            pulse_width = (dmabuf[2 * i + 1] - prev) & mask;
+        else
+            pulse_width = (dmabuf[2 * i + 1] - dmabuf[2 * i]) & mask;
 #endif
 
         sum_period += period;

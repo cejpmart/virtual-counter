@@ -71,7 +71,7 @@ void MeasurementPlotView::addDataPoints(Series series, const double* timestamps,
 
     if (series == Series::dutyCycle) {
         for (size_t i = 0; i < count; i++) {
-            currentSeriesLine->append(timestamps[i] - minTime, data[i] * 100);
+            currentSeriesLine->append(timestamps[i] - minTime, data[i]);
         }
     }
     else {
