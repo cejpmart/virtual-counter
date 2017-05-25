@@ -200,7 +200,7 @@ int main(void)
   protocolInit(BOARD_F042K6_NUCLEO32, INSTRUMENT_VERSION, SystemCoreClock);
 #endif
 
-  __HAL_UART_ENABLE_IT(&huart2, UART_IT_RXNE);
+  //__HAL_UART_ENABLE_IT(&huart2, UART_IT_RXNE);
 
   instrumentInit();
   /* USER CODE END 2 */
