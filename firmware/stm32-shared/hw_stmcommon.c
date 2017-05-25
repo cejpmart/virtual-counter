@@ -15,7 +15,7 @@ extern TIM_HandleTypeDef    INPUT_CAPTURE_HTIM, TIMEFRAME_HTIM;
 static volatile uint32_t dmabuf[(125 + SAMPLES_OVERHEAD) * 2];
 
 // If hardware pre-scaler is used, dma_num_samples < measurement_num_samples
-static volatile size_t dma_num_samples, measurement_num_samples;
+static size_t dma_num_samples, measurement_num_samples, measurement_prescaler;
 
 //#define AUTO_RESET_IC_CNT
 
@@ -217,10 +217,12 @@ int HWStartPwmMeasurement(size_t num_samples) {
     measurement_num_samples = num_samples;
 
     int hw_prescaler = 0;
+    measurement_prescaler = 1;
 
 #ifndef AUTO_RESET_IC_CNT
     while (dma_num_samples % 2 == 0 && hw_prescaler < HW_PRESCALER_MAX) {
         dma_num_samples /= 2;
+        measurement_prescaler <<= 1;
         hw_prescaler++;
     }
 #endif
@@ -303,8 +305,12 @@ int HWPollPwmMeasurement(uint64_t* period_out, uint64_t* pulse_width_out) {
         *pulse_width_out = (sum_pulse_width << 16) / measurement_num_samples;
     }
     else {
-        // Pulse width currently doesn't work with HW pre-scaling
-        *pulse_width_out = 0;
+        uint64_t actual_period = sum_period / measurement_prescaler;
+
+        while (sum_pulse_width > actual_period)
+            sum_pulse_width -= actual_period;
+
+        *pulse_width_out = ((sum_pulse_width * measurement_prescaler) << 16) / measurement_num_samples;
     }
 
     return 1;

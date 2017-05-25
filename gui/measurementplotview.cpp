@@ -8,7 +8,7 @@ static void getAppropriateAxisRange(double min, double max, double& min_out, dou
 {
     double delta = max - min;
 
-    if (delta > 1e-7) {
+    if (delta > 1e-9) {
         double del_log = floor(log10(max - min));
         double magn = pow(10, del_log);
 
