@@ -5,7 +5,7 @@
 
 constexpr double USB_CLOCK_TOLERANCE = 0.0005;      // assuming USB 2.0
 
-constexpr uint16_t VERSION = 1008;
+constexpr uint16_t VERSION = 1100;
 
 constexpr const char* BOARDS[] {
     "Unknown",

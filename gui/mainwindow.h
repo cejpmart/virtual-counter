@@ -90,6 +90,8 @@ private slots:
 
     void on_measurementNumPeriodsSelect_currentIndexChanged(int index);
 
+    void on_menuHelpAbout_triggered();
+
 private:
     double getCountingGateTimeSeconds();
     int getReciprocalIterations();

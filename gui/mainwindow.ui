@@ -1173,7 +1173,7 @@
     <property name="title">
      <string>Help</string>
     </property>
-    <addaction name="actionAbout_v1002"/>
+    <addaction name="menuHelpAbout"/>
    </widget>
    <widget class="QMenu" name="menuExport">
     <property name="title">
@@ -1204,9 +1204,9 @@
     <string>dummy</string>
    </property>
   </action>
-  <action name="actionAbout_v1002">
+  <action name="menuHelpAbout">
    <property name="text">
-    <string>About Measurement Tool v1004</string>
+    <string>About Measurement Tool v1100</string>
    </property>
   </action>
   <action name="actionAbort_measurement">

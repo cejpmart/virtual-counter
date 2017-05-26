@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 
 #include <QFileDialog>
+#include <QMessageBox>
 #include <QtSerialPort/QSerialPortInfo>
 
 #include <cstdio>
@@ -424,7 +425,6 @@ void MainWindow::setMeasuredValuesFrequencyPeriodIntervalPhase(double channelAFr
     channelAPeriodText.sprintf("%11.9f", channelAPeriod);
     intervalText.sprintf("%+11.9f", interval);
     phaseText.sprintf("%+.1f", phase);
-    //puts(channelAPeriodText.toLocal8Bit().data());
 
     unfade(ui->channelAFrequency, channelAFrequencyText);
     unfade(ui->channelAPeriod, channelAPeriodText);
@@ -555,6 +555,19 @@ void MainWindow::on_measurementNumPeriodsSelect_currentIndexChanged(int index)
 void MainWindow::on_measurementPulseWidthEnable_toggled(bool checked)
 {
     onMeasurementMethodChanged();
+}
+
+void MainWindow::on_menuHelpAbout_triggered()
+{
+    QMessageBox msgBox;
+    msgBox.setIcon(QMessageBox::Icon::Information);
+    msgBox.setText("Measurement Tool v1100\n"
+                   "\n"
+                   "Developed at Laboratory of Videometry, Department of Measurement, Faculty of Electrical Engineering, Czech Technical University in Prague.\n"
+                   "\n"
+                   "Copyright (c) 2017 Martin Cejp");
+    msgBox.setWindowTitle("About Measurement Tool");
+    msgBox.exec();
 }
 
 void MainWindow::on_menuSaveCSV_triggered()
