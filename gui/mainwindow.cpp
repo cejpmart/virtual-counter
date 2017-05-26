@@ -130,7 +130,7 @@ double MainWindow::getCountingGateTimeSeconds()
 
 int MainWindow::getReciprocalIterations()
 {
-    static const int values[] = {1, 10, 100, 1000};
+    static const int values[] = {1, 10, 100, 1000, 10000, 100000, 1000000};
 
     int index = ui->measurementNumPeriodsSelect->currentIndex();
 
@@ -262,6 +262,24 @@ void MainWindow::onMeasurementMethodChanged()
         ui->frequencyMeasurementRack->hide();
         ui->intervalMeasurementRack->hide();
         ui->freqRatioMeasurementRack->show();
+    }
+
+    // measurementNumPeriodsSelect
+    if (ui->measurementMethodPeriod->isChecked() && ui->measurementPulseWidthEnable->isChecked()) {
+        ui->measurementNumPeriodsSelect->clear();
+        ui->measurementNumPeriodsSelect->addItem("1");
+        ui->measurementNumPeriodsSelect->addItem("10");
+        ui->measurementNumPeriodsSelect->addItem("100");
+    }
+    else {
+        ui->measurementNumPeriodsSelect->clear();
+        ui->measurementNumPeriodsSelect->addItem("1");
+        ui->measurementNumPeriodsSelect->addItem("10");
+        ui->measurementNumPeriodsSelect->addItem("100");
+        ui->measurementNumPeriodsSelect->addItem("1 000");
+        ui->measurementNumPeriodsSelect->addItem("10 000");
+        //ui->measurementNumPeriodsSelect->addItem("100 000");
+        //ui->measurementNumPeriodsSelect->addItem("1 000 000");
     }
 
     // Port labels (TODO)

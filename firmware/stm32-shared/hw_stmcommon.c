@@ -17,7 +17,8 @@ static volatile uint32_t dmabuf[(125 + SAMPLES_OVERHEAD) * 2];
 // If hardware pre-scaler is used, dma_num_samples < measurement_num_samples
 static size_t dma_num_samples, measurement_num_samples, measurement_prescaler;
 
-//#define AUTO_RESET_IC_CNT
+#define AUTO_RESET_IC_CNT
+//#define ENABLE_HW_PRESCALER
 
 enum {
     GATE_MODE_TIME,
@@ -219,7 +220,7 @@ int HWStartPwmMeasurement(size_t num_samples) {
     int hw_prescaler = 0;
     measurement_prescaler = 1;
 
-#ifndef AUTO_RESET_IC_CNT
+#if !defined(AUTO_RESET_IC_CNT) && defined(ENABLE_HW_PRESCALER)
     while (dma_num_samples % 2 == 0 && hw_prescaler < HW_PRESCALER_MAX) {
         dma_num_samples /= 2;
         measurement_prescaler <<= 1;
@@ -238,7 +239,7 @@ int HWStartPwmMeasurement(size_t num_samples) {
     // slave mode reset - this way, missed pulses don't matter, but HW prescaling can't be used
     TIM_SlaveConfigTypeDef slaveConfig;
     slaveConfig.SlaveMode = TIM_SLAVEMODE_RESET;
-    slaveConfig.InputTrigger = TIM_TS_TI2FP2;
+    slaveConfig.InputTrigger = INPUT_CAPTURE_AUTO_RESET_TRIGGER;
     slaveConfig.TriggerFilter = 0;
     slaveConfig.TriggerPolarity = TIM_TRIGGERPOLARITY_RISING;
     slaveConfig.TriggerPrescaler = TIM_TRIGGERPRESCALER_DIV1;
