@@ -169,7 +169,7 @@ void MeasurementController::doMeasurementFreqRatio(unsigned int periods)
     if (!doMeasurement(MEASUREMENT_FREQ_RATIO, &request, sizeof(request), &result, sizeof(result)))
         return;
 
-    emit measurementFinishedFreqRatio(result.ratio / 65536.0, 0);
+    emit measurementFinishedFreqRatio(result.ratio / 65536.0, 1.0 / periods);
 }
 
 void MeasurementController::doMeasurementPhase(Edge edge)
@@ -213,7 +213,7 @@ void MeasurementController::doMeasurementPeriod(unsigned int numPeriods, bool wi
 
     const double relativeError = USB_CLOCK_TOLERANCE;
 
-    const double periodError = (1 / f_cpu /* quantization error */) + period * relativeError;
+    const double periodError = (1 / f_cpu / numPeriods /* quantization error */) + period * relativeError;
     const double frequencyErrorPoint = qMax(1.0 / (period - periodError), 0.0);
     const double frequencyError = frequencyErrorPoint - frequency;
 

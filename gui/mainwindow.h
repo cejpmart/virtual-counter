@@ -88,6 +88,8 @@ private slots:
 
     void on_menuSaveCSV_triggered();
 
+    void on_measurementNumPeriodsSelect_currentIndexChanged(int index);
+
 private:
     double getCountingGateTimeSeconds();
     int getReciprocalIterations();

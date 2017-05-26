@@ -9,7 +9,8 @@
 constexpr QChar UNICODE_INFINITY = 0x221E;
 
 constexpr auto MEASUREMENT_PULSE_COUNT_FREQ_RANGE_STRING =  "0 - 24 000 000 Hz";
-constexpr auto MEASUREMENT_PERIOD_FREQ_RANGE_STRING =       "0 - 1 000 000 Hz";
+constexpr auto MEASUREMENT_PERIOD_FREQ_RANGE_STRING =       "0 - 24 000 000 Hz";
+constexpr auto MEASUREMENT_PWM_FREQ_RANGE_STRING =          "0 - 2 000 000 Hz";
 
 // http://stackoverflow.com/a/13094362
 static double round_to_digits(double value, int digits)
@@ -465,8 +466,12 @@ void MainWindow::updateMeasurementFrequencyInfo()
     }
     else if (ui->measurementMethodPeriod->isChecked()) {
         // FIXME: number formatting, correctnes
-        ui->measurementResolutionInfo->setText(QString::number(1000000000.0 / 48000000.0) + " ns");
-        ui->measurementRangeInfo->setText(MEASUREMENT_PERIOD_FREQ_RANGE_STRING);
+        ui->measurementResolutionInfo->setText(QString::number(1000000000.0 / 48000000.0 / getReciprocalIterations()) + " ns");
+
+        if (ui->measurementPulseWidthEnable->isChecked())
+            ui->measurementRangeInfo->setText(MEASUREMENT_PWM_FREQ_RANGE_STRING);
+        else
+            ui->measurementRangeInfo->setText(MEASUREMENT_PERIOD_FREQ_RANGE_STRING);
     }
 }
 
@@ -540,6 +545,11 @@ void MainWindow::on_continuousMeasurementToggle_clicked()
         ui->continuousMeasurementToggle->setText("Stop");
     else
         ui->continuousMeasurementToggle->setText("Run");
+}
+
+void MainWindow::on_measurementNumPeriodsSelect_currentIndexChanged(int index)
+{
+    updateMeasurementFrequencyInfo();
 }
 
 void MainWindow::on_measurementPulseWidthEnable_toggled(bool checked)

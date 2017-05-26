@@ -856,6 +856,14 @@
           </item>
           <item>
            <widget class="QComboBox" name="plotWindowSelect">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <item>
+             <property name="text">
+              <string>All data</string>
+             </property>
+            </item>
             <item>
              <property name="text">
               <string>10s window</string>
@@ -864,11 +872,6 @@
             <item>
              <property name="text">
               <string>60s window</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>All data</string>
              </property>
             </item>
            </widget>
