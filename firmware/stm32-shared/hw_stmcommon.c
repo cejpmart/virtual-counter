@@ -351,8 +351,10 @@ int HWPollIntervalMeasurement(uint32_t* period_out, uint32_t* pulse_width_out) {
     if (!(__HAL_DMA_GET_FLAG(&INPUT_CAPTURE_HDMA, INPUT_CAPTURE_DMA_TC_FLAG)))
         return 0;
 
-    *period_out = dmabuf[2] - dmabuf[0];
-    *pulse_width_out = dmabuf[3] - dmabuf[0];
+    enum { start = 2 };
+
+    *period_out = dmabuf[start + 2] - dmabuf[start];
+    *pulse_width_out = dmabuf[start + 3] - dmabuf[start];
     return 1;
 }
 

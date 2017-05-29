@@ -264,6 +264,9 @@
              <pointsize>16</pointsize>
             </font>
            </property>
+           <property name="styleSheet">
+            <string notr="true">padding: 4px 20px;</string>
+           </property>
            <property name="text">
             <string>Single</string>
            </property>
@@ -278,6 +281,9 @@
             <font>
              <pointsize>16</pointsize>
             </font>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">padding: 4px 20px;</string>
            </property>
            <property name="text">
             <string>Run</string>
