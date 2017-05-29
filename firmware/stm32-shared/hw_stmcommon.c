@@ -123,7 +123,7 @@ static void DmaStop(void) {
 static void DmaStart(size_t num_samples) {
     // configure the DMA Burst Mode
     INPUT_CAPTURE_TIMER->DCR = (INPUT_CAPTURE_DMABASE | TIM_DMABURSTLENGTH_2TRANSFERS);
-    __HAL_TIM_ENABLE_DMA(&INPUT_CAPTURE_HTIM, TIM_DMA_CC2);
+    __HAL_TIM_ENABLE_DMA(&INPUT_CAPTURE_HTIM, INPUT_CAPTURE_DMA_TRIGGER);
 
     HAL_DMA_Start(&INPUT_CAPTURE_HDMA, (uint32_t) &INPUT_CAPTURE_TIMER->DMAR, (uint32_t) dmabuf, (SAMPLES_OVERHEAD + num_samples) * 2);
 }

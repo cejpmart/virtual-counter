@@ -44,7 +44,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f0xx_hal.h"
 
-extern DMA_HandleTypeDef hdma_tim2_ch2;
+extern DMA_HandleTypeDef hdma_tim2_ch1;
 
 extern void Error_Handler(void);
 /* USER CODE BEGIN 0 */
@@ -87,7 +87,7 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
     __HAL_RCC_TIM2_CLK_ENABLE();
   
     /**TIM2 GPIO Configuration    
-    PA0     ------> TIM2_ETR
+    PA0     ------> TIM2_CH1
     PA1     ------> TIM2_CH2 
     */
     GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1;
@@ -99,20 +99,20 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
 
     /* Peripheral DMA init*/
   
-    hdma_tim2_ch2.Instance = DMA1_Channel3;
-    hdma_tim2_ch2.Init.Direction = DMA_PERIPH_TO_MEMORY;
-    hdma_tim2_ch2.Init.PeriphInc = DMA_PINC_DISABLE;
-    hdma_tim2_ch2.Init.MemInc = DMA_MINC_ENABLE;
-    hdma_tim2_ch2.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
-    hdma_tim2_ch2.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
-    hdma_tim2_ch2.Init.Mode = DMA_NORMAL;
-    hdma_tim2_ch2.Init.Priority = DMA_PRIORITY_HIGH;
-    if (HAL_DMA_Init(&hdma_tim2_ch2) != HAL_OK)
+    hdma_tim2_ch1.Instance = DMA1_Channel5;
+    hdma_tim2_ch1.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    hdma_tim2_ch1.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_tim2_ch1.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_tim2_ch1.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+    hdma_tim2_ch1.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
+    hdma_tim2_ch1.Init.Mode = DMA_NORMAL;
+    hdma_tim2_ch1.Init.Priority = DMA_PRIORITY_HIGH;
+    if (HAL_DMA_Init(&hdma_tim2_ch1) != HAL_OK)
     {
       Error_Handler();
     }
 
-    __HAL_LINKDMA(htim_base,hdma[TIM_DMA_ID_CC2],hdma_tim2_ch2);
+    __HAL_LINKDMA(htim_base,hdma[TIM_DMA_ID_CC1],hdma_tim2_ch1);
 
   /* USER CODE BEGIN TIM2_MspInit 1 */
 
@@ -223,13 +223,13 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* htim_base)
     __HAL_RCC_TIM2_CLK_DISABLE();
   
     /**TIM2 GPIO Configuration    
-    PA0     ------> TIM2_ETR
+    PA0     ------> TIM2_CH1
     PA1     ------> TIM2_CH2 
     */
     HAL_GPIO_DeInit(GPIOA, GPIO_PIN_0|GPIO_PIN_1);
 
     /* Peripheral DMA DeInit*/
-    HAL_DMA_DeInit(htim_base->hdma[TIM_DMA_ID_CC2]);
+    HAL_DMA_DeInit(htim_base->hdma[TIM_DMA_ID_CC1]);
   /* USER CODE BEGIN TIM2_MspDeInit 1 */
 
   /* USER CODE END TIM2_MspDeInit 1 */
