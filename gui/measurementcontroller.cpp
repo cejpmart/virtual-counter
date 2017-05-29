@@ -3,8 +3,6 @@
 
 #include "../common/protocoldefs.h"
 
-constexpr uint16_t VERSION = 1101;
-
 constexpr const char* BOARDS[] {
     "Unknown",
     "F042F6",

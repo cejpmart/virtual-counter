@@ -628,11 +628,11 @@ void MainWindow::on_menuHelpAbout_triggered()
 {
     QMessageBox msgBox;
     msgBox.setIcon(QMessageBox::Icon::Information);
-    msgBox.setText("Measurement Tool v1100\n"
+    msgBox.setText(QString::asprintf("Measurement Tool %d\n"
                    "\n"
                    "Developed at Laboratory of Videometry, Department of Measurement, Faculty of Electrical Engineering, Czech Technical University in Prague.\n"
                    "\n"
-                   "Copyright (c) 2017 Martin Cejp");
+                   "Copyright (c) 2017 Martin Cejp", VERSION));
     msgBox.setWindowTitle("About Measurement Tool");
     msgBox.exec();
 }

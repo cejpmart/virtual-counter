@@ -6,6 +6,8 @@
 
 #include <qmetatype.h>
 
+constexpr uint16_t VERSION = 1101;
+
 template <typename P>
 struct Parameter {
     P setpoint;
