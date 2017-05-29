@@ -10,6 +10,7 @@
 static uint16_t s_board_id;
 static uint16_t s_instrument_version;
 static uint32_t s_f_cpu;
+static uint8_t s_timebase_source;
 
 static uint8_t s_rx_packet[32];
 static size_t s_rx_have;
@@ -22,10 +23,11 @@ struct packet {
     uint8_t data[];
 } __attribute__ ((packed));
 
-void protocolBinaryInit(uint16_t board_id, uint16_t instrument_version, uint32_t f_cpu) {
+void protocolBinaryInit(uint16_t board_id, uint16_t instrument_version, uint32_t f_cpu, uint8_t timebase_source) {
 	s_board_id = board_id;
 	s_instrument_version = instrument_version;
 	s_f_cpu = f_cpu;
+	s_timebase_source = timebase_source;
 
 	s_rx_have = 0;
 }
@@ -74,7 +76,7 @@ void protocolBinaryHandle(const uint8_t* data, size_t length) {
 
         switch (packet->tag) {
         case CMD_QUERY_INSTRUMENT: {
-            instrument_info_t info = {s_board_id, s_instrument_version, s_f_cpu};
+            instrument_info_t info = {s_board_id, s_instrument_version, s_f_cpu, s_timebase_source};
 
             reply_packet->tag = INFO_INSTRUMENT_INFO;
             reply_packet->length = sizeof(info);

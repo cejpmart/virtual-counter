@@ -54,8 +54,6 @@ public slots:
     void openInterface(QString path);
 
 private:
-    enum class TimebaseSource { external, internal };
-
     bool pollMeasurement(uint8_t* tag_out, uint8_t const** data_out, size_t* length_out);
     void closeInterface();
 

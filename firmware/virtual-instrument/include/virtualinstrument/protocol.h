@@ -11,7 +11,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-void protocolInit(uint16_t board_id, uint16_t instrument_version, uint32_t f_cpu);
+void protocolInit(uint16_t board_id, uint16_t instrument_version, uint32_t f_cpu, uint8_t timebase_source);
 void protocolDataIn(const uint8_t* data, size_t length);
 void protocolProcess(void);
 

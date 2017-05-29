@@ -23,9 +23,9 @@ static uint8_t pendingData[64];
 static volatile size_t pendingDataReadPos = 0;
 static volatile size_t pendingDataWritePos = 0;
 
-void protocolInit(uint16_t board_id, uint16_t instrument_version, uint32_t f_cpu) {
+void protocolInit(uint16_t board_id, uint16_t instrument_version, uint32_t f_cpu, uint8_t timebase_source) {
 	protocolAsciiInit();
-	protocolBinaryInit(board_id, instrument_version, f_cpu);
+	protocolBinaryInit(board_id, instrument_version, f_cpu, timebase_source);
 
 #ifdef ENABLE_SCPI
 	protocolScpiInit();

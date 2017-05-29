@@ -45,10 +45,16 @@ enum {
     BOARD_F373_EVAL =           0x0500,
 };
 
+enum {
+    TIMEBASE_SOURCE_INTERNAL =  0,
+    TIMEBASE_SOURCE_EXTERNAL =  1,
+};
+
 typedef struct {
     uint16_t board_id;
     uint16_t fw_ver;
     uint32_t f_cpu;
+    uint8_t timebase_source;
 } __attribute__((packed)) instrument_info_t;
 
 typedef struct {

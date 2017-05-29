@@ -36,11 +36,14 @@ struct Parameter {
     }
 };
 
+enum class TimebaseSource { external, internal };
+
 struct InstrumentInfo {
     QString port;
     QString board;
     int firmware;
     unsigned int f_cpu;
+    TimebaseSource timebaseSource;
 };
 
 typedef QHash<QString, QString> InstrumentParameterMap;

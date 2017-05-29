@@ -190,14 +190,14 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
   HWInit();
-  HWTryEnableHSE();
+  int timebaseSource = (HWTryEnableHSE() == 0) ? TIMEBASE_SOURCE_EXTERNAL : TIMEBASE_SOURCE_INTERNAL;
   HAL_TIM_PWM_Start(&PWM1_HTIM, PWM1_CHANNEL);
   HAL_TIM_PWM_Start(&PWM2_HTIM, PWM2_CHANNEL);
 
 #ifdef STM32F042F6
-  protocolInit(BOARD_F042F6, INSTRUMENT_VERSION, SystemCoreClock);
+  protocolInit(BOARD_F042F6, INSTRUMENT_VERSION, SystemCoreClock, timebaseSource);
 #else
-  protocolInit(BOARD_F042K6_NUCLEO32, INSTRUMENT_VERSION, SystemCoreClock);
+  protocolInit(BOARD_F042K6_NUCLEO32, INSTRUMENT_VERSION, SystemCoreClock, timebaseSource);
 #endif
 
   //__HAL_UART_ENABLE_IT(&huart2, UART_IT_RXNE);

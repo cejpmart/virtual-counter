@@ -228,7 +228,8 @@ void MainWindow::onInstrumentConnected(InstrumentInfo info)
             emit shouldSetPwm(i, pwm[i].setpoint);
     }
 
-    ui->instrumentDeviceLabel->setText("Connected (" + info.port + ")");
+    QString timebaseInfoText = (info.timebaseSource == TimebaseSource::external) ? "external timebase" : "internal timebase";
+    ui->instrumentDeviceLabel->setText("Connected (" + info.port + "), " + timebaseInfoText);
     ui->instrumentFirmwareLabel->setText(info.board + "," + QString::number(info.firmware));
 
     statusString("Ready.");

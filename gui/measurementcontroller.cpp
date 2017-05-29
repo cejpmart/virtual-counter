@@ -3,7 +3,7 @@
 
 #include "../common/protocoldefs.h"
 
-constexpr uint16_t VERSION = 1100;
+constexpr uint16_t VERSION = 1101;
 
 constexpr const char* BOARDS[] {
     "Unknown",
@@ -254,8 +254,10 @@ bool MeasurementController::getInstrumentInfo(InstrumentInfo& info_out)
     info_out.board = BOARDS[iinfo.board_id >> 8];    // FIXME: overflow!!
     info_out.firmware = iinfo.fw_ver;
     info_out.f_cpu = iinfo.f_cpu;
+    info_out.timebaseSource = (iinfo.timebase_source == 0) ? TimebaseSource::internal : TimebaseSource::external;
 
     this->f_cpu = iinfo.f_cpu;
+    this->timebaseSource = info_out.timebaseSource;
 
     return true;
 }
