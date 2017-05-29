@@ -1,5 +1,7 @@
 #include "mainwindow.h"
+#include "optionsdialog.h"
 #include "ui_mainwindow.h"
+#include "ui_optionsdialog.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -12,6 +14,8 @@ constexpr QChar UNICODE_INFINITY = 0x221E;
 constexpr auto MEASUREMENT_PULSE_COUNT_FREQ_RANGE_STRING =  "0 - 24 000 000 Hz";
 constexpr auto MEASUREMENT_PERIOD_FREQ_RANGE_STRING =       "0 - 24 000 000 Hz";
 constexpr auto MEASUREMENT_PWM_FREQ_RANGE_STRING =          "0 - 2 000 000 Hz";
+
+constexpr char OPTIONS_FILE_NAME[] = "options.ini";
 
 // http://stackoverflow.com/a/13094362
 static double round_to_digits(double value, int digits)
@@ -29,6 +33,8 @@ MainWindow::MainWindow(QWidget *parent) :
     pwmOutputPlotView(ipm)
 {
     qRegisterMetaType<size_t>("size_t");
+
+    loadOptions(OPTIONS_FILE_NAME);
 
     ui->setupUi(this);
     measurementPlotView = std::make_unique<MeasurementPlotView>(ui->measurementChart);
@@ -84,7 +90,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, SIGNAL (measurementShouldStartPhase(Edge)), measurementController, SLOT (doMeasurementPhase(Edge)));
     connect(this, SIGNAL (measurementShouldStartFreqRatio(unsigned int)), measurementController, SLOT (doMeasurementFreqRatio(unsigned int)));
     connect(this, SIGNAL (shouldOpenInterface(QString)), measurementController, SLOT (openInterface(QString)));
+    connect(this, SIGNAL (shouldSetMeasurementOptions(MeasurementOptions)), measurementController, SLOT (setMeasurementOptions(MeasurementOptions)));
     connect(this, SIGNAL (shouldSetPwm(size_t, PwmParameters)), measurementController, SLOT (setPwm(size_t, PwmParameters)));
+
+    emit onOptionsUpdated();
 
     // Auto-connect
     for (const QSerialPortInfo& port : ports) {
@@ -165,6 +174,38 @@ void MainWindow::loadIpm(QString boardName)
 
             if (tokens.size() >= 2) {
                 ipm.insert(tokens[0], tokens[1]);
+            }
+        }
+
+        inputFile.close();
+    }
+    else
+        qWarning("Failed to open '%s'", qPrintable(fileName));
+}
+
+void MainWindow::loadOptions(QString fileName)
+{
+    // Pre-load default options
+    options.clear();
+    options.insert("externalTBError", "50");
+    options.insert("internalTBError", "500");
+
+    QFile inputFile(fileName);
+    QVector<QString> tokens;
+
+    if (inputFile.open(QIODevice::ReadOnly)) {
+        QTextStream in(&inputFile);
+
+        while (!in.atEnd()) {
+            QString line = in.readLine();
+
+            if (line.size() == 0 || line[0] == '#')
+                continue;
+
+            auto tokens = line.split('=');
+
+            if (tokens.size() >= 2) {
+                options.insert(tokens[0], tokens[1]);
             }
         }
 
@@ -329,6 +370,15 @@ void MainWindow::onOpenInterfaceTriggered(QAction* action)
     emit shouldOpenInterface(path);
 }
 
+void MainWindow::onOptionsUpdated()
+{
+    // Update MeasurementController options
+    MeasurementOptions opts;
+    opts.externalTBError = options.value("externalTBError").toFloat() * 1e-6;
+    opts.internalTBError = options.value("internalTBError").toFloat() * 1e-6;
+    emit shouldSetMeasurementOptions(opts);
+}
+
 void MainWindow::onPwmSet(size_t index, PwmParameters params)
 {
     if (index == 0) {
@@ -346,6 +396,22 @@ void MainWindow::onPwmSet(size_t index, PwmParameters params)
 
     pwmActual[index] = params;
     pwmOutputPlotView.redraw(pwmActual[0], pwmActual[1]);
+}
+
+void MainWindow::saveOptions(QString fileName)
+{
+    QFile outputFile(fileName);
+
+    if (outputFile.open(QIODevice::WriteOnly)) {
+        QTextStream out(&outputFile);
+
+        for (const auto& key : options.keys())      // pretty inefficient, but we don't care
+            out << key << "=" << options.value(key) << "\n";
+
+        outputFile.close();
+    }
+    else
+        qWarning("Failed to open '%s'", qPrintable(fileName));
 }
 
 void MainWindow::setContinousMeasurement(bool enabled)
@@ -568,6 +634,23 @@ void MainWindow::on_menuHelpAbout_triggered()
                    "Copyright (c) 2017 Martin Cejp");
     msgBox.setWindowTitle("About Measurement Tool");
     msgBox.exec();
+}
+
+void MainWindow::on_menuOptions_triggered()
+{
+    OptionsDialog dlg;
+
+    auto dlgUi = dlg.getUi();
+    dlgUi->externalOscillatorError->setValue(options.value("externalTBError").toInt());
+    dlgUi->internalOscillatorError->setValue(options.value("internalTBError").toInt());
+
+    if (dlg.exec()) {
+        options.insert("externalTBError", QString::number(dlgUi->externalOscillatorError->value()));
+        options.insert("internalTBError", QString::number(dlgUi->internalOscillatorError->value()));
+
+        saveOptions(OPTIONS_FILE_NAME);
+        emit onOptionsUpdated();
+    }
 }
 
 void MainWindow::on_menuSaveCSV_triggered()

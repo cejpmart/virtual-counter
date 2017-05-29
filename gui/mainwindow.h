@@ -32,6 +32,7 @@ signals:
     void measurementShouldStartPhase(Edge edge);
     void measurementShouldStartFreqRatio(unsigned int periods);
 
+    void shouldSetMeasurementOptions(MeasurementOptions opts);
     void shouldSetPwm(size_t index, PwmParameters params);
 
 private slots:
@@ -92,6 +93,8 @@ private slots:
 
     void on_menuHelpAbout_triggered();
 
+    void on_menuOptions_triggered();
+
 private:
     double getCountingGateTimeSeconds();
     int getReciprocalIterations();
@@ -102,6 +105,7 @@ private:
     void unfade(QLabel* label, const QString& text);
 
     void onMeasurementMethodChanged();
+    void onOptionsUpdated();
     void setContinousMeasurement(bool enabled);
     void setMeasuredValuesFrequencyPeriodDuty(double frequency, double frequencyError, double period, double periodError, double duty);
     void setMeasuredValuesInvalid();
@@ -112,11 +116,14 @@ private:
     void updateMeasurementFrequencyInfo();
 
     void loadIpm(QString boardName);
+    void loadOptions(QString fileName);
+    void saveOptions(QString fileName);
     void updatePwm1();
     void updatePwm2();
 
     Ui::MainWindow *ui;
     InstrumentParameterMap ipm;
+    QHash<QString, QString> options;
 
     MeasurementController* measurementController;
     QThread* measurementControllerThread;

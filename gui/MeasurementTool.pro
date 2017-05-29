@@ -21,17 +21,20 @@ SOURCES += main.cpp\
     serialsession.cpp \
     measurementcontroller.cpp \
     pwmoutputplotview.cpp \
-    measurementplotview.cpp
+    measurementplotview.cpp \
+    optionsdialog.cpp
 
 HEADERS  += mainwindow.h \
     serialsession.h \
     measurementcontroller.h \
     guicommon.h \
     pwmoutputplotview.h \
-    measurementplotview.h
+    measurementplotview.h \
+    optionsdialog.h
     ../common/protocoldefs.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    optionsdialog.ui
 
 DISTFILES += \
     F042F6.txt \

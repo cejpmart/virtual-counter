@@ -3,8 +3,6 @@
 
 #include "../common/protocoldefs.h"
 
-constexpr double USB_CLOCK_TOLERANCE = 0.0005;      // assuming USB 2.0
-
 constexpr uint16_t VERSION = 1100;
 
 constexpr const char* BOARDS[] {
@@ -23,6 +21,7 @@ MeasurementController::MeasurementController(MainWindow* view) : view(view)
 {
     qRegisterMetaType<Edge>("Edge");
     qRegisterMetaType<InstrumentInfo>("InstrumentInfo");
+    qRegisterMetaType<MeasurementOptions>("MeasurementOptions");
     qRegisterMetaType<PwmParameters>("PwmParameters");
 }
 
@@ -147,9 +146,7 @@ void MeasurementController::doMeasurementCounting(double gateTime)
 
     const double period = (result.count > 0) ? (1.0 / frequency) : INFINITY;
 
-    const double relativeError = USB_CLOCK_TOLERANCE;
-
-    const double frequencyError = ((1 /* off-by-one */) / gateTime) + frequency * relativeError;
+    const double frequencyError = ((1 /* off-by-one */) / gateTime) + frequency * getTimebaseRelativeError();
     const double periodErrorPoint = qMax(1.0 / (frequency - frequencyError), 0.0);
     const double periodError = periodErrorPoint - period;
 
@@ -211,9 +208,7 @@ void MeasurementController::doMeasurementPeriod(unsigned int numPeriods, bool wi
     const double period = result.period * (1.0 / 65536 / f_cpu);
     const double frequency = (result.period > 0) ? (1.0 / period) : 0.0;
 
-    const double relativeError = USB_CLOCK_TOLERANCE;
-
-    const double periodError = (1 / f_cpu / numPeriods /* quantization error */) + period * relativeError;
+    const double periodError = (1 / f_cpu / numPeriods /* quantization error */) + period * getTimebaseRelativeError();
     const double frequencyErrorPoint = qMax(1.0 / (period - periodError), 0.0);
     const double frequencyError = frequencyErrorPoint - frequency;
 
@@ -263,6 +258,14 @@ bool MeasurementController::getInstrumentInfo(InstrumentInfo& info_out)
     this->f_cpu = iinfo.f_cpu;
 
     return true;
+}
+
+double MeasurementController::getTimebaseRelativeError()
+{
+    switch (timebaseSource) {
+    case TimebaseSource::external: return options.externalTBError;
+    case TimebaseSource::internal: return options.internalTBError;
+    }
 }
 
 void MeasurementController::instrumentStateError()
@@ -337,6 +340,11 @@ bool MeasurementController::sendPacketAndAwaitResultCode(uint8_t tag, const uint
     }
 
     return false;
+}
+
+void MeasurementController::setMeasurementOptions(MeasurementOptions opts)
+{
+    options = opts;
 }
 
 void MeasurementController::setPwm(size_t index, PwmParameters params)

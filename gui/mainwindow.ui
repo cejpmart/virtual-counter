@@ -1173,6 +1173,7 @@
     </widget>
     <addaction name="menuOpenInterface"/>
     <addaction name="actionAbort_measurement"/>
+    <addaction name="menuOptions"/>
     <addaction name="actionQuit"/>
    </widget>
    <widget class="QMenu" name="menuV1001">
@@ -1228,6 +1229,11 @@
   <action name="menuSaveCSV">
    <property name="text">
     <string>Plot data as CSV...</string>
+   </property>
+  </action>
+  <action name="menuOptions">
+   <property name="text">
+    <string>Options...</string>
    </property>
   </action>
  </widget>

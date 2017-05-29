@@ -10,9 +10,13 @@ enum class Edge
 {
     rising,
     falling,
-};
+}; Q_DECLARE_METATYPE(Edge);
 
-Q_DECLARE_METATYPE(Edge);
+struct MeasurementOptions
+{
+    float externalTBError;
+    float internalTBError;
+}; Q_DECLARE_METATYPE(MeasurementOptions);
 
 class MeasurementController : public QObject
 {
@@ -44,12 +48,13 @@ public slots:
     void doMeasurementPhase(Edge edge);
     void doMeasurementFreqRatio(unsigned int periods);
 
+    void setMeasurementOptions(MeasurementOptions opts);
     void setPwm(size_t index, PwmParameters params);
 
     void openInterface(QString path);
 
 private:
-    enum MeasurementMode { counting, reciprocal };
+    enum class TimebaseSource { external, internal };
 
     bool pollMeasurement(uint8_t* tag_out, uint8_t const** data_out, size_t* length_out);
     void closeInterface();
@@ -64,10 +69,14 @@ private:
     void error(QString&& error);
 
     bool getInstrumentInfo(InstrumentInfo& info_out);
+    double getTimebaseRelativeError();
 
     MainWindow* view;
     std::unique_ptr<SerialSession> session;
 
+    MeasurementOptions options;
+
+    TimebaseSource timebaseSource = TimebaseSource::internal;
     double f_cpu = 1;
 };
 
