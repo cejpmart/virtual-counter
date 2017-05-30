@@ -154,7 +154,7 @@ int DataOut(const uint8_t* data, size_t length) {
         return rc;
     }
     else {
-        rc = HAL_UART_Transmit(&huart2, data, length, kTimeout);
+        rc = HAL_UART_Transmit(&huart2, (uint8_t*) data, length, kTimeout);
 
         if (rc != HAL_OK) {
             error_flag = 1;

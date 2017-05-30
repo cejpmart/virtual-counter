@@ -1,6 +1,8 @@
 /build-MeasurementTool-Desktop-Debug/
 /firmware/fw-stm32f042/.idea/
 /firmware/fw-stm32f042/.settings/
+/firmware/fw-stm32f042/build-stm32f042f6/
+/firmware/fw-stm32f042/build-stm32f042k6/
 /firmware/fw-stm32f042/cmake-build-debug/
 /firmware/fw-stm32f042/Debug/
 /firmware/fw-stm32f042/Release/

@@ -36,6 +36,8 @@
 #include "stm32f0xx_it.h"
 
 /* USER CODE BEGIN 0 */
+#include "virtualinstrument/protocol.h"
+
 extern volatile int last_data_usb;
 /* USER CODE END 0 */
 
