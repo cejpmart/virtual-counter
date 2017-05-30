@@ -8,6 +8,10 @@
 #include "hw_stm32f042.h"
 #endif
 
+#ifdef STM32F303xE
+#include "hw_stm32f303.h"
+#endif
+
 // Pulse Count measurement
 int     HWStartPulseCountMeasurement(uint32_t gate_time_ms);
 int     HWPollPulseCountMeasurement(uint32_t* value_out);

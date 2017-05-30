@@ -4,6 +4,10 @@
 #include "stm32f0xx_hal.h"
 #endif
 
+#ifdef STM32F303xE
+#include "stm32f3xx_hal.h"
+#endif
+
 enum { HW_PRESCALER_MAX = 3 };
 
 enum { SAMPLES_OVERHEAD = 2 };

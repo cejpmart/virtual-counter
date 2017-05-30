@@ -19,6 +19,7 @@ cache:
 env:
   - DIR=firmware/fw-stm32f042 TARGET_CPU=STM32F042F6
   - DIR=firmware/fw-stm32f042 TARGET_CPU=STM32F042K6
+  - DIR=firmware/fw-stm32f303 TARGET_CPU=STM32F303RE
 
 install:
   - export GCC_DIR=$HOME/gcc-arm-none-eabi-6-2017-q1-update
