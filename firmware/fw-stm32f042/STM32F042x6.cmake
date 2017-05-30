@@ -10,10 +10,10 @@ set(ARM_NONE_EABI_GCC_BIN "" CACHE PATH "Path to GCC bin")
 
 # specify the cross compiler
 SET(CMAKE_C_COMPILER_WORKS 1)
-SET(CMAKE_C_COMPILER ${ARM_NONE_EABI_GCC_BIN}/arm-none-eabi-gcc)
+SET(CMAKE_C_COMPILER ${ARM_NONE_EABI_GCC_BIN}arm-none-eabi-gcc)
 SET(CMAKE_CXX_COMPILER_WORKS 1)
-SET(CMAKE_CXX_COMPILER ${ARM_NONE_EABI_GCC_BIN}/arm-none-eabi-g++)
-set(CMAKE_SIZE ${ARM_NONE_EABI_GCC_BIN}/arm-none-eabi-size)
+SET(CMAKE_CXX_COMPILER ${ARM_NONE_EABI_GCC_BIN}arm-none-eabi-g++)
+set(CMAKE_SIZE ${ARM_NONE_EABI_GCC_BIN}arm-none-eabi-size)
 
 SET(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/STM32F042x6Tx_FLASH.ld)
 SET(COMMON_FLAGS "-mcpu=cortex-m0 -mthumb -mfloat-abi=soft -ffunction-sections -fdata-sections -Og -g3 -fno-common -fmessage-length=0 -Wall -DSTM32F042x6")
