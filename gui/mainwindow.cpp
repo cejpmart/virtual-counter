@@ -141,7 +141,7 @@ double MainWindow::getCountingGateTimeSeconds()
 
 int MainWindow::getReciprocalIterations()
 {
-    static const int values[] = {1, 10, 100, 1000, 10000, 100000, 1000000};
+    static const int values[] = {1, 10, 100, 1000, 10*1000, 100*1000, 1000*1000, 10*1000*1000};
 
     int index = ui->measurementNumPeriodsSelect->currentIndex();
 
@@ -326,6 +326,7 @@ void MainWindow::onMeasurementMethodChanged()
         if (ui->measurementMethodPeriod->isChecked()) {
             ui->measurementNumPeriodsSelect->addItem("100 000");
             ui->measurementNumPeriodsSelect->addItem("1 000 000");
+            ui->measurementNumPeriodsSelect->addItem("10 000 000");
         }
     }
 

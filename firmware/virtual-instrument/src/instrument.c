@@ -84,6 +84,9 @@ int instrumentStartMeasurePeriod(uint32_t num_periods, int with_pulse_width) {
     if (s_instrument_state != STATE_READY)
         return -1;
 
+    if (num_periods == 0)
+        return -1;
+
     if (!with_pulse_width) {
         if (HWStartPeriodMeasurement(num_periods) <= 0)
             return -1;

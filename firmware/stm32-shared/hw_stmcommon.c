@@ -276,14 +276,10 @@ static void StartGateTime(uint32_t duration) {
     TIMEFRAME_TIM->CR1 |= TIM_CR1_CEN;
 }
 
-static void StopTimer(TIM_TypeDef* tim) {
-    tim->CR1 &= ~TIM_CR1_CEN;
-}
-
 int HWStartPeriodMeasurement(size_t num_periods) {
 #ifdef PERIOD_SETUP_16_32
-    StopTimer(COUNTER_TIM);
-    StopTimer(TIMEFRAME_TIM);
+    ResetTimer(COUNTER_TIM);
+    ResetTimer(TIMEFRAME_TIM);
 
     if (ConfigureGateExt1(TIMEFRAME_TIM, num_periods, PERIOD_GATE_TS) <= 0)
         return -1;

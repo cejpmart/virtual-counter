@@ -1,7 +1,7 @@
 # stm32f042f6 tssop-20
 
 port.pulse_count=PA0 (6)
-port.period=PA6 (12)
+port.period=PA0 (6)
 port.period_pwm_1=PA0 (6)
 port.period_pwm_2=PA1 (7)
 port.interval_a=PA0 (6)
