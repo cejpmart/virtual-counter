@@ -285,7 +285,7 @@ int HWStartPeriodMeasurement(size_t num_periods) {
     StopTimer(COUNTER_TIM);
     StopTimer(TIMEFRAME_TIM);
 
-    if (ConfigureGateExt1(TIMEFRAME_TIM, num_periods, TIM_TS_TI1FP1) <= 0)
+    if (ConfigureGateExt1(TIMEFRAME_TIM, num_periods, PERIOD_GATE_TS) <= 0)
         return -1;
 
     ConfigureAndStartGatedInternal();
@@ -298,7 +298,7 @@ int HWStartPeriodMeasurement(size_t num_periods) {
     ResetTimer(PERIOD_COUNTER_LO_TIM);
     ResetTimer(PERIOD_COUNTER_HI_TIM);
 
-    if (ConfigureGateExt1(PERIOD_GATE_TIM, num_periods, TIM_TS_TI1FP1) <= 0)
+    if (ConfigureGateExt1(PERIOD_GATE_TIM, num_periods, PERIOD_GATE_TS) <= 0)
         return -1;
 
     if (ConfigureGatedInternal2(PERIOD_COUNTER_LO_TIM, PERIOD_COUNTER_LO_TS) <= 0
@@ -524,24 +524,17 @@ int HWStartFreqRatioMeasurement(size_t num_periods) {
     ResetTimer(COUNTER_TIM);
     ResetTimer(TIMEFRAME_TIM);
 
-    if (ConfigureGate(GATE_MODE_ETR, 0, CCR_value + num_periods - 1) <= 0)
+    if (ConfigureGateExt1(TIMEFRAME_TIM, num_periods, FREQ_RATIO_GATE_TS) <= 0)
         return -1;
 
     if (ConfigureSlave(COUNTER_TIM, TIM_CLOCKSOURCE_ETRMODE2, TIM_SLAVEMODE_GATED, COUNTER_TIM_GATE_IT) <= 0)
         return -1;
 
     StartTimer(COUNTER_TIM);
+    StartOnePulse(TIMEFRAME_TIM);
 
-    // configure parameters
-    TIMEFRAME_TIM->CNT = 0;
 
-    TIMEFRAME_CCR = CCR_value;
-    TIMEFRAME_TIM->CCMR1 = (0b100 << TIM_CCMR1_OC2M_Pos);       // clear output bit
-    TIMEFRAME_TIM->CCMR1 = (0b111 << TIM_CCMR1_OC2M_Pos);       // PWM-modus 2
-    TIMEFRAME_TIM->EGR = TIM_EGR_UG;
 
-    // start timer
-    TIMEFRAME_TIM->CR1 |= TIM_CR1_CEN | TIM_CR1_OPM;
 
     return 1;
 }

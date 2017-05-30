@@ -55,6 +55,7 @@
 #else
 #define PERIOD_SETUP_32_16_16
 #define PERIOD_GATE_TIM             TIM2
+#define PERIOD_GATE_TS              TIM_TS_TI1FP1
 
 #define PERIOD_COUNTER_LO_TIM       TIM1
 #define PERIOD_COUNTER_LO_TS        TIM_TS_ITR1
@@ -90,6 +91,6 @@
 #define INPUT_CAPTURE_CH2_CCR       (TIM2->CCR1)
 
 #define FREQ_RATIO_GATE_TIM         TIM3
-#define FREQ_RATIO_GATE_CHANNEL     TIM_CHANNEL_1
+#define FREQ_RATIO_GATE_TS          TIM_TS_TI1FP1
 
 #endif /* VIRTUALINSTRUMENT_HW_STM32F042_H_ */
