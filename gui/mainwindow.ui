@@ -1213,7 +1213,7 @@
   </action>
   <action name="menuHelpAbout">
    <property name="text">
-    <string>About Measurement Tool v1100</string>
+    <string>About Measurement Tool</string>
    </property>
   </action>
   <action name="actionAbort_measurement">

@@ -12,7 +12,7 @@
 #include <stdint.h>
 
 enum {
-    INSTRUMENT_VERSION = 1101,
+    INSTRUMENT_VERSION = 1102,
 };
 
 enum {

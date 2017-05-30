@@ -204,6 +204,10 @@ int main(void)
 
   //__HAL_UART_ENABLE_IT(&huart2, UART_IT_RXNE);
 
+  __HAL_RCC_TIM1_CLK_ENABLE();
+  __HAL_RCC_TIM2_CLK_ENABLE();
+  __HAL_RCC_TIM3_CLK_ENABLE();
+
   instrumentInit();
   /* USER CODE END 2 */
 

@@ -203,7 +203,7 @@ void MeasurementController::doMeasurementPeriod(unsigned int numPeriods, bool wi
     if (!doMeasurement(withPhase? MEASUREMENT_PWM : MEASUREMENT_PERIOD, &request, sizeof(request), &result, sizeof(result)))
         return;
 
-    const double period = result.period * (1.0 / 65536 / f_cpu);
+    const double period = result.period * (1.0 / 4294967296.0 / f_cpu);
     const double frequency = (result.period > 0) ? (1.0 / period) : 0.0;
 
     const double periodError = (1 / f_cpu / numPeriods /* quantization error */) + period * getTimebaseRelativeError();

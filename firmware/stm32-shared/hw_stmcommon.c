@@ -204,6 +204,28 @@ static int ConfigureMaster(TIM_TypeDef* tim, uint32_t master_output_trigger) {
     return 1;
 }
 
+static int ConfigureInternalCounting(TIM_TypeDef* tim) {
+    TIM_HandleTypeDef htim;
+    htim.Instance = tim;
+    htim.Lock = HAL_UNLOCKED;
+    htim.State = HAL_TIM_STATE_READY;
+
+    htim.Init.Prescaler = 0;
+    htim.Init.CounterMode = TIM_COUNTERMODE_UP;
+    htim.Init.Period = (uint32_t)(-1);
+    htim.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+    htim.Init.RepetitionCounter = 0;
+    if (HAL_TIM_Base_Init(&htim) != HAL_OK)
+        return -1;
+
+    TIM_ClockConfigTypeDef sClockSourceConfig;
+    sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+    if (HAL_TIM_ConfigClockSource(&TIMEFRAME_HTIM, &sClockSourceConfig) != HAL_OK)
+        return -1;
+
+    return 1;
+}
+
 static int ConfigureSlave(TIM_TypeDef* tim, uint32_t clock_source, uint32_t slave_mode, uint32_t input_trigger) {
     TIM_HandleTypeDef htim;
     htim.Instance = tim;
@@ -304,7 +326,7 @@ int HWPollPeriodMeasurement(uint64_t* period_out) {
 
     __HAL_TIM_DISABLE(&COUNTER_HTIM);
 
-    *period_out = ((uint64_t)(COUNTER_TIM->CNT) << 16) / (TIMEFRAME_TIM->ARR + 1 - CCR_value);
+    *period_out = ((uint64_t)(COUNTER_TIM->CNT) << 32) / (TIMEFRAME_TIM->ARR + 1 - CCR_value);
     return 1;
 #elif defined(PERIOD_SETUP_32_16_16)
     // When the measurement is done, the timer stops and clears CEN flag
@@ -313,7 +335,7 @@ int HWPollPeriodMeasurement(uint64_t* period_out) {
 
     const uint32_t cnt = PERIOD_COUNTER_LO_TIM->CNT | PERIOD_COUNTER_HI_TIM->CNT << 16;
     const uint32_t num_periods = PERIOD_GATE_TIM->ARR + 1 - CCR_value;
-    *period_out = ((uint64_t)(cnt) << 16) / num_periods;
+    *period_out = ((uint64_t)(cnt) << 32) / num_periods;
     return 1;
 #else
 #error
@@ -459,8 +481,10 @@ int HWStartIntervalMeasurement(void) {
     TIM_ClockConfigTypeDef sClockSourceConfig;
     TIM_IC_InitTypeDef sConfigIC;
 
-    __HAL_TIM_DISABLE(&INPUT_CAPTURE_HTIM);
+    ResetTimer(INPUT_CAPTURE_TIMER);
     DmaStop();
+
+    ConfigureInternalCounting(INPUT_CAPTURE_TIMER);
 
     // clock
     sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
@@ -480,7 +504,7 @@ int HWStartIntervalMeasurement(void) {
     HAL_TIM_IC_Start(&INPUT_CAPTURE_HTIM, INPUT_CAPTURE_CH2_CHAN);
 
     DmaStart(2);
-    __HAL_TIM_ENABLE(&INPUT_CAPTURE_HTIM);
+    StartTimer(INPUT_CAPTURE_TIMER);
 
     return 1;
 }

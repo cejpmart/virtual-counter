@@ -6,7 +6,7 @@
 
 #include <qmetatype.h>
 
-constexpr uint16_t VERSION = 1101;
+constexpr uint16_t VERSION = 1102;
 
 template <typename P>
 struct Parameter {
