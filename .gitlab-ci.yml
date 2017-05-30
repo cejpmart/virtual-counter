@@ -1,0 +1,13 @@
+image: synapsedev/gcc-arm-none-eabi
+
+build_stm32f042f6:
+  stage: build
+  script: 
+    - cmake -DCMAKE_TOOLCHAIN_FILE=STM32F042x6.cmake -DTARGET_CPU=STM32F042F6
+    - make
+
+build_stm32f042k6:
+  stage: build
+  script: 
+    - cmake -DCMAKE_TOOLCHAIN_FILE=STM32F042x6.cmake -DTARGET_CPU=STM32F042F6
+    - make
