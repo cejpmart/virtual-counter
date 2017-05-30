@@ -27,24 +27,6 @@ enum {
 
 enum { CCR_value = 1 };
 
-static int ConfigureAndStartGatedCounting(void) {
-    TIM_ClockConfigTypeDef sClockSourceConfig;
-    sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_ETRMODE2;
-    sClockSourceConfig.ClockPolarity = TIM_CLOCKPOLARITY_NONINVERTED;
-    sClockSourceConfig.ClockPrescaler = TIM_CLOCKPRESCALER_DIV1;
-    sClockSourceConfig.ClockFilter = 0;
-    HAL_TIM_ConfigClockSource(&COUNTER_HTIM, &sClockSourceConfig);
-
-    TIM_SlaveConfigTypeDef sSlaveConfig;
-    sSlaveConfig.SlaveMode = TIM_SLAVEMODE_GATED;
-    sSlaveConfig.InputTrigger = COUNTER_TIM_GATE_IT;
-    HAL_TIM_SlaveConfigSynchronization(&COUNTER_HTIM, &sSlaveConfig);
-
-    COUNTER_TIM->CNT = 0;
-    COUNTER_TIM->CR1 |= TIM_CR1_CEN_Msk;
-    return 1;
-}
-
 static int ConfigureAndStartGatedInternal(void) {
     TIM_ClockConfigTypeDef sClockSourceConfig;
     sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
@@ -82,12 +64,19 @@ static uint32_t GetHWPrescaler(size_t index) {
 }
 
 static void ResetTimer(TIM_TypeDef* tim) {
-    tim->CR1 &= (TIM_CR1_CEN | TIM_CR1_OPM);
+    tim->CR1 &= ~(TIM_CR1_CEN | TIM_CR1_OPM);
     tim->CNT = 0;
+
+    // Clear external enable modes
+    tim->SMCR &= ~TIM_SMCR_SMS;
 }
 
 static void StartOnePulse(TIM_TypeDef* tim) {
     tim->CR1 |= (TIM_CR1_CEN | TIM_CR1_OPM);
+}
+
+static void StartTimer(TIM_TypeDef* tim) {
+    tim->CR1 |= TIM_CR1_CEN;
 }
 
 // TODO: maybe refactor
@@ -154,9 +143,10 @@ static int ConfigureGateExt1(TIM_TypeDef* tim, uint32_t num_periods, uint32_t in
 
     TIM_HandleTypeDef htim;
     htim.Instance = tim;
+    htim.State = HAL_TIM_STATE_READY;
     htim.Init.Prescaler = 0;
     htim.Init.CounterMode = TIM_COUNTERMODE_UP;
-    htim.Init.Period = CCR_value + num_periods;
+    htim.Init.Period = CCR_value + num_periods - 1;
     htim.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
     if (HAL_TIM_Base_Init(&htim) != HAL_OK)
         return -1;
@@ -198,6 +188,59 @@ static int ConfigureGateExt1(TIM_TypeDef* tim, uint32_t num_periods, uint32_t in
     return 1;
 }
 
+static int ConfigureMaster(TIM_TypeDef* tim, uint32_t master_output_trigger) {
+    TIM_HandleTypeDef htim;
+    htim.Instance = tim;
+    htim.Lock = HAL_UNLOCKED;
+    htim.State = HAL_TIM_STATE_READY;
+
+    TIM_MasterConfigTypeDef sMasterConfig;
+    sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_ENABLE;
+    sMasterConfig.MasterOutputTrigger = master_output_trigger;
+
+    if (HAL_TIMEx_MasterConfigSynchronization(&htim, &sMasterConfig) != HAL_OK)
+        return -1;
+
+    return 1;
+}
+
+static int ConfigureSlave(TIM_TypeDef* tim, uint32_t clock_source, uint32_t slave_mode, uint32_t input_trigger) {
+    TIM_HandleTypeDef htim;
+    htim.Instance = tim;
+    htim.Lock = HAL_UNLOCKED;
+    htim.State = HAL_TIM_STATE_READY;
+
+    htim.Init.Prescaler = 0;
+    htim.Init.CounterMode = TIM_COUNTERMODE_UP;
+    htim.Init.Period = (uint32_t)(-1);
+    htim.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+    htim.Init.RepetitionCounter = 0;
+    if (HAL_TIM_Base_Init(&htim) != HAL_OK)
+        return -1;
+
+    TIM_ClockConfigTypeDef sClockSourceConfig;
+    sClockSourceConfig.ClockSource = clock_source;
+    sClockSourceConfig.ClockPolarity = TIM_CLOCKPOLARITY_NONINVERTED;
+    sClockSourceConfig.ClockPrescaler = TIM_CLOCKPRESCALER_DIV1;
+    sClockSourceConfig.ClockFilter = 0;
+    HAL_TIM_ConfigClockSource(&htim, &sClockSourceConfig);
+
+    TIM_SlaveConfigTypeDef sSlaveConfig;
+    sSlaveConfig.SlaveMode = slave_mode;
+    sSlaveConfig.InputTrigger = input_trigger;
+    HAL_TIM_SlaveConfigSynchronization(&htim, &sSlaveConfig);
+
+    return 1;
+}
+
+static int ConfigureGatedInternal2(TIM_TypeDef* tim, uint32_t input_trigger) {
+    return ConfigureSlave(tim, TIM_CLOCKSOURCE_INTERNAL, TIM_SLAVEMODE_GATED, input_trigger);
+}
+
+static int ConfigureSlaveExt1(TIM_TypeDef* tim, uint32_t input_trigger) {
+    return ConfigureSlave(tim, TIM_CLOCKSOURCE_INTERNAL, TIM_SLAVEMODE_EXTERNAL1, input_trigger);
+}
+
 static void StartGateTime(uint32_t duration) {
     // TODO: this should be more flexible and not need TIMEFRAME_PRESCALER,
     // TODO: deriving the necessary values from SystemCoreClock instead
@@ -216,6 +259,7 @@ static void StopTimer(TIM_TypeDef* tim) {
 }
 
 int HWStartPeriodMeasurement(size_t num_periods) {
+#ifdef PERIOD_SETUP_16_32
     StopTimer(COUNTER_TIM);
     StopTimer(TIMEFRAME_TIM);
 
@@ -227,9 +271,33 @@ int HWStartPeriodMeasurement(size_t num_periods) {
     StartOnePulse(TIMEFRAME_TIM);
 
     return 1;
+#elif defined(PERIOD_SETUP_32_16_16)
+    ResetTimer(PERIOD_GATE_TIM);
+    ResetTimer(PERIOD_COUNTER_LO_TIM);
+    ResetTimer(PERIOD_COUNTER_HI_TIM);
+
+    if (ConfigureGateExt1(PERIOD_GATE_TIM, num_periods, TIM_TS_TI1FP1) <= 0)
+        return -1;
+
+    if (ConfigureGatedInternal2(PERIOD_COUNTER_LO_TIM, PERIOD_COUNTER_LO_TS) <= 0
+            || ConfigureMaster(PERIOD_COUNTER_LO_TIM, TIM_TRGO_UPDATE) <= 0)
+        return -1;
+
+    if (ConfigureSlaveExt1(PERIOD_COUNTER_HI_TIM, PERIOD_COUNTER_HI_TS) <= 0)
+        return -1;
+
+    StartTimer(PERIOD_COUNTER_HI_TIM);
+    StartTimer(PERIOD_COUNTER_LO_TIM);
+    StartOnePulse(PERIOD_GATE_TIM);
+
+    return 1;
+#else
+#error
+#endif
 }
 
 int HWPollPeriodMeasurement(uint64_t* period_out) {
+#ifdef PERIOD_SETUP_16_32
     // When the measurement is done, the timer stops and clears CEN flag
     if ((TIMEFRAME_TIM->CR1 & TIM_CR1_CEN))
         return 0;
@@ -238,18 +306,32 @@ int HWPollPeriodMeasurement(uint64_t* period_out) {
 
     *period_out = ((uint64_t)(COUNTER_TIM->CNT) << 16) / (TIMEFRAME_TIM->ARR + 1 - CCR_value);
     return 1;
+#elif defined(PERIOD_SETUP_32_16_16)
+    // When the measurement is done, the timer stops and clears CEN flag
+    if ((PERIOD_GATE_TIM->CR1 & TIM_CR1_CEN))
+        return 0;
+
+    const uint32_t cnt = PERIOD_COUNTER_LO_TIM->CNT | PERIOD_COUNTER_HI_TIM->CNT << 16;
+    const uint32_t num_periods = PERIOD_GATE_TIM->ARR + 1 - CCR_value;
+    *period_out = ((uint64_t)(cnt) << 16) / num_periods;
+    return 1;
+#else
+#error
+#endif
 }
 
 int HWStartPulseCountMeasurement(uint32_t gate_time_ms) {
-    StopTimer(COUNTER_TIM);
-    StopTimer(TIMEFRAME_TIM);
+    ResetTimer(COUNTER_TIM);
+    ResetTimer(TIMEFRAME_TIM);
 
     int prescaler = SystemCoreClock / 1000 - 1;
     if (ConfigureGate(GATE_MODE_TIME, prescaler, 65535) <= 0)
         return -1;
 
-    ConfigureAndStartGatedCounting();
+    if (ConfigureSlave(COUNTER_TIM, TIM_CLOCKSOURCE_ETRMODE2, TIM_SLAVEMODE_GATED, COUNTER_TIM_GATE_IT) <= 0)
+        return -1;
 
+    StartTimer(COUNTER_TIM);
     StartGateTime(gate_time_ms);
     return 1;
 }
@@ -415,13 +497,16 @@ int HWPollIntervalMeasurement(uint32_t* period_out, uint32_t* pulse_width_out) {
 }
 
 int HWStartFreqRatioMeasurement(size_t num_periods) {
-    StopTimer(COUNTER_TIM);
-    StopTimer(TIMEFRAME_TIM);
+    ResetTimer(COUNTER_TIM);
+    ResetTimer(TIMEFRAME_TIM);
 
     if (ConfigureGate(GATE_MODE_ETR, 0, CCR_value + num_periods - 1) <= 0)
         return -1;
 
-    ConfigureAndStartGatedCounting();
+    if (ConfigureSlave(COUNTER_TIM, TIM_CLOCKSOURCE_ETRMODE2, TIM_SLAVEMODE_GATED, COUNTER_TIM_GATE_IT) <= 0)
+        return -1;
+
+    StartTimer(COUNTER_TIM);
 
     // configure parameters
     TIMEFRAME_TIM->CNT = 0;

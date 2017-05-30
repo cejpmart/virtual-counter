@@ -159,6 +159,8 @@ int DataOut(const uint8_t* data, size_t length) {
         if (rc != HAL_OK) {
             error_flag = 1;
         }
+
+        return rc;
     }
 }
 /* USER CODE END 0 */

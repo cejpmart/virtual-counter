@@ -50,6 +50,19 @@
 // ITR2 = TIM3
 #define COUNTER_TIM_GATE_IT         TIM_TS_ITR2
 
+#if 0
+#define PERIOD_SETUP_16_32
+#else
+#define PERIOD_SETUP_32_16_16
+#define PERIOD_GATE_TIM             TIM2
+
+#define PERIOD_COUNTER_LO_TIM       TIM1
+#define PERIOD_COUNTER_LO_TS        TIM_TS_ITR1
+
+#define PERIOD_COUNTER_HI_TIM       TIM3
+#define PERIOD_COUNTER_HI_TS        TIM_TS_ITR0
+#endif
+
 #define INPUT_CAPTURE_TIMER         TIM2
 #define INPUT_CAPTURE_HTIM          htim2
 

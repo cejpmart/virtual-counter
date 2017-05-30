@@ -322,8 +322,11 @@ void MainWindow::onMeasurementMethodChanged()
         ui->measurementNumPeriodsSelect->addItem("100");
         ui->measurementNumPeriodsSelect->addItem("1 000");
         ui->measurementNumPeriodsSelect->addItem("10 000");
-        //ui->measurementNumPeriodsSelect->addItem("100 000");
-        //ui->measurementNumPeriodsSelect->addItem("1 000 000");
+
+        if (ui->measurementMethodPeriod->isChecked()) {
+            ui->measurementNumPeriodsSelect->addItem("100 000");
+            ui->measurementNumPeriodsSelect->addItem("1 000 000");
+        }
     }
 
     // Port labels (TODO)
