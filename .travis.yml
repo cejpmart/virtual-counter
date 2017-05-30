@@ -13,8 +13,8 @@ cache:
     - $HOME/gcc-arm-none-eabi-6-2017-q1-update
 
 env:
-  - TARGET_CPU=STM32F042F6
-  - TARGET_CPU=STM32F042K6
+  - DIR=firmware/fw-stm32f042 TARGET_CPU=STM32F042F6
+  - DIR=firmware/fw-stm32f042 TARGET_CPU=STM32F042K6
 
 install:
   - export GCC_DIR=$HOME/gcc-arm-none-eabi-6-2017-q1-update
@@ -24,5 +24,6 @@ install:
   - export PATH=$PATH:$GCC_DIR/bin
 
 script:
+  - cd $DIR
   - cmake -DCMAKE_TOOLCHAIN_FILE=STM32F042x6.cmake -DTARGET_CPU=$TARGET_CPU
   - make
