@@ -63,13 +63,40 @@ static int ConfigureAndStartGatedInternal(void) {
     return 1;
 }
 
+static void DmaStop(void) {
+    HAL_DMA_Abort(&INPUT_CAPTURE_HDMA);
+    __HAL_DMA_CLEAR_FLAG(&INPUT_CAPTURE_HDMA, INPUT_CAPTURE_DMA_TC_FLAG);
+}
+
+static void DmaStart(size_t num_samples) {
+    // configure the DMA Burst Mode
+    INPUT_CAPTURE_TIMER->DCR = (INPUT_CAPTURE_DMABASE | TIM_DMABURSTLENGTH_2TRANSFERS);
+    __HAL_TIM_ENABLE_DMA(&INPUT_CAPTURE_HTIM, INPUT_CAPTURE_DMA_TRIGGER);
+
+    HAL_DMA_Start(&INPUT_CAPTURE_HDMA, (uint32_t) &INPUT_CAPTURE_TIMER->DMAR, (uint32_t) dmabuf, (SAMPLES_OVERHEAD + num_samples) * 2);
+}
+
+static uint32_t GetHWPrescaler(size_t index) {
+    static const uint32_t hw_prescalers[] = {TIM_ICPSC_DIV1, TIM_ICPSC_DIV2, TIM_ICPSC_DIV4, TIM_ICPSC_DIV8};
+    return hw_prescalers[index];
+}
+
+static void ResetTimer(TIM_TypeDef* tim) {
+    tim->CR1 &= (TIM_CR1_CEN | TIM_CR1_OPM);
+    tim->CNT = 0;
+}
+
+static void StartOnePulse(TIM_TypeDef* tim) {
+    tim->CR1 |= (TIM_CR1_CEN | TIM_CR1_OPM);
+}
+
+// TODO: maybe refactor
 static int ConfigureGate(int mode, unsigned int prescaler, unsigned int period) {
     TIM_ClockConfigTypeDef sClockSourceConfig;
     TIM_MasterConfigTypeDef sMasterConfig;
     TIM_OC_InitTypeDef sConfigOC;
 
-    __HAL_TIM_DISABLE(&TIMEFRAME_HTIM);
-    TIMEFRAME_TIM->CR1 &= ~TIM_CR1_OPM;
+    ResetTimer(TIMEFRAME_TIM);
 
     TIMEFRAME_HTIM.Instance = TIMEFRAME_TIM;
     TIMEFRAME_HTIM.Init.Prescaler = prescaler;
@@ -115,22 +142,60 @@ static int ConfigureGate(int mode, unsigned int prescaler, unsigned int period) 
     return 1;
 }
 
-static void DmaStop(void) {
-    HAL_DMA_Abort(&INPUT_CAPTURE_HDMA);
-    __HAL_DMA_CLEAR_FLAG(&INPUT_CAPTURE_HDMA, INPUT_CAPTURE_DMA_TC_FLAG);
-}
+// Configure a timer as gate, using EXT1 mode
+// (OC2 is routed to TRGO)
+// num_periods is the number of full periods counted
+// input_trigger is TIM_TS_TI1FP1 etc.
+static int ConfigureGateExt1(TIM_TypeDef* tim, uint32_t num_periods, uint32_t input_trigger) {
+    static const uint32_t CCR_value = 1;                // number of events to skip (1 = first, incomplete period)
+    static const uint32_t channel = TIM_CHANNEL_2;
 
-static void DmaStart(size_t num_samples) {
-    // configure the DMA Burst Mode
-    INPUT_CAPTURE_TIMER->DCR = (INPUT_CAPTURE_DMABASE | TIM_DMABURSTLENGTH_2TRANSFERS);
-    __HAL_TIM_ENABLE_DMA(&INPUT_CAPTURE_HTIM, INPUT_CAPTURE_DMA_TRIGGER);
+    ResetTimer(tim);
 
-    HAL_DMA_Start(&INPUT_CAPTURE_HDMA, (uint32_t) &INPUT_CAPTURE_TIMER->DMAR, (uint32_t) dmabuf, (SAMPLES_OVERHEAD + num_samples) * 2);
-}
+    TIM_HandleTypeDef htim;
+    htim.Instance = tim;
+    htim.Init.Prescaler = 0;
+    htim.Init.CounterMode = TIM_COUNTERMODE_UP;
+    htim.Init.Period = CCR_value + num_periods;
+    htim.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+    if (HAL_TIM_Base_Init(&htim) != HAL_OK)
+        return -1;
 
-static uint32_t GetHWPrescaler(size_t index) {
-    static const uint32_t hw_prescalers[] = {TIM_ICPSC_DIV1, TIM_ICPSC_DIV2, TIM_ICPSC_DIV4, TIM_ICPSC_DIV8};
-    return hw_prescalers[index];
+    TIM_ClockConfigTypeDef sClockSourceConfig;
+    sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+    if (HAL_TIM_ConfigClockSource(&htim, &sClockSourceConfig) != HAL_OK)
+        return -1;
+
+    if (HAL_TIM_OC_Init(&htim) != HAL_OK)
+        return -1;
+
+    TIM_SlaveConfigTypeDef slaveConfig;
+    slaveConfig.SlaveMode = TIM_SLAVEMODE_EXTERNAL1;
+    slaveConfig.InputTrigger = input_trigger;
+    slaveConfig.TriggerFilter = 0;
+    slaveConfig.TriggerPolarity = TIM_TRIGGERPOLARITY_RISING;
+    slaveConfig.TriggerPrescaler = TIM_TRIGGERPRESCALER_DIV1;
+    HAL_TIM_SlaveConfigSynchronization(&htim, &slaveConfig);
+
+    TIM_MasterConfigTypeDef sMasterConfig;
+    sMasterConfig.MasterOutputTrigger = TIM_TRGO_OC2REF;
+    sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_ENABLE;
+    if (HAL_TIMEx_MasterConfigSynchronization(&htim, &sMasterConfig) != HAL_OK)
+        return -1;
+
+    TIM_OC_InitTypeDef sConfigOC;
+    sConfigOC.OCMode = TIM_OCMODE_FORCED_INACTIVE;
+    sConfigOC.Pulse = CCR_value;
+    sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+    sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+    if (HAL_TIM_OC_ConfigChannel(&htim, &sConfigOC, channel) != HAL_OK)
+        return -1;
+
+    sConfigOC.OCMode = TIM_OCMODE_PWM2;
+    if (HAL_TIM_OC_ConfigChannel(&htim, &sConfigOC, channel) != HAL_OK)
+        return -1;
+
+    return 1;
 }
 
 static void StartGateTime(uint32_t duration) {
@@ -146,29 +211,20 @@ static void StartGateTime(uint32_t duration) {
     TIMEFRAME_TIM->CR1 |= TIM_CR1_CEN;
 }
 
-static void StopGate(void) {
-    TIMEFRAME_TIM->CR1 &= ~TIM_CR1_CEN;
+static void StopTimer(TIM_TypeDef* tim) {
+    tim->CR1 &= ~TIM_CR1_CEN;
 }
 
 int HWStartPeriodMeasurement(size_t num_periods) {
-    __HAL_TIM_DISABLE(&COUNTER_HTIM);
-    StopGate();
+    StopTimer(COUNTER_TIM);
+    StopTimer(TIMEFRAME_TIM);
 
-    if (ConfigureGate(GATE_MODE_ETR, 0, CCR_value + num_periods - 1) <= 0)
+    if (ConfigureGateExt1(TIMEFRAME_TIM, num_periods, TIM_TS_TI1FP1) <= 0)
         return -1;
 
     ConfigureAndStartGatedInternal();
 
-    // configure parameters
-    TIMEFRAME_TIM->CNT = 0;
-
-    TIMEFRAME_CCR = CCR_value;
-    TIMEFRAME_TIM->CCMR1 = (0b100 << TIM_CCMR1_OC2M_Pos);       // clear output bit
-    TIMEFRAME_TIM->CCMR1 = (0b111 << TIM_CCMR1_OC2M_Pos);       // PWM-modus 2
-    TIMEFRAME_TIM->EGR = TIM_EGR_UG;
-
-    // start timer
-    TIMEFRAME_TIM->CR1 |= TIM_CR1_CEN | TIM_CR1_OPM;
+    StartOnePulse(TIMEFRAME_TIM);
 
     return 1;
 }
@@ -185,8 +241,8 @@ int HWPollPeriodMeasurement(uint64_t* period_out) {
 }
 
 int HWStartPulseCountMeasurement(uint32_t gate_time_ms) {
-    __HAL_TIM_DISABLE(&COUNTER_HTIM);
-    StopGate();
+    StopTimer(COUNTER_TIM);
+    StopTimer(TIMEFRAME_TIM);
 
     int prescaler = SystemCoreClock / 1000 - 1;
     if (ConfigureGate(GATE_MODE_TIME, prescaler, 65535) <= 0)
@@ -359,8 +415,8 @@ int HWPollIntervalMeasurement(uint32_t* period_out, uint32_t* pulse_width_out) {
 }
 
 int HWStartFreqRatioMeasurement(size_t num_periods) {
-    __HAL_TIM_DISABLE(&COUNTER_HTIM);
-    StopGate();
+    StopTimer(COUNTER_TIM);
+    StopTimer(TIMEFRAME_TIM);
 
     if (ConfigureGate(GATE_MODE_ETR, 0, CCR_value + num_periods - 1) <= 0)
         return -1;
