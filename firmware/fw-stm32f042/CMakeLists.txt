@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.6)
+cmake_minimum_required(VERSION 3.2)
 project(fw_stm32f042 C ASM)
 
 set(TARGET_CPU "" CACHE STRING "Target CPU")
