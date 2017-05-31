@@ -346,7 +346,7 @@ int HWStartPulseCountMeasurement(uint32_t gate_time_ms) {
     ResetTimer(COUNTER_TIM);
     ResetTimer(TIMEFRAME_TIM);
 
-    int prescaler = SystemCoreClock / 1000 - 1;
+    int prescaler = SystemCoreClock / 4000 - 1;
     if (ConfigureGate(GATE_MODE_TIME, prescaler, 65535) <= 0)
         return -1;
 
@@ -354,7 +354,7 @@ int HWStartPulseCountMeasurement(uint32_t gate_time_ms) {
         return -1;
 
     StartTimer(COUNTER_TIM);
-    StartGateTime(gate_time_ms);
+    StartGateTime(gate_time_ms * 4);
     return 1;
 }
 

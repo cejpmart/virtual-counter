@@ -128,9 +128,10 @@ int main(void)
   HAL_TIM_PWM_Start(&PWM1_HTIM, PWM1_CHANNEL);
   HAL_TIM_PWM_Start(&PWM2_HTIM, PWM2_CHANNEL);
 
+  instrumentInit();
   protocolInit(BOARD_F303_NUCLEO64, INSTRUMENT_VERSION, SystemCoreClock, TIMEBASE_SOURCE_EXTERNAL);
 
-  instrumentInit();
+  __HAL_UART_ENABLE_IT(&huart2, UART_IT_RXNE);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -437,8 +438,8 @@ static void MX_USART2_UART_Init(void)
 {
 
   huart2.Instance = USART2;
-  huart2.Init.BaudRate = 38400;
-  huart2.Init.WordLength = UART_WORDLENGTH_7B;
+  huart2.Init.BaudRate = 57600;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
   huart2.Init.StopBits = UART_STOPBITS_1;
   huart2.Init.Parity = UART_PARITY_NONE;
   huart2.Init.Mode = UART_MODE_TX_RX;
