@@ -38,7 +38,8 @@ FORMS    += mainwindow.ui \
 
 DISTFILES += \
     F042F6.txt \
-    F042K6_Nucleo32.txt
+    F042K6_Nucleo32.txt \
+    F303_Nucleo64.txt
 
 # Deployment - Automatically Detect and Copy Dependencies to Build Folder
 
