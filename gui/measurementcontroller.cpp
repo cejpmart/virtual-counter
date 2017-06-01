@@ -293,7 +293,7 @@ void MeasurementController::openInterface(QString path)
         session->open(path.toLatin1().data());
     }
     catch (const std::exception& ex) {
-        emit instrumentStatusSet("Failed to open " + path);
+        emit errorSignal("Failed to open " + path);
         session.reset();
 
         // TODO: set state
@@ -317,12 +317,10 @@ void MeasurementController::openInterface(QString path)
         return;
     }
 
-    // TODO: load port definitions
-
     this->session->sendPacket(CMD_RESET_INSTRUMENT, nullptr, 0);
 
     emit instrumentConnected(info);
-    emit instrumentStatusSet("Connected " + path);
+    //emit status("Connected " + path);
 }
 
 void MeasurementController::pleaseAbortMeasurement()
@@ -388,7 +386,7 @@ void MeasurementController::setPwm(size_t index, PwmParameters params)
 
     // Calculate actual frequency
     params.freq = f_cpu / (prescaler * prescaled);
-    params.duty = (float)request.pulse_width / period;
+    params.duty = (float)request.pulse_width / request.period;
     params.phase = (float)request.phase / request.period * 360;
 
     if (params.phase > 180)

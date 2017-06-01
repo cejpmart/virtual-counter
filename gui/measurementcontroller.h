@@ -28,7 +28,6 @@ public:
 
 signals:
     void instrumentConnected(InstrumentInfo info);
-    void instrumentStatusSet(QString text);
 
     void measurementStarted();
     void measurementFinishedCounting(double frequency, double frequencyError, double period, double periodError);
