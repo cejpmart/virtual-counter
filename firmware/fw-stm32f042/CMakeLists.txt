@@ -1,17 +1,8 @@
 cmake_minimum_required(VERSION 3.2)
 
+set(COMM_INTERFACE "" CACHE STRING "Communication Interface (USB_CDC/VCP)")
 set(TARGET_CPU "" CACHE STRING "Target CPU")
-project(fw-${TARGET_CPU} C ASM)
-
-if (TARGET_CPU STREQUAL "STM32F042F6")
-	add_definitions(-DSTM32F042F6)
-	add_definitions(-DSTM32F042x6)
-elseif (TARGET_CPU STREQUAL "STM32F042K6")
-	add_definitions(-DSTM32F042K6)
-	add_definitions(-DSTM32F042x6)
-else()
-	message(FATAL_ERROR "Invalid or undefined TARGET_CPU")
-endif()
+project(fw-${TARGET_CPU}-${COMM_INTERFACE} C ASM)
 
 add_subdirectory(../virtual-instrument ${CMAKE_BINARY_DIR}/build-virtual-instrument)
 
@@ -36,6 +27,24 @@ add_executable(${PROJECT_NAME}.elf
 		${LINKER_SCRIPT}
 		startup/startup_stm32f042x6.s
 		)
+
+if (TARGET_CPU STREQUAL "STM32F042F6")
+	target_compile_definitions(${PROJECT_NAME}.elf PRIVATE -DSTM32F042F6)
+	target_compile_definitions(${PROJECT_NAME}.elf PRIVATE -DSTM32F042x6)
+elseif (TARGET_CPU STREQUAL "STM32F042K6")
+	target_compile_definitions(${PROJECT_NAME}.elf PRIVATE -DSTM32F042K6)
+	target_compile_definitions(${PROJECT_NAME}.elf PRIVATE -DSTM32F042x6)
+else()
+	message(FATAL_ERROR "Invalid or undefined TARGET_CPU")
+endif()
+
+if (COMM_INTERFACE STREQUAL "USB_CDC")
+	target_compile_definitions(${PROJECT_NAME}.elf PRIVATE -DENABLE_USB_CDC)
+elseif (COMM_INTERFACE STREQUAL "VCP")
+	target_compile_definitions(${PROJECT_NAME}.elf PRIVATE -DENABLE_VCP)
+else()
+	message(FATAL_ERROR "Invalid or undefined COMM_INTERFACE")
+endif()
 
 target_include_directories(${PROJECT_NAME}.elf PRIVATE
 		../stm32-shared

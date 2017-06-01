@@ -140,33 +140,24 @@ static int HWTryEnableHSE(void) {
   return 0;
 }
 
-volatile int last_data_usb;     // 1=usb, 0=uart (VCP)
-
-int error_flag;
-
 int DataOut(const uint8_t* data, size_t length) {
-    static const uint32_t kTimeout = 2000;
+    static const uint32_t kTimeout = 1000;
+
+#if defined(ENABLE_USB_CDC)
+    uint32_t startTime = HAL_GetTick();
     int rc;
 
-    if (last_data_usb) {
-        uint32_t startTime = HAL_GetTick();
-
-        do {
-            rc = CDC_Transmit_FS((uint8_t*) data, length);
-        }
-        while (rc == USBD_BUSY && HAL_GetTick() < startTime + kTimeout);
-
-        return rc;
+    do {
+        rc = CDC_Transmit_FS((uint8_t*) data, length);
     }
-    else {
-        rc = HAL_UART_Transmit(&huart2, (uint8_t*) data, length, kTimeout);
+    while (rc == USBD_BUSY && HAL_GetTick() < startTime + kTimeout);
 
-        if (rc != HAL_OK) {
-            error_flag = 1;
-        }
-
-        return rc;
-    }
+    return rc;
+#elif defined(ENABLE_VCP)
+    return HAL_UART_Transmit(&huart2, (uint8_t*) data, length, kTimeout);
+#else
+#error No communication interface was enabled.
+#endif
 }
 
 #ifdef STM32F042F6
@@ -254,7 +245,9 @@ int main(void)
 
   protocolAsciiInit(&ascii_options);
 
-  //__HAL_UART_ENABLE_IT(&huart2, UART_IT_RXNE);
+#ifdef ENABLE_VCP
+  __HAL_UART_ENABLE_IT(&huart2, UART_IT_RXNE);
+#endif
 
   __HAL_RCC_TIM1_CLK_ENABLE();
   __HAL_RCC_TIM2_CLK_ENABLE();

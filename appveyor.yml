@@ -12,6 +12,12 @@ build_script:
 
     mingw32-make -j
 
+    del release\*.cpp
+
+    del release\*.o
+
 artifacts:
 - path: gui/release/MeasurementTool.exe
+  name: MeasurementTool.exe
 - path: gui/release
+  name: MeasurementTool

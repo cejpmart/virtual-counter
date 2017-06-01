@@ -37,8 +37,6 @@
 
 /* USER CODE BEGIN 0 */
 #include "virtualinstrument/protocol.h"
-
-extern volatile int last_data_usb;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -92,15 +90,14 @@ void DMA1_Channel4_5_IRQHandler(void)
 void USART2_IRQHandler(void)
 {
   /* USER CODE BEGIN USART2_IRQn 0 */
-  uint8_t data = USART2->RDR;
-  last_data_usb = 0;
-  __disable_irq();
-  protocolDataIn(&data, 1);
-  __enable_irq();
-  if (__HAL_UART_GET_FLAG(&huart2, UART_FLAG_ORE)) {
-      __HAL_UART_CLEAR_OREFLAG(&huart2);
+  if (__HAL_UART_GET_FLAG(&huart2, UART_FLAG_RXNE)) {
+    uint8_t data = USART2->RDR;
+    protocolDataIn(&data, 1);
   }
-  //__HAL_UART_SEND_REQ(&huart2, UART_RXDATA_FLUSH_REQUEST);
+
+  if (__HAL_UART_GET_FLAG(&huart2, UART_FLAG_ORE)) {
+    __HAL_UART_CLEAR_OREFLAG(&huart2);
+  }
 #if 0
   /* USER CODE END USART2_IRQn 0 */
   HAL_UART_IRQHandler(&huart2);
