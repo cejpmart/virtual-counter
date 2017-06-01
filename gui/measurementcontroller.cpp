@@ -309,6 +309,8 @@ void MeasurementController::openInterface(QString path)
         return;
     }
 
+    this->session->flushInput();
+
     InstrumentInfo info;
     info.port = path;
 

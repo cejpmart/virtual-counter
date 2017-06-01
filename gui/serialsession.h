@@ -15,6 +15,7 @@ public:
     ~SerialSession() {}
 
     void open(const char* filename);
+    void flushInput();
 
     bool awaitPacket(uint8_t* tag_out, uint8_t const** data_out, size_t* length_out);
     bool receivePacket(uint8_t* tag_out, uint8_t const** data_out, size_t* length_out);

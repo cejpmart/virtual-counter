@@ -84,6 +84,21 @@ bool SerialSession::receivePacket(uint8_t* tag_out, uint8_t const** data_out, si
     return false;
 }
 
+void SerialSession::flushInput() {
+    for (;;) {
+        serialPort->waitForReadyRead(200);
+
+        char throwaway[1000];
+        size_t got = serialPort->read(throwaway, sizeof(throwaway));
+
+        if (!got)
+            break;
+
+        if (enableLogging)
+            qInfo("trash %d", (int)got);
+    }
+}
+
 bool SerialSession::recvall(uint8_t* buffer, size_t count, bool removeFromBuffer) {
     if (numRxBytes < count) {
         rxBytes.resize(count);
