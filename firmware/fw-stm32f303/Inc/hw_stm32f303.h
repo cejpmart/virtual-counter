@@ -3,15 +3,15 @@
 
 #include <stm32f303xe.h>
 
-#define PORT_PULSE_COUNT            ""
-#define PORT_PERIOD_1               ""
-#define PORT_PERIOD_2               ""
-#define PORT_INTERVAL_A             ""
-#define PORT_INTERVAL_B             ""
-#define PORT_FREQ_RATIO_A           ""
-#define PORT_FREQ_RATIO_B           ""
-#define PORT_PWM_A                  ""
-#define PORT_PWM_B                  ""
+#define PORT_PULSE_COUNT            "A0"
+#define PORT_PERIOD_1               "A0"
+#define PORT_PERIOD_2               "A1"
+#define PORT_INTERVAL_A             "A0"
+#define PORT_INTERVAL_B             "A1"
+#define PORT_FREQ_RATIO_A           "A0"
+#define PORT_FREQ_RATIO_B           "D5"
+#define PORT_PWM_A                  "D12"
+#define PORT_PWM_B                  "D11"
 
 #define PWM1_TIM        TIM16
 #define PWM1_HTIM       htim16

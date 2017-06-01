@@ -292,6 +292,11 @@ static void MX_TIM2_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
+  if (HAL_TIM_IC_ConfigChannel(&htim2, &sConfigIC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
 }
 
 /* TIM3 init function */
@@ -300,6 +305,7 @@ static void MX_TIM3_Init(void)
 
   TIM_ClockConfigTypeDef sClockSourceConfig;
   TIM_MasterConfigTypeDef sMasterConfig;
+  TIM_IC_InitTypeDef sConfigIC;
 
   htim3.Instance = TIM3;
   htim3.Init.Prescaler = 0;
@@ -318,9 +324,23 @@ static void MX_TIM3_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
+  if (HAL_TIM_IC_Init(&htim3) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
   sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
+  sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
+  sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
+  sConfigIC.ICFilter = 0;
+  if (HAL_TIM_IC_ConfigChannel(&htim3, &sConfigIC, TIM_CHANNEL_1) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
@@ -399,19 +419,19 @@ static void MX_TIM17_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-  if (HAL_TIM_OC_Init(&htim17) != HAL_OK)
+  if (HAL_TIM_PWM_Init(&htim17) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
 
-  sConfigOC.OCMode = TIM_OCMODE_TIMING;
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
   sConfigOC.Pulse = 0;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
   sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
-  if (HAL_TIM_OC_ConfigChannel(&htim17, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  if (HAL_TIM_PWM_ConfigChannel(&htim17, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
