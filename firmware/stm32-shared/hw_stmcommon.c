@@ -96,6 +96,8 @@ static int ConfigureGate(int mode, unsigned int prescaler, unsigned int period) 
     TIMEFRAME_HTIM.Init.CounterMode = TIM_COUNTERMODE_UP;
     TIMEFRAME_HTIM.Init.Period = period;
     TIMEFRAME_HTIM.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+    TIMEFRAME_HTIM.Init.RepetitionCounter = 0;
+    TIMEFRAME_HTIM.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
     if (HAL_TIM_Base_Init(&TIMEFRAME_HTIM) != HAL_OK)
         return -1;
 
@@ -152,6 +154,8 @@ static int ConfigureGateExt1(TIM_TypeDef* tim, uint32_t num_periods, uint32_t in
     htim.Init.CounterMode = TIM_COUNTERMODE_UP;
     htim.Init.Period = CCR_value + num_periods - 1;
     htim.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+    htim.Init.RepetitionCounter = 0;
+    htim.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
     if (HAL_TIM_Base_Init(&htim) != HAL_OK)
         return -1;
 
@@ -219,6 +223,7 @@ static int ConfigureInternalCounting(TIM_TypeDef* tim) {
     htim.Init.Period = (uint32_t)(-1);
     htim.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
     htim.Init.RepetitionCounter = 0;
+    htim.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
     if (HAL_TIM_Base_Init(&htim) != HAL_OK)
         return -1;
 
@@ -241,6 +246,7 @@ static int ConfigureSlave(TIM_TypeDef* tim, uint32_t clock_source, uint32_t slav
     htim.Init.Period = (uint32_t)(-1);
     htim.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
     htim.Init.RepetitionCounter = 0;
+    htim.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
     if (HAL_TIM_Base_Init(&htim) != HAL_OK)
         return -1;
 
