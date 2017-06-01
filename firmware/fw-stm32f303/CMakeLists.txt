@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.2)
-project(fw_stm32f303 C ASM)
 
 set(TARGET_CPU "" CACHE STRING "Target CPU")
+project(fw-${TARGET_CPU} C ASM)
 
 if (TARGET_CPU STREQUAL "STM32F303RE")
 	add_definitions(-DSTM32F303RE)
@@ -10,7 +10,6 @@ else()
 	message(FATAL_ERROR "Invalid or undefined TARGET_CPU")
 endif()
 
-# sometime in the next lifetime we'll fix this
 add_subdirectory(../virtual-instrument ${CMAKE_BINARY_DIR}/build-virtual-instrument)
 
 file(GLOB_RECURSE USER_SOURCES
