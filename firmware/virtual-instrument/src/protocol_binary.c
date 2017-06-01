@@ -249,6 +249,9 @@ void protocolBinaryHandle(const uint8_t* data, size_t length) {
             break;
         }
 
+        case CMD_PROTOCOL_SET_BINARY:
+            break;
+
         default: {
             reply_packet->tag = INFO_RESULT_CODE;
             reply_packet->length = 1;

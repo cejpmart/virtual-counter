@@ -15,4 +15,6 @@ void protocolInit(uint16_t board_id, uint16_t instrument_version, uint32_t f_cpu
 void protocolDataIn(const uint8_t* data, size_t length);
 void protocolProcess(void);
 
+void protocolSetModeBinary(void);
+
 #endif /* VIRTUALINSTRUMENT_PROTOCOL_H_ */

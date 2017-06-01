@@ -17,13 +17,6 @@ void SerialSession::open(const char* filename) {
         auto error = (QString) filename + ": " + serialPort->errorString();
         throw std::runtime_error(qPrintable(error));
     }
-
-    // Set mode to binary
-    if (!this->write<uint8_t>(0xf0)) {
-        throw std::runtime_error("Communication initialization failed");
-    }
-
-    serialPort->flush();
 }
 
 bool SerialSession::awaitPacket(uint8_t* tag_out, uint8_t const** data_out, size_t* length_out) {

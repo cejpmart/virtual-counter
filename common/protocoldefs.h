@@ -13,6 +13,8 @@ enum {
     CMD_SET_PWM =               0x80,
     CMD_RESET_INSTRUMENT =      0xA0,
     CMD_QUERY_INSTRUMENT =      0xA1,
+
+    CMD_PROTOCOL_SET_BINARY =   0xF0,
 };
 
 enum {

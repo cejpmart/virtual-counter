@@ -302,6 +302,13 @@ void MeasurementController::openInterface(QString path)
 
     this->session = std::move(session);
 
+    // Enter binary protocol
+    if (!this->session->sendPacket(CMD_PROTOCOL_SET_BINARY, nullptr, 0)) {
+        emit errorSignal("Communication initialization failed");
+        this->session.reset();
+        return;
+    }
+
     InstrumentInfo info;
     info.port = path;
 

@@ -20,6 +20,8 @@ static uint64_t s_burstTotal;
 
 static char outbuf[100];
 
+static size_t s_skipBytes = 0;
+
 // FIXME: Ouch
 extern uint32_t SystemCoreClock;
 
@@ -137,6 +139,19 @@ void protocolAsciiInit(void) {
 
 void protocolAsciiHandle(const uint8_t* data, size_t length) {
 	for (; length; data++, length--) {
+	    if (*data == 0xf0) {
+	        s_skipBytes = 1;
+	        continue;
+	    }
+
+	    if (s_skipBytes > 0) {
+	        if (--s_skipBytes == 0) {
+	            // FIXME: if length > 1, some data will be lost!
+	            protocolSetModeBinary();
+	            return;
+	        }
+        }
+
 		if (s_running) {
 			s_running = 0;
 			continue;

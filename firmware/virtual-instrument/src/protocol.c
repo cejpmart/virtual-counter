@@ -61,23 +61,6 @@ void protocolDataIn(const uint8_t* data, size_t length) {
 void protocolProcess(void) {
     size_t writePos = pendingDataWritePos;
 
-	if (pendingDataReadPos != writePos) {
-		if (pendingData[pendingDataReadPos] == 0xf0) {
-			controlMode = CONTROL_BINARY;
-			pendingDataReadPos = (pendingDataReadPos + 1) & (sizeof(pendingData) - 1);
-		}
-		if (pendingData[pendingDataReadPos] == 0xf1) {
-			controlMode = CONTROL_ASCII;
-			pendingDataReadPos = (pendingDataReadPos + 1) & (sizeof(pendingData) - 1);
-		}
-#ifdef ENABLE_SCPI
-		if (pendingData[pendingDataReadPos] == 0xf2) {
-			controlMode = CONTROL_SCPI;
-			pendingDataReadPos = (pendingDataReadPos + 1) & (sizeof(pendingData) - 1);
-		}
-#endif
-	}
-
 	size_t end = (writePos >= pendingDataReadPos) ? writePos : sizeof(pendingData);
 
 	size_t dataAvailable = (end - pendingDataReadPos) & (sizeof(pendingData) - 1);
@@ -132,4 +115,8 @@ void protocolProcess(void) {
 	*/
 
 	pendingDataReadPos = nextReadPos;
+}
+
+void protocolSetModeBinary(void) {
+    controlMode = CONTROL_BINARY;
 }
