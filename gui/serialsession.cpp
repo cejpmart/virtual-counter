@@ -3,7 +3,7 @@
 constexpr int timeout = 1000;
 constexpr int baudrate = 57600;
 
-constexpr bool enableLogging = true;
+constexpr bool enableLogging = false;
 
 void SerialSession::open(const char* filename) {
     numRxBytes = 0;
