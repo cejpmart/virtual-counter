@@ -374,10 +374,7 @@ int HWPollPulseCountMeasurement(uint32_t *value_out) {
 }
 
 int HWStartPwmMeasurement(size_t num_samples) {
-    TIM_ClockConfigTypeDef sClockSourceConfig;
-    TIM_IC_InitTypeDef sConfigIC;
-
-    __HAL_TIM_DISABLE(&INPUT_CAPTURE_HTIM);
+    ResetTimer(INPUT_CAPTURE_TIMER);
     DmaStop();
 
     dma_num_samples = num_samples;
@@ -397,9 +394,7 @@ int HWStartPwmMeasurement(size_t num_samples) {
     if ((SAMPLES_OVERHEAD + dma_num_samples) * 8 > sizeof(dmabuf))
         return -1;
 
-    // clock
-    sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-    HAL_TIM_ConfigClockSource(&INPUT_CAPTURE_HTIM, &sClockSourceConfig);
+    ConfigureInternalCounting(INPUT_CAPTURE_TIMER);
 
 #ifdef AUTO_RESET_IC_CNT
     // slave mode reset - this way, missed pulses don't matter, but HW prescaling can't be used
@@ -417,6 +412,7 @@ int HWStartPwmMeasurement(size_t num_samples) {
 #endif
 
     // input capture
+    TIM_IC_InitTypeDef sConfigIC;
     sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_FALLING;
     sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
     sConfigIC.ICPrescaler = GetHWPrescaler(hw_prescaler);
@@ -466,10 +462,10 @@ int HWPollPwmMeasurement(uint64_t* period_out, uint64_t* pulse_width_out) {
         sum_pulse_width += pulse_width;
     }
 
-    *period_out = (sum_period << 16) / measurement_num_samples;
+    *period_out = (sum_period << 32) / measurement_num_samples;
 
     if (dma_num_samples == measurement_num_samples) {
-        *pulse_width_out = (sum_pulse_width << 16) / measurement_num_samples;
+        *pulse_width_out = (sum_pulse_width << 32) / measurement_num_samples;
     }
     else {
         uint64_t actual_period = sum_period / measurement_prescaler;
@@ -477,7 +473,7 @@ int HWPollPwmMeasurement(uint64_t* period_out, uint64_t* pulse_width_out) {
         while (sum_pulse_width > actual_period)
             sum_pulse_width -= actual_period;
 
-        *pulse_width_out = ((sum_pulse_width * measurement_prescaler) << 16) / measurement_num_samples;
+        *pulse_width_out = ((sum_pulse_width * measurement_prescaler) << 32) / measurement_num_samples;
     }
 
     return 1;
