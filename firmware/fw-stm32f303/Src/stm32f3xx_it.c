@@ -36,7 +36,7 @@
 #include "stm32f3xx_it.h"
 
 /* USER CODE BEGIN 0 */
-
+#include "virtualinstrument/protocol.h"
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/

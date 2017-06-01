@@ -1,10 +1,12 @@
 #include "virtualinstrument/hw.h"
 
 #ifdef STM32F042x6
+#include "hw_stm32f042.h"
 #include "stm32f0xx_hal.h"
 #endif
 
 #ifdef STM32F303xE
+#include "hw_stm32f303.h"
 #include "stm32f3xx_hal.h"
 #endif
 

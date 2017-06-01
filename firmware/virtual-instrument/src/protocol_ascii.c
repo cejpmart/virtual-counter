@@ -1,11 +1,16 @@
 #include "virtualinstrument/hw.h"
 #include "virtualinstrument/protocol.h"
+#include "virtualinstrument/protocol_ascii.h"
 #include "virtualinstrument/instrument.h"
 
 #include "../../../common/protocoldefs.h"
 
 #include <stdio.h>
 #include <string.h>
+
+#define COPYRIGHT_NOTICE "Copyright (c) 2017 Martin Cejp, Laboratory of Videometry, Department of Measurement, FEE CTU"
+
+static const protocol_ascii_options_t* s_options;
 
 static int s_mode = MEASUREMENT_PULSE_COUNT;
 static int s_running = 0;
@@ -132,13 +137,20 @@ static void doOneMeasurement() {
 	putstr(outbuf);
 }
 
-void protocolAsciiInit(void) {
-    //putstr("Virtual Counter\r\n");
-    //putstr("press H for Help\r\n\n");
+void protocolAsciiInit(const protocol_ascii_options_t* options) {
+	s_options = options;
+
+    sprintf(outbuf, "Virtual Instrument v%d\r\n", INSTRUMENT_VERSION);
+    putstr(outbuf);
+
+    putstr(COPYRIGHT_NOTICE "\r\n");
+    putstr("Press H for Help.\r\n\r\n");
 }
 
 void protocolAsciiHandle(const uint8_t* data, size_t length) {
-	for (; length; data++, length--) {
+    size_t length_rem = length;
+
+	for (; length_rem; data++, length_rem--) {
 	    if (*data == 0xf0) {
 	        s_skipBytes = 1;
 	        continue;
@@ -146,7 +158,7 @@ void protocolAsciiHandle(const uint8_t* data, size_t length) {
 
 	    if (s_skipBytes > 0) {
 	        if (--s_skipBytes == 0) {
-	            // FIXME: if length > 1, some data will be lost!
+	            // FIXME: if length_rem > 1, some data will be lost!
 	            protocolSetModeBinary();
 	            return;
 	        }
@@ -176,25 +188,29 @@ void protocolAsciiHandle(const uint8_t* data, size_t length) {
 		case 'q':
 		    s_mode = MEASUREMENT_PULSE_COUNT;
 		    printCurrentConfig();
-		    putstr("Input pin: " PORT_PULSE_COUNT "\r\n");
+		    sprintf(outbuf, "Input pin: %s\r\n", s_options->port_in_pulse_count);
+			putstr(outbuf);
 		    break;
 
 		case 'w':
 		    s_mode = MEASUREMENT_PERIOD;
 		    printCurrentConfig();
-		    putstr("Input pins: " PORT_PERIOD_1 " " PORT_PERIOD_2 "\r\n");
+			sprintf(outbuf, "Input pins: %s, %s\r\n", s_options->port_in_pwm_1, s_options->port_in_pwm_2);
+			putstr(outbuf);
 		    break;
 
 		case 'e':
 		    s_mode = MEASUREMENT_INTERVAL;
 		    printCurrentConfig();
-		    putstr("Input pins: " PORT_INTERVAL_A " " PORT_INTERVAL_B "\r\n");
+			sprintf(outbuf, "Input pins: %s, %s\r\n", s_options->port_in_interval_a, s_options->port_in_interval_b);
+			putstr(outbuf);
 		    break;
 
 		case 'r':
             s_mode = MEASUREMENT_FREQ_RATIO;
             printCurrentConfig();
-            putstr("Input pins: " PORT_FREQ_RATIO_A " " PORT_FREQ_RATIO_B "\r\n");
+			sprintf(outbuf, "Input pins: %s, %s\r\n", s_options->port_in_freq_ratio_a, s_options->port_in_freq_ratio_b);
+			putstr(outbuf);
             break;
 
 		case 'a': s_gate_time = 100; s_num_periods = 1; printCurrentConfig(); break;
@@ -211,7 +227,8 @@ void protocolAsciiHandle(const uint8_t* data, size_t length) {
 		case 'm':
 		    instrumentSetPwm(0, SystemCoreClock / 1000000 - 1, 1000 - 1, 500, 0);
 		    instrumentSetPwm(1, SystemCoreClock / 1000000 - 1, 1000 - 1, 500, 250);
-		    putstr("Output pins: " PORT_PWM_A " " PORT_PWM_B "\r\n");
+			sprintf(outbuf, "Output pins: %s, %s\r\n", s_options->port_out_pwm_a, s_options->port_out_pwm_b);
+			putstr(outbuf);
 		    break;
 
 		case 'z':
@@ -225,7 +242,7 @@ void protocolAsciiHandle(const uint8_t* data, size_t length) {
 		case 'c':
 		    s_burstTotal = 0;
 
-			for (int i = 0; i < s_burstCount; i++) {
+			for (unsigned int i = 0; i < s_burstCount; i++) {
 				doOneMeasurement();
 			}
 
@@ -235,8 +252,6 @@ void protocolAsciiHandle(const uint8_t* data, size_t length) {
 			}
 			break;
 		}
-
-		putstr("Ready >");
 	}
 
 	if (s_running) {
@@ -244,6 +259,6 @@ void protocolAsciiHandle(const uint8_t* data, size_t length) {
 
 		utilDelayMs(s_continuousInterval);
 	}
+    else if (length > 0)
+        putstr("Ready >");
 }
-
-

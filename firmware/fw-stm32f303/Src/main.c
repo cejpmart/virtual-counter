@@ -43,6 +43,7 @@
 #include "virtualinstrument/hw.h"
 #include "virtualinstrument/instrument.h"
 #include "virtualinstrument/protocol.h"
+#include "virtualinstrument/protocol_ascii.h"
 
 #include "hw_stm32f303.h"
 #include "../../../common/protocoldefs.h"
@@ -89,6 +90,29 @@ int DataOut(const uint8_t* data, size_t length) {
 
   return HAL_UART_Transmit(&huart2, (uint8_t*) data, length, kTimeout);
 }
+
+#define PORT_PULSE_COUNT            "A0"
+#define PORT_PERIOD_1               "A0"
+#define PORT_PERIOD_2               "A1"
+#define PORT_INTERVAL_A             "A0"
+#define PORT_INTERVAL_B             "A1"
+#define PORT_FREQ_RATIO_A           "A0"
+#define PORT_FREQ_RATIO_B           "D5"
+#define PORT_PWM_A                  "D12"
+#define PORT_PWM_B                  "D11"
+
+static const protocol_ascii_options_t ascii_options = {
+        .port_in_pulse_count = PORT_PULSE_COUNT,
+        .port_in_period = PORT_PERIOD_1,
+        .port_in_pwm_1 = PORT_PERIOD_1,
+        .port_in_pwm_2 = PORT_PERIOD_2,
+        .port_in_interval_a = PORT_INTERVAL_A,
+        .port_in_interval_b = PORT_INTERVAL_B,
+        .port_in_freq_ratio_a = PORT_FREQ_RATIO_A,
+        .port_in_freq_ratio_b = PORT_FREQ_RATIO_B,
+        .port_out_pwm_a = PORT_PWM_A,
+        .port_out_pwm_b = PORT_PWM_B,
+};
 /* USER CODE END 0 */
 
 int main(void)
@@ -130,6 +154,7 @@ int main(void)
 
   instrumentInit();
   protocolInit(BOARD_F303_NUCLEO64, INSTRUMENT_VERSION, SystemCoreClock, TIMEBASE_SOURCE_EXTERNAL);
+  protocolAsciiInit(&ascii_options);
 
   __HAL_UART_ENABLE_IT(&huart2, UART_IT_RXNE);
   /* USER CODE END 2 */

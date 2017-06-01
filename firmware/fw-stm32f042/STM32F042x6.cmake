@@ -2,7 +2,7 @@ include (CMakeForceCompiler)
 SET(CMAKE_SYSTEM_NAME Generic)
 SET(CMAKE_SYSTEM_VERSION 1)
 
-set(ARM_NONE_EABI_GCC_BIN "" CACHE PATH "Path to GCC bin")
+set(ARM_NONE_EABI_GCC_BIN "" CACHE STRING "Path to GCC bin")
 
 #if (ARM_NONE_EABI_GCC_BIN STREQUAL "")
 #    message(FATAL_ERROR "ARM_NONE_EABI_GCC_BIN must be set!")

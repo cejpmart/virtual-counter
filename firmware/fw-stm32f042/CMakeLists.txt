@@ -14,18 +14,15 @@ else()
 endif()
 
 # sometime in the next lifetime we'll fix this
-#add_subdirectory(../virtual-instrument ${CMAKE_BINARY_DIR}/build-virtual-instrument)
+add_subdirectory(../virtual-instrument ${CMAKE_BINARY_DIR}/build-virtual-instrument)
 
-file(GLOB_RECURSE USER_SOURCES "Src/*.c"
+file(GLOB_RECURSE USER_SOURCES
+		"Src/*.c"
 		"../stm32-shared/*.c"
-		"../virtual-instrument/src/*.c"
 		)
+
 file(GLOB_RECURSE HAL_SOURCES "Drivers/STM32F0xx_HAL_Driver/Src/*.c"
         "Middlewares/ST/STM32_USB_Device_Library/*.c")
-
-add_library(CMSIS
-        Drivers/CMSIS/Device/ST/STM32F0xx/Source/Templates/system_stm32f0xx.c
-        Drivers/CMSIS/Device/ST/STM32F0xx/Source/Templates/gcc/startup_stm32f042x6.s)
 
 include_directories(Inc)
 include_directories(Drivers/STM32F0xx_HAL_Driver/Inc)
@@ -34,16 +31,19 @@ include_directories(Drivers/CMSIS/Device/ST/STM32F0xx/Include)
 include_directories(Middlewares/ST/STM32_USB_Device_Library/Core/Inc)
 include_directories(Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc)
 
-add_executable(${PROJECT_NAME}.elf ${USER_SOURCES} ${HAL_SOURCES} ${LINKER_SCRIPT})
+add_executable(${PROJECT_NAME}.elf
+		${USER_SOURCES}
+		${HAL_SOURCES}
+		${LINKER_SCRIPT}
+		startup/startup_stm32f042x6.s
+		)
 
 target_include_directories(${PROJECT_NAME}.elf PRIVATE
 		../stm32-shared
-		../virtual-instrument/include
 		)
 
 target_link_libraries(${PROJECT_NAME}.elf
-		CMSIS
-		#virtual-instrument
+		virtual-instrument
 		)
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Map=${CMAKE_BINARY_DIR}/${PROJECT_NAME}.map")

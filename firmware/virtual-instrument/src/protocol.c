@@ -1,15 +1,11 @@
 #include "virtualinstrument/protocol.h"
+#include "virtualinstrument/protocol_ascii.h"
 
-#include "protocol_ascii.h"
 #include "protocol_binary.h"
 
 #ifdef ENABLE_SCPI
 #include "protocol_scpi.h"
 #endif
-
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
 
 //static const char* s_device_name;
 //static uint32_t s_cpu_units_per_second;
@@ -24,7 +20,6 @@ static volatile size_t pendingDataReadPos = 0;
 static volatile size_t pendingDataWritePos = 0;
 
 void protocolInit(uint16_t board_id, uint16_t instrument_version, uint32_t f_cpu, uint8_t timebase_source) {
-	protocolAsciiInit();
 	protocolBinaryInit(board_id, instrument_version, f_cpu, timebase_source);
 
 #ifdef ENABLE_SCPI

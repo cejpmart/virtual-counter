@@ -54,6 +54,7 @@
 #include "virtualinstrument/hw.h"
 #include "virtualinstrument/instrument.h"
 #include "virtualinstrument/protocol.h"
+#include "virtualinstrument/protocol_ascii.h"
 
 #include "hw_stm32f042.h"
 #include "usbd_cdc_if.h"
@@ -167,6 +168,43 @@ int DataOut(const uint8_t* data, size_t length) {
         return rc;
     }
 }
+
+#ifdef STM32F042F6
+#define PORT_PULSE_COUNT            "6"
+#define PORT_PERIOD_1               "6"
+#define PORT_PERIOD_2               "7"
+#define PORT_INTERVAL_A             "6"
+#define PORT_INTERVAL_B             "7"
+#define PORT_FREQ_RATIO_A           "6"
+#define PORT_FREQ_RATIO_B           "12"
+#define PORT_PWM_A                  "10"
+#define PORT_PWM_B                  "13"
+#endif
+
+#ifdef STM32F042K6
+#define PORT_PULSE_COUNT            "A0"
+#define PORT_PERIOD_1               "A0"
+#define PORT_PERIOD_2               "A1"
+#define PORT_INTERVAL_A             "A0"
+#define PORT_INTERVAL_B             "A1"
+#define PORT_FREQ_RATIO_A           "A0"
+#define PORT_FREQ_RATIO_B           "A5"
+#define PORT_PWM_A                  "A3"
+#define PORT_PWM_B                  "A6"
+#endif
+
+static const protocol_ascii_options_t ascii_options = {
+        .port_in_pulse_count = PORT_PULSE_COUNT,
+        .port_in_period = PORT_PERIOD_1,
+        .port_in_pwm_1 = PORT_PERIOD_1,
+        .port_in_pwm_2 = PORT_PERIOD_2,
+        .port_in_interval_a = PORT_INTERVAL_A,
+        .port_in_interval_b = PORT_INTERVAL_B,
+        .port_in_freq_ratio_a = PORT_FREQ_RATIO_A,
+        .port_in_freq_ratio_b = PORT_FREQ_RATIO_B,
+        .port_out_pwm_a = PORT_PWM_A,
+        .port_out_pwm_b = PORT_PWM_B,
+};
 /* USER CODE END 0 */
 
 int main(void)
@@ -213,6 +251,8 @@ int main(void)
 #else
   protocolInit(BOARD_F042K6_NUCLEO32, INSTRUMENT_VERSION, SystemCoreClock, timebaseSource);
 #endif
+
+  protocolAsciiInit(&ascii_options);
 
   //__HAL_UART_ENABLE_IT(&huart2, UART_IT_RXNE);
 

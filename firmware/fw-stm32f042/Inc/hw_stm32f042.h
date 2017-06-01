@@ -3,30 +3,6 @@
 
 #include <stm32f042x6.h>
 
-#ifdef STM32F042F6
-#define PORT_PULSE_COUNT            "6"
-#define PORT_PERIOD_1               "6"
-#define PORT_PERIOD_2               "7"
-#define PORT_INTERVAL_A             "6"
-#define PORT_INTERVAL_B             "7"
-#define PORT_FREQ_RATIO_A           "6"
-#define PORT_FREQ_RATIO_B           "12"
-#define PORT_PWM_A                  "10"
-#define PORT_PWM_B                  "13"
-#endif
-
-#ifdef STM32F042K6
-#define PORT_PULSE_COUNT            "A0"
-#define PORT_PERIOD_1               "A0"
-#define PORT_PERIOD_2               "A1"
-#define PORT_INTERVAL_A             "A0"
-#define PORT_INTERVAL_B             "A1"
-#define PORT_FREQ_RATIO_A           "A0"
-#define PORT_FREQ_RATIO_B           "A5"
-#define PORT_PWM_A                  "A3"
-#define PORT_PWM_B                  "A6"
-#endif
-
 #define PWM1_TIM        TIM14
 #define PWM1_HTIM       htim14
 #define PWM1_CCR        (TIM14->CCR1)
