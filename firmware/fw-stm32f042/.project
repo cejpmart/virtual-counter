@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
 	<name>fw-stm32f042</name>
-	<comment></comment>
+	<comment />
 	<projects>
 	</projects>
 	<buildSpec>
@@ -38,47 +38,47 @@
 		<link>
 			<name>src/instrument.c</name>
 			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/virtual-instrument/src/instrument.c</locationURI>
+			<location>PARENT-1-PROJECT_LOC/virtual-instrument/src/instrument.c</location>
 		</link>
 		<link>
 			<name>src/protocol.c</name>
 			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/virtual-instrument/src/protocol.c</locationURI>
+			<location>PARENT-1-PROJECT_LOC/virtual-instrument/src/protocol.c</location>
 		</link>
 		<link>
 			<name>src/protocol_ascii.c</name>
 			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/virtual-instrument/src/protocol_ascii.c</locationURI>
+			<location>PARENT-1-PROJECT_LOC/virtual-instrument/src/protocol_ascii.c</location>
 		</link>
 		<link>
 			<name>src/protocol_ascii.h</name>
 			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/virtual-instrument/src/protocol_ascii.h</locationURI>
+			<location>PARENT-1-PROJECT_LOC/virtual-instrument/src/protocol_ascii.h</location>
 		</link>
 		<link>
 			<name>src/protocol_binary.c</name>
 			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/virtual-instrument/src/protocol_binary.c</locationURI>
+			<location>PARENT-1-PROJECT_LOC/virtual-instrument/src/protocol_binary.c</location>
 		</link>
 		<link>
 			<name>src/protocol_binary.h</name>
 			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/virtual-instrument/src/protocol_binary.h</locationURI>
+			<location>PARENT-1-PROJECT_LOC/virtual-instrument/src/protocol_binary.h</location>
 		</link>
 		<link>
 			<name>src/protocol_scpi.c</name>
 			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/virtual-instrument/src/protocol_scpi.c</locationURI>
+			<location>PARENT-1-PROJECT_LOC/virtual-instrument/src/protocol_scpi.c</location>
 		</link>
 		<link>
 			<name>src/protocol_scpi.h</name>
 			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/virtual-instrument/src/protocol_scpi.h</locationURI>
+			<location>PARENT-1-PROJECT_LOC/virtual-instrument/src/protocol_scpi.h</location>
 		</link>
 		<link>
 			<name>stm32-shared/hw_stmcommon.c</name>
 			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/stm32-shared/hw_stmcommon.c</locationURI>
+			<location>PARENT-1-PROJECT_LOC/stm32-shared/hw_stmcommon.c</location>
 		</link>
 	</linkedResources>
 	<variableList>
