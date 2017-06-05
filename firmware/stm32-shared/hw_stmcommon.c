@@ -519,8 +519,14 @@ int HWPollIntervalMeasurement(uint32_t* period_out, uint32_t* pulse_width_out) {
 
     enum { start = 2 };
 
-    *period_out = dmabuf[start + 2] - dmabuf[start];
-    *pulse_width_out = dmabuf[start + 3] - dmabuf[start];
+    if (dmabuf[start + 3] > dmabuf[start]) {
+        *period_out = dmabuf[start + 2] - dmabuf[start];
+        *pulse_width_out = dmabuf[start + 3] - dmabuf[start];
+    }
+    else {
+        *period_out = dmabuf[start + 2] - dmabuf[start];
+        *pulse_width_out = dmabuf[start + 3] - dmabuf[start - 2];
+    }
     return 1;
 }
 
