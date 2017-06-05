@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1265</width>
-    <height>840</height>
+    <height>844</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -330,7 +330,7 @@
                </font>
               </property>
               <property name="text">
-               <string>0 - 24 000 000 Hz</string>
+               <string>? Hz</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>

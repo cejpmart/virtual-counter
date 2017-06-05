@@ -9,11 +9,12 @@
 
 #include <cstdio>
 
+#define USE_FORMAT_VALUE_AND_ERROR
+
 constexpr QChar UNICODE_INFINITY = 0x221E;
 
-constexpr auto MEASUREMENT_PULSE_COUNT_FREQ_RANGE_STRING =  "0 - 24 000 000 Hz";
-constexpr auto MEASUREMENT_PERIOD_FREQ_RANGE_STRING =       "0 - 24 000 000 Hz";
-constexpr auto MEASUREMENT_PWM_FREQ_RANGE_STRING =          "0 - 2 000 000 Hz";
+// PWM measurement range max = f_cpu / MEASUREMENT_PWM_RANGE_COEFF
+constexpr int MEASUREMENT_PWM_RANGE_COEFF = 24;
 
 constexpr char OPTIONS_FILE_NAME[] = "options.ini";
 
@@ -26,6 +27,114 @@ static double round_to_digits(double value, int digits)
     double factor = pow(10.0, digits - ceil(log10(fabs(value))));
     return round(value * factor) / factor;
 }
+
+static unsigned int getNumDecimalDigits(double errorValue)
+{
+    double magnitude = log10(errorValue);
+
+    if (magnitude < 0)
+        return (unsigned int)ceil(-magnitude) + 1;
+    else
+        return 0;
+}
+
+static const char* getFormatWithDecimalDigits(double errorValue)
+{
+    unsigned int numDecimalDigits = getNumDecimalDigits(errorValue);
+
+    static char buffer[10];
+    snprintf(buffer, sizeof(buffer), "%%.%df", numDecimalDigits);
+    return buffer;
+}
+
+#ifdef USE_FORMAT_VALUE_AND_ERROR
+static void formatValueAndError(double value, double error, QString& valueText_out, QString& errorText_out)
+{
+    constexpr char DECIMAL_POINT = '.';
+    constexpr char THOUSANDS_SEPARATOR = ' ';
+
+    // use a multiple of 3-digit decimal groups for very small numbers
+    constexpr bool DECIMAL_GROUPS = true;
+
+    constexpr int SIGNIFICANT_DIGITS = 1;
+
+    constexpr double CUTOFF_VALUE = 1e-20;
+    constexpr int CUTOFF_ORDER = -20;
+
+    // start at the highest digit
+    const int value_magnitude = floor(log10(value));
+    const int error_magnitude = floor(log10(error));
+
+    int order = std::max(std::max(value_magnitude, error_magnitude), 0);
+
+    //printf("start order: %d, e-m %d\n", order, error_magnitude);
+
+    //int order = floor(err_magnitude) - (SIGNIFICANT_DIGITS - 1);
+/*printf("order = %g - 1 = %d\n", floor(err_magnitude), order);
+    if (order < -3 && DECIMAL_GROUPS)
+        // TODO optimize in int
+        order = floor(order / 3.0f) * 3;*/
+
+    static char value_buffer[100];
+    static char error_buffer[sizeof(value_buffer)];
+
+    size_t value_buffer_pos = 0;
+    size_t error_buffer_pos = 0;
+
+    bool printing_value = false;
+    bool printing_error = false;
+
+    for (;;) {
+        const double weight = pow(10.0, order);
+
+        const int value_digit = std::min((int)floor(value / weight), 9);
+        value -= value_digit * weight;
+
+        const int error_digit = std::min((int)floor(error / weight), 9);
+        error -= error_digit * weight;
+
+        //printf("order %d, weight %g, digit %d, rem %g\n", order, weight, value_digit, value);
+
+        if (order <= 0 || value_digit)
+            printing_value = true;
+
+        if (order <= 0 || error_digit)
+            printing_error = true;
+
+        if (printing_value)
+            value_buffer[value_buffer_pos++] = '0' + value_digit;
+
+        if (printing_error)
+            error_buffer[error_buffer_pos++] = '0' + error_digit;
+
+        if (!DECIMAL_GROUPS || order % 3 == 0) {
+            //printf("%d <= %d ||  %d <= %d\n", order, CUTOFF_ORDER, order, error_magnitude - SIGNIFICANT_DIGITS + 1);
+            if (order <= CUTOFF_ORDER || order <= error_magnitude - SIGNIFICANT_DIGITS + 1)
+                break;
+        }
+
+        if (order == 0) {
+            value_buffer[value_buffer_pos++] = DECIMAL_POINT;
+            error_buffer[error_buffer_pos++] = DECIMAL_POINT;
+        }
+        else if (THOUSANDS_SEPARATOR && order % 3 == 0) {
+            if (printing_value)
+                value_buffer[value_buffer_pos++] = THOUSANDS_SEPARATOR;
+
+            if (printing_error)
+                error_buffer[error_buffer_pos++] = THOUSANDS_SEPARATOR;
+        }
+
+        --order;
+    }
+
+    value_buffer[value_buffer_pos++] = 0;
+    error_buffer[error_buffer_pos++] = 0;
+
+    valueText_out = value_buffer;
+    errorText_out = error_buffer;
+}
+#endif
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -217,6 +326,8 @@ void MainWindow::loadOptions(QString fileName)
 
 void MainWindow::onInstrumentConnected(InstrumentInfo info)
 {
+    this->f_cpu = info.f_cpu;
+
     loadIpm(info.board);
     pwmOutputPlotView.resetInstrument();
 
@@ -235,6 +346,9 @@ void MainWindow::onInstrumentConnected(InstrumentInfo info)
     statusString("Ready.");
     ui->measureButton->setEnabled(true);
     ui->continuousMeasurementToggle->setEnabled(true);
+
+    // refresh ranges etc.
+    onMeasurementMethodChanged();
 }
 
 void MainWindow::onInstrumentStatusSet(QString text)
@@ -266,6 +380,7 @@ void MainWindow::onMeasurementFinishedFreqRatio(double freqRatio, double freqRat
 void MainWindow::onMeasurementFinishedPhase(double channelAFrequency, double channelAPeriod, double interval, double phase)
 {
     double timestamp = QDateTime::currentMSecsSinceEpoch() * 1e-3;
+    measurementPlotView->addDataPoints(Series::frequency,   &timestamp, &channelAFrequency, nullptr,    1);
     measurementPlotView->addDataPoints(Series::interval,    &timestamp, &interval,  nullptr,    1);
     measurementPlotView->addDataPoints(Series::phase,       &timestamp, &phase,     nullptr,    1);
 
@@ -290,6 +405,7 @@ void MainWindow::onMeasurementMethodChanged()
 {
     ui->measurementGateTimeSelect->setEnabled(ui->measurementMethodCounting->isChecked());
     ui->measurementNumPeriodsSelect->setEnabled(ui->measurementMethodPeriod->isChecked() || ui->measurementMethodFreqRatio->isChecked());
+    ui->measurementPulseWidthEnable->setEnabled(ui->measurementMethodPeriod->isChecked());
 
     // Racks
     if (ui->measurementMethodCounting->isChecked() || ui->measurementMethodPeriod->isChecked()) {
@@ -433,6 +549,12 @@ void MainWindow::setMeasuredValuesFrequencyPeriodDuty(double frequency, double f
     QString frequencyText;
     QString frequencyErrorText;
 
+#ifdef USE_FORMAT_VALUE_AND_ERROR
+    formatValueAndError(frequency, frequencyError, frequencyText, frequencyErrorText);
+
+    unfade(ui->measuredFreqValue, frequencyText);
+    unfade(ui->measuredFreqErrorValue, "+/- " + frequencyErrorText);
+#else
     if (frequencyError < 1.0) {
         // 24000000.000
         frequencyText.sprintf("%12.3f", frequency);
@@ -445,10 +567,25 @@ void MainWindow::setMeasuredValuesFrequencyPeriodDuty(double frequency, double f
 
     unfade(ui->measuredFreqValue, frequencyText);
     unfade(ui->measuredFreqErrorValue, frequencyErrorText);
+#endif
 
     QString periodText;
     QString periodErrorText;
 
+#ifdef USE_FORMAT_VALUE_AND_ERROR
+    if (period == INFINITY) {
+        periodText = UNICODE_INFINITY;
+
+        unfade(ui->measuredPeriodValue, periodText);
+        unfade(ui->measuredPeriodErrorValue, "");
+    }
+    else {
+        formatValueAndError(period, periodError, periodText, periodErrorText);
+
+        unfade(ui->measuredPeriodValue, periodText);
+        unfade(ui->measuredPeriodErrorValue, "+/- " + periodErrorText);
+    }
+#else
     if (period == INFINITY) {
         periodText = UNICODE_INFINITY;
     }
@@ -461,13 +598,15 @@ void MainWindow::setMeasuredValuesFrequencyPeriodDuty(double frequency, double f
 
     unfade(ui->measuredPeriodValue, periodText);
     unfade(ui->measuredPeriodErrorValue, periodErrorText);
+#endif
 
     unfade(ui->measuredDutyValue, duty > 0.001 ? QString::number(duty) : QString("N/A"));
 }
 
 void MainWindow::setMeasuredValuesFreqRatio(double freqRatio, double freqRatioError)
 {
-    unfade(ui->measuredFreqRatioValue, QString::asprintf("%.2f", freqRatio));
+    auto format = getFormatWithDecimalDigits(freqRatioError);
+    unfade(ui->measuredFreqRatioValue, QString::asprintf(format, freqRatio));
     unfade(ui->measuredFreqRatioError, QString::asprintf("+/- %.2f", freqRatioError));
 }
 
@@ -531,18 +670,21 @@ void MainWindow::statusString(QString text)
 
 void MainWindow::updateMeasurementFrequencyInfo()
 {
+    if (f_cpu <= 0)
+        return;
+
     if (ui->measurementMethodCounting->isChecked()) {
         ui->measurementResolutionInfo->setText(QString::number(1.0 / getCountingGateTimeSeconds()) + " Hz");
-        ui->measurementRangeInfo->setText(MEASUREMENT_PULSE_COUNT_FREQ_RANGE_STRING);
+        ui->measurementRangeInfo->setText(QString::asprintf("0 - %d Hz", f_cpu / 2));
     }
     else if (ui->measurementMethodPeriod->isChecked()) {
         // FIXME: number formatting, correctnes
-        ui->measurementResolutionInfo->setText(QString::number(1000000000.0 / 48000000.0 / getReciprocalIterations()) + " ns");
+        ui->measurementResolutionInfo->setText(QString::number(1000000000.0 / f_cpu / getReciprocalIterations()) + " ns");
 
         if (ui->measurementPulseWidthEnable->isChecked())
-            ui->measurementRangeInfo->setText(MEASUREMENT_PWM_FREQ_RANGE_STRING);
+            ui->measurementRangeInfo->setText(QString::asprintf("0 - %d Hz", f_cpu / MEASUREMENT_PWM_RANGE_COEFF));
         else
-            ui->measurementRangeInfo->setText(MEASUREMENT_PERIOD_FREQ_RANGE_STRING);
+            ui->measurementRangeInfo->setText(QString::asprintf("0 - %d Hz", f_cpu / 2));
     }
 }
 

@@ -129,6 +129,7 @@ private:
     QThread* measurementControllerThread;
 
     bool continuousMeasurement = false;
+    int f_cpu = -1;
 
     PwmOutputPlotView pwmOutputPlotView;
     std::unique_ptr<MeasurementPlotView> measurementPlotView;
