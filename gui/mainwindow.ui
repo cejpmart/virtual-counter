@@ -863,7 +863,7 @@
           <item>
            <widget class="QComboBox" name="plotWindowSelect">
             <property name="enabled">
-             <bool>false</bool>
+             <bool>true</bool>
             </property>
             <item>
              <property name="text">

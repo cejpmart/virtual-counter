@@ -95,6 +95,8 @@ private slots:
 
     void on_menuOptions_triggered();
 
+    void on_plotWindowSelect_currentIndexChanged(int index);
+
 private:
     double getCountingGateTimeSeconds();
     int getReciprocalIterations();

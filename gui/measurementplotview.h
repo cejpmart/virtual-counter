@@ -5,8 +5,8 @@
 
 #include <QtCharts/QChart>
 #include <QtCharts/QChartView>
-#include <QtCharts/QLineSeries>
 #include <QtCharts/QValueAxis>
+#include <QtCharts/QXYSeries>
 
 enum class Series {
     frequency,
@@ -27,6 +27,7 @@ public:
     void clear();
     void savePNG(QString path);
     void saveSeries(QString path);
+    void setWindowSeconds(int seconds = -1);
     void showSeries(Series series);
 
 signals:
@@ -41,9 +42,10 @@ private:
     bool haveMinTime = false;
     double minTime, maxTime;
     double minValue, maxValue;
+    int windowSeconds = -1;
 
     Series displayedSeries;
-    QtCharts::QLineSeries* currentSeriesLine;
+    QtCharts::QXYSeries* currentSeriesLine;
 };
 
 #endif // MEASUREMENTPLOTVIEW_H

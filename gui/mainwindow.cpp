@@ -109,7 +109,7 @@ static void formatValueAndError(double value, double error, QString& valueText_o
 
         if (!DECIMAL_GROUPS || order % 3 == 0) {
             //printf("%d <= %d ||  %d <= %d\n", order, CUTOFF_ORDER, order, error_magnitude - SIGNIFICANT_DIGITS + 1);
-            if (order <= CUTOFF_ORDER || order <= error_magnitude - SIGNIFICANT_DIGITS + 1)
+            if (order <= 0 && (order <= CUTOFF_ORDER || order <= error_magnitude - SIGNIFICANT_DIGITS + 1))
                 break;
         }
 
@@ -856,6 +856,15 @@ void MainWindow::on_plotParamSelect_currentIndexChanged(int index)
         // frequency ratio
         if (this->measurementPlotView)
             this->measurementPlotView->showSeries(Series::freqRatio);
+    }
+}
+
+void MainWindow::on_plotWindowSelect_currentIndexChanged(int index)
+{
+    switch (index) {
+    case 0: this->measurementPlotView->setWindowSeconds(-1); break;
+    case 1: this->measurementPlotView->setWindowSeconds(10); break;
+    case 2: this->measurementPlotView->setWindowSeconds(60); break;
     }
 }
 

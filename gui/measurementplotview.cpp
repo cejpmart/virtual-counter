@@ -3,6 +3,7 @@
 #include <cmath>
 
 #include <QTextStream>
+#include <QtCharts/QLineSeries>
 
 static void getAppropriateAxisRange(double min, double max, double& min_out, double& max_out)
 {
@@ -86,7 +87,11 @@ void MeasurementPlotView::addDataPoints(Series series, const double* timestamps,
     }
 
     maxTime = timestamps[count - 1];
-    axisX->setRange(minTime - minTime, maxTime - minTime);
+
+    if (windowSeconds > 0)
+        axisX->setRange(maxTime - minTime - windowSeconds, maxTime - minTime);
+    else
+        axisX->setRange(0, maxTime - minTime);
 
     if (displayedSeries == Series::dutyCycle) {
         axisY->setRange(0, 100);
@@ -136,6 +141,18 @@ void MeasurementPlotView::saveSeries(QString path) {
         for (const auto& point : points) {
             out << QString::asprintf("%.9f,%.9f\n", point.x(), point.y());
         }
+    }
+}
+
+void MeasurementPlotView::setWindowSeconds(int seconds) {
+    this->windowSeconds = seconds;
+
+    if (haveMinTime) {
+        // FIXME: DRY
+        if (windowSeconds > 0)
+            axisX->setRange(maxTime - minTime - windowSeconds, maxTime - minTime);
+        else
+            axisX->setRange(0, maxTime - minTime);
     }
 }
 
