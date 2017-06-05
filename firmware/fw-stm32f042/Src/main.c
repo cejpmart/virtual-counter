@@ -141,7 +141,7 @@ static int HWTryEnableHSE(void) {
 }
 
 int DataOut(const uint8_t* data, size_t length) {
-    static const uint32_t kTimeout = 1000;
+    static const uint32_t kTimeout = 2000;
 
 #if defined(ENABLE_USB_CDC)
     uint32_t startTime = HAL_GetTick();
