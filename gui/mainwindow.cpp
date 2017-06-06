@@ -48,13 +48,13 @@ static const char* getFormatWithDecimalDigits(double errorValue)
 }
 
 #ifdef USE_FORMAT_VALUE_AND_ERROR
-static void formatValueAndError(double value, double error, QString& valueText_out, QString& errorText_out)
+static void formatValueAndError(double value, double error, QString& valueText_out, QString& errorText_out, bool DECIMAL_GROUPS)
 {
     constexpr char DECIMAL_POINT = '.';
     constexpr char THOUSANDS_SEPARATOR = ' ';
 
     // use a multiple of 3-digit decimal groups for very small numbers
-    constexpr bool DECIMAL_GROUPS = true;
+    //constexpr bool DECIMAL_GROUPS = true;
 
     constexpr int SIGNIFICANT_DIGITS = 1;
 
@@ -364,6 +364,8 @@ void MainWindow::onMeasurementFinishedCounting(double frequency, double frequenc
 
     setMeasuredValuesFrequencyPeriodDuty(frequency, frequencyError, period, periodError, 0.0);
 
+    showRecommendedFrequencyMeasurementMode(frequency);
+
     afterMeasurement();
 }
 
@@ -397,6 +399,8 @@ void MainWindow::onMeasurementFinishedPeriod(double frequency, double frequencyE
     measurementPlotView->addDataPoints(Series::dutyCycle,   &timestamp,    &duty,      nullptr,            1);
 
     setMeasuredValuesFrequencyPeriodDuty(frequency, frequencyError, period, periodError, duty);
+
+    showRecommendedFrequencyMeasurementMode(frequency);
 
     afterMeasurement();
 }
@@ -462,6 +466,8 @@ void MainWindow::onMeasurementMethodChanged()
     else if (ui->measurementMethodFreqRatio->isChecked()) {
         ui->instrumentStatusLabel->setText("Ports: " + ipm.value("port.freq_ratio_a") + ", " + ipm.value("port.freq_ratio_b"));
     }
+
+    ui->recommendedMeasurementModeInfo->setText("");
 
     measurementController->pleaseAbortMeasurement();
 
@@ -550,7 +556,7 @@ void MainWindow::setMeasuredValuesFrequencyPeriodDuty(double frequency, double f
     QString frequencyErrorText;
 
 #ifdef USE_FORMAT_VALUE_AND_ERROR
-    formatValueAndError(frequency, frequencyError, frequencyText, frequencyErrorText);
+    formatValueAndError(frequency, frequencyError, frequencyText, frequencyErrorText, true);
 
     unfade(ui->measuredFreqValue, frequencyText);
     unfade(ui->measuredFreqErrorValue, "+/- " + frequencyErrorText);
@@ -580,7 +586,7 @@ void MainWindow::setMeasuredValuesFrequencyPeriodDuty(double frequency, double f
         unfade(ui->measuredPeriodErrorValue, "");
     }
     else {
-        formatValueAndError(period, periodError, periodText, periodErrorText);
+        formatValueAndError(period, periodError, periodText, periodErrorText, true);
 
         unfade(ui->measuredPeriodValue, periodText);
         unfade(ui->measuredPeriodErrorValue, "+/- " + periodErrorText);
@@ -605,9 +611,19 @@ void MainWindow::setMeasuredValuesFrequencyPeriodDuty(double frequency, double f
 
 void MainWindow::setMeasuredValuesFreqRatio(double freqRatio, double freqRatioError)
 {
+#ifdef USE_FORMAT_VALUE_AND_ERROR
+    QString freqRatioText;
+    QString freqRatioErrorText;
+
+    formatValueAndError(freqRatio, freqRatioError, freqRatioText, freqRatioErrorText, false);
+
+    unfade(ui->measuredFreqRatioValue, freqRatioText);
+    unfade(ui->measuredFreqRatioError, "+/- " + freqRatioErrorText);
+#else
     auto format = getFormatWithDecimalDigits(freqRatioError);
     unfade(ui->measuredFreqRatioValue, QString::asprintf(format, freqRatio));
     unfade(ui->measuredFreqRatioError, QString::asprintf("+/- %.2f", freqRatioError));
+#endif
 }
 
 void MainWindow::setMeasuredValuesInvalid()
@@ -661,6 +677,30 @@ void MainWindow::setMeasuredValuesUnknown()
 
     ui->measuredFreqRatioValue->setText("?");
     ui->measuredFreqRatioError->setText("?");
+}
+
+void MainWindow::showRecommendedFrequencyMeasurementMode(double frequency)
+{
+    QString text;
+
+    if (frequency < 0.01)
+        text = "";
+    else if (frequency < 10)
+        text = "Recommended measurement mode: period (x1)";
+    else if (frequency < 100)
+        text = "Recommended measurement mode: period (x10)";
+    else if (frequency < 1000)
+        text = "Recommended measurement mode: period (x100)";
+    else if (frequency < 10000)
+        text = "Recommended measurement mode: period (x1000)";
+    else if (frequency < 100000)
+        text = "Recommended measurement mode: period (x10000)";
+    else if (frequency < 1000000)
+        text = "Recommended measurement mode: period (x100000)";
+    else // over 1 MHz
+        text = "Recommended measurement mode: period (x1000000)";
+
+    ui->recommendedMeasurementModeInfo->setText(text);
 }
 
 void MainWindow::statusString(QString text)

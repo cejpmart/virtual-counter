@@ -527,6 +527,19 @@
            </layout>
           </widget>
          </item>
+         <item>
+          <widget class="QLabel" name="recommendedMeasurementModeInfo">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>TextLabel</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
         </layout>
        </widget>
       </item>

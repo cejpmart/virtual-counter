@@ -114,6 +114,7 @@ private:
     void setMeasuredValuesFrequencyPeriodIntervalPhase(double channelAFrequency, double channelAPeriod, double interval, double phase);
     void setMeasuredValuesFreqRatio(double freqRatio, double freqRatioError);
     void setMeasuredValuesUnknown();
+    void showRecommendedFrequencyMeasurementMode(double freq);
     void statusString(QString text);
     void updateMeasurementFrequencyInfo();
 
