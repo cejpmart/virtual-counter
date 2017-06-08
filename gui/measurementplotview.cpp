@@ -119,6 +119,7 @@ void MeasurementPlotView::savePNG(QString path) {
     double scale = 2;
 
     QImage img(w * scale, h * scale, QImage::Format_RGB888);
+    img.fill(QColor(255, 255, 255));
 
     QPainter painter;
     painter.begin(&img);
