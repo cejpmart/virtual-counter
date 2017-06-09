@@ -16,6 +16,8 @@ build_script:
 
     del release\*.o
 
+    cp *.txt release\
+
 artifacts:
 - path: gui/release/MeasurementTool.exe
   name: MeasurementTool.exe
