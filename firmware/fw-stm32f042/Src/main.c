@@ -101,7 +101,7 @@ void HardFault_Handler() {
 	TIM1->CNT = 0;
 }
 
-static void HWInit(void) {
+static void HWSysInit(void) {
 #ifdef STM32F042F6
   SYSCFG->CFGR1 |= SYSCFG_CFGR1_PA11_PA12_RMP;
 #endif
@@ -218,7 +218,8 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
+  HWSysInit();
+  int timebaseSource = (HWTryEnableHSE() == 0) ? TIMEBASE_SOURCE_EXTERNAL : TIMEBASE_SOURCE_INTERNAL;
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -232,8 +233,6 @@ int main(void)
   MX_USART2_UART_Init();
 
   /* USER CODE BEGIN 2 */
-  HWInit();
-  int timebaseSource = (HWTryEnableHSE() == 0) ? TIMEBASE_SOURCE_EXTERNAL : TIMEBASE_SOURCE_INTERNAL;
   HAL_TIM_PWM_Start(&PWM1_HTIM, PWM1_CHANNEL);
   HAL_TIM_PWM_Start(&PWM2_HTIM, PWM2_CHANNEL);
 
