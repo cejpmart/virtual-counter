@@ -48,7 +48,7 @@ static const char* getFormatWithDecimalDigits(double errorValue)
 }
 
 #ifdef USE_FORMAT_VALUE_AND_ERROR
-static void formatValueAndError(double value, double error, QString& valueText_out, QString& errorText_out, bool DECIMAL_GROUPS)
+static void formatValueAndError(double value, double error, QString& valueText_out, QString& errorText_out, bool wholeDecimalGroups)
 {
     constexpr char DECIMAL_POINT = '.';
     constexpr char THOUSANDS_SEPARATOR = ' ';
@@ -107,7 +107,7 @@ static void formatValueAndError(double value, double error, QString& valueText_o
         if (printing_error)
             error_buffer[error_buffer_pos++] = '0' + error_digit;
 
-        if (!DECIMAL_GROUPS || order % 3 == 0) {
+        if (!wholeDecimalGroups || order % 3 == 0) {
             //printf("%d <= %d ||  %d <= %d\n", order, CUTOFF_ORDER, order, error_magnitude - SIGNIFICANT_DIGITS + 1);
             if (order <= 0 && (order <= CUTOFF_ORDER || order <= error_magnitude - SIGNIFICANT_DIGITS + 1))
                 break;
@@ -296,8 +296,8 @@ void MainWindow::loadOptions(QString fileName)
 {
     // Pre-load default options
     options.clear();
-    options.insert("externalTBError", "50");
-    options.insert("internalTBError", "500");
+    options.insert("externalTBError", "50");        // external osc: 50ppm
+    options.insert("internalTBError", "20000");     // internal osc: 2 % (20000ppm)
 
     QFile inputFile(fileName);
     QVector<QString> tokens;
@@ -339,7 +339,14 @@ void MainWindow::onInstrumentConnected(InstrumentInfo info)
             emit shouldSetPwm(i, pwm[i].setpoint);
     }
 
-    QString timebaseInfoText = (info.timebaseSource == TimebaseSource::external) ? "external timebase" : "internal timebase";
+    QString timebaseInfoText;
+
+    switch (info.timebaseSource) {
+    case TimebaseSource::external: timebaseInfoText = "external timebase"; break;
+    case TimebaseSource::internal: timebaseInfoText = "internal timebase"; break;
+    case TimebaseSource::usb20: timebaseInfoText = "USB 2.0 timebase (500ppm)"; break;
+    }
+
     ui->instrumentDeviceLabel->setText("Connected (" + info.port + "), " + timebaseInfoText);
     ui->instrumentFirmwareLabel->setText(info.board + "," + QString::number(info.firmware));
 

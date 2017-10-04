@@ -252,7 +252,16 @@ bool MeasurementController::getInstrumentInfo(InstrumentInfo& info_out)
     info_out.board = BOARDS[iinfo.board_id >> 8];    // FIXME: overflow!!
     info_out.firmware = iinfo.fw_ver;
     info_out.f_cpu = iinfo.f_cpu;
-    info_out.timebaseSource = (iinfo.timebase_source == 0) ? TimebaseSource::internal : TimebaseSource::external;
+
+    switch (iinfo.timebase_source) {
+    case TIMEBASE_SOURCE_INTERNAL: info_out.timebaseSource = TimebaseSource::internal; break;
+    case TIMEBASE_SOURCE_EXTERNAL: info_out.timebaseSource = TimebaseSource::external; break;
+    case TIMEBASE_SOURCE_USB20: info_out.timebaseSource = TimebaseSource::usb20; break;
+
+    default:
+        info_out.timebaseSource = TimebaseSource::internal;
+        qCritical("Invalid iinfo.timebase_source: %d\n", iinfo.timebase_source);
+    }
 
     this->f_cpu = iinfo.f_cpu;
     this->timebaseSource = info_out.timebaseSource;
@@ -265,6 +274,9 @@ double MeasurementController::getTimebaseRelativeError()
     switch (timebaseSource) {
     case TimebaseSource::external: return options.externalTBError;
     case TimebaseSource::internal: return options.internalTBError;
+
+    // 500ppm for USB 2.0
+    case TimebaseSource::usb20: return 0.000500;
     }
 }
 

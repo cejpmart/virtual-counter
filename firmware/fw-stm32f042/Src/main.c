@@ -219,7 +219,23 @@ int main(void)
 
   /* USER CODE BEGIN SysInit */
   HWSysInit();
-  int timebaseSource = (HWTryEnableHSE() == 0) ? TIMEBASE_SOURCE_EXTERNAL : TIMEBASE_SOURCE_INTERNAL;
+  int haveHse = (HWTryEnableHSE() == 0);
+
+  int timebaseSource;
+
+  if (haveHse) {
+	  timebaseSource = TIMEBASE_SOURCE_EXTERNAL;
+  }
+  else {
+#if defined(ENABLE_USB_CDC)
+	  timebaseSource = TIMEBASE_SOURCE_USB20;
+#elif defined(ENABLE_VCP)
+	  timebaseSource = TIMEBASE_SOURCE_INTERNAL;
+#else
+#error bad configuration
+#endif
+  }
+
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */

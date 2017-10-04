@@ -50,6 +50,7 @@ enum {
 enum {
     TIMEBASE_SOURCE_INTERNAL =  0,
     TIMEBASE_SOURCE_EXTERNAL =  1,
+    TIMEBASE_SOURCE_USB20 =     2,
 };
 
 typedef struct {
