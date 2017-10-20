@@ -21,6 +21,9 @@ public:
     bool receivePacket(uint8_t* tag_out, uint8_t const** data_out, size_t* length_out);
     bool sendPacket(uint8_t tag, const uint8_t* data, size_t length);
 
+signals:
+    void deviceIsAlive();
+
 private:
     // Atomically receive `count` bytes
     bool recvall(uint8_t* buffer, size_t count, bool removeFromBuffer);
@@ -39,6 +42,8 @@ private:
     std::vector<uint8_t> rxBytes;
     size_t numRxBytes = 0;
     size_t totalRxBytes = 0;
+
+    qint64 lastAliveSignalEmitTime = 0;
 
     std::vector<uint8_t> receivedPacketData;
 };

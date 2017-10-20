@@ -5,6 +5,9 @@ constexpr int baudrate = 57600;
 
 constexpr bool enableLogging = false;
 
+// Specified here for efficiency
+constexpr auto ALIVE_SIGNAL_EMIT_TIME_PERIOD = 100;
+
 void SerialSession::open(const char* filename) {
     numRxBytes = 0;
     totalRxBytes = 0;
@@ -30,8 +33,15 @@ bool SerialSession::awaitPacket(uint8_t* tag_out, uint8_t const** data_out, size
         if (!serialPort->bytesAvailable())
             serialPort->waitForReadyRead(10);
         else {
-            if (receivePacket(tag_out, data_out, length_out))
+            if (receivePacket(tag_out, data_out, length_out)) {
+                qint64 t = QDateTime::currentMSecsSinceEpoch();
+                if (t > lastAliveSignalEmitTime + ALIVE_SIGNAL_EMIT_TIME_PERIOD) {
+                    emit deviceIsAlive();
+                    lastAliveSignalEmitTime = t;
+                }
+
                 return true;
+            }
             else
                 QThread::msleep(10);        // this is stupid
         }
