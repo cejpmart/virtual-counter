@@ -29,7 +29,7 @@ signals:
 
     void measurementShouldStartCounting(double gateTime);
     void measurementShouldStartPeriod(unsigned int numPeriods, bool withPhase);
-    void measurementShouldStartPhase(Edge edge);
+    void measurementShouldStartPhase(Edge edgeA, Edge edgeB);
     void measurementShouldStartFreqRatio(unsigned int periods);
 
     void shouldSetMeasurementOptions(MeasurementOptions opts);

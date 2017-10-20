@@ -196,7 +196,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(this, SIGNAL (measurementShouldStartCounting(double)), measurementController, SLOT (doMeasurementCounting(double)));
     connect(this, SIGNAL (measurementShouldStartPeriod(unsigned int, bool)), measurementController, SLOT (doMeasurementPeriod(unsigned int, bool)));
-    connect(this, SIGNAL (measurementShouldStartPhase(Edge)), measurementController, SLOT (doMeasurementPhase(Edge)));
+    connect(this, SIGNAL (measurementShouldStartPhase(Edge, Edge)), measurementController, SLOT (doMeasurementPhase(Edge, Edge)));
     connect(this, SIGNAL (measurementShouldStartFreqRatio(unsigned int)), measurementController, SLOT (doMeasurementFreqRatio(unsigned int)));
     connect(this, SIGNAL (shouldOpenInterface(QString)), measurementController, SLOT (openInterface(QString)));
     connect(this, SIGNAL (shouldSetMeasurementOptions(MeasurementOptions)), measurementController, SLOT (setMeasurementOptions(MeasurementOptions)));
@@ -456,6 +456,9 @@ void MainWindow::onMeasurementMethodChanged()
             ui->measurementNumPeriodsSelect->addItem("10 000 000");
         }
     }
+
+    ui->measurementEdgeSelectA->setEnabled(ui->measurementMethodInterval->isChecked());
+    ui->measurementEdgeSelectB->setEnabled(ui->measurementMethodInterval->isChecked());
 
     // Port labels (TODO)
     if (ui->measurementMethodCounting->isChecked()) {
@@ -752,8 +755,9 @@ void MainWindow::on_measureButton_clicked()
         emit measurementShouldStartPeriod(getReciprocalIterations(), ui->measurementPulseWidthEnable->isChecked());
     }
     else if (ui->measurementMethodInterval->isChecked()) {
-        //auto edge = ui->intervalEdgeSelect->currentIndex() == 0 ? Edge::rising : Edge::falling;
-        emit measurementShouldStartPhase(Edge::rising);
+        auto edgeA = ui->measurementEdgeSelectA->currentIndex() == 0 ? Edge::rising : Edge::falling;
+        auto edgeB = ui->measurementEdgeSelectB->currentIndex() == 0 ? Edge::rising : Edge::falling;
+        emit measurementShouldStartPhase(edgeA, edgeB);
     }
     else if (ui->measurementMethodFreqRatio->isChecked()) {
         emit measurementShouldStartFreqRatio(getReciprocalIterations());

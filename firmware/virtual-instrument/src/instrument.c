@@ -105,11 +105,11 @@ int instrumentStartMeasurePeriod(uint32_t num_periods, int with_pulse_width) {
     return 1;
 }
 
-int instrumentStartMeasureInterval() {
+int instrumentStartMeasureInterval(int ch1_falling, int ch2_falling) {
     if (s_instrument_state != STATE_READY)
         return -1;
 
-    if (HWStartIntervalMeasurement() <= 0)
+    if (HWStartIntervalMeasurement(ch1_falling, ch2_falling) <= 0)
         return -1;
 
     s_instrument_state = STATE_MEASURING;

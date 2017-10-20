@@ -167,13 +167,16 @@ void MeasurementController::doMeasurementFreqRatio(unsigned int periods)
     emit measurementFinishedFreqRatio(result.ratio / 65536.0, 1.0 / periods);
 }
 
-void MeasurementController::doMeasurementPhase(Edge edge)
+void MeasurementController::doMeasurementPhase(Edge edgeA, Edge edgeB)
 {
     if (!session)
         return;
 
     measurement_phase_request_t request;
     measurement_phase_result_t result;
+
+    request.ch1_falling = (edgeA == Edge::falling);
+    request.ch2_falling = (edgeB == Edge::falling);
 
     if (!doMeasurement(MEASUREMENT_INTERVAL, &request, sizeof(request), &result, sizeof(result)))
         return;

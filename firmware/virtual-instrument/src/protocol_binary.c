@@ -138,9 +138,17 @@ void protocolBinaryHandle(const uint8_t* data, size_t length) {
                 break;
             }
 
-            case MEASUREMENT_INTERVAL:
-                rc = instrumentStartMeasureInterval();
+            case MEASUREMENT_INTERVAL: {
+            	measurement_phase_request_t request;
+
+                if (packet->length != 1 + sizeof(request))
+                    break;
+
+                memcpy(&request, &packet->data[1], sizeof(request));
+
+                rc = instrumentStartMeasureInterval(request.ch1_falling, request.ch2_falling);
                 break;
+            }
 
             case MEASUREMENT_FREQ_RATIO: {
                 if (packet->length != 5)

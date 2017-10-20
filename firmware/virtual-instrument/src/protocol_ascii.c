@@ -109,7 +109,7 @@ static void doOneMeasurement() {
         s_burstTotal += freq;
 	}
 	else if (s_mode == MEASUREMENT_INTERVAL) {
-		if (instrumentStartMeasureInterval() < 0) {
+		if (instrumentStartMeasureInterval(0, 0) < 0) {
             printError();
             return;
         }

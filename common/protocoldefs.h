@@ -78,6 +78,8 @@ typedef struct {
 } __attribute__((packed)) measurement_period_result_t;
 
 typedef struct {
+    uint8_t ch1_falling;
+    uint8_t ch2_falling;
 } __attribute__((packed)) measurement_phase_request_t;
 
 typedef struct {

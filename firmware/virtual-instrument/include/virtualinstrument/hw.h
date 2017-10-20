@@ -19,7 +19,7 @@ int     HWStartPwmMeasurement(size_t num_periods);
 int     HWPollPwmMeasurement(uint64_t* period_out, uint64_t* pulse_width_out);
 
 // Interval measurement
-int     HWStartIntervalMeasurement(void);
+int     HWStartIntervalMeasurement(int ch1_falling, int ch2_falling);
 int     HWPollIntervalMeasurement(uint32_t* period_out, uint32_t* pulse_width_out);
 
 // Frequency ratio measurement

@@ -44,7 +44,7 @@ signals:
 public slots:
     void doMeasurementCounting(double gateTime);
     void doMeasurementPeriod(unsigned int numPeriods, bool withPhase);
-    void doMeasurementPhase(Edge edge);
+    void doMeasurementPhase(Edge edgeA, Edge edgeB);
     void doMeasurementFreqRatio(unsigned int periods);
 
     void setMeasurementOptions(MeasurementOptions opts);

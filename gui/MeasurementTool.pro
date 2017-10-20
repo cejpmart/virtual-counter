@@ -14,7 +14,7 @@ CONFIG += c++14
 INCLUDEPATH += qcustomplot
 DEFINES += QT_NO_PRINTER QT_NO_PRINTDIALOG QT_NO_PRINTPREVIEWWIDGET
 
-QMAKE_CXXFLAGS += -Wno-unused
+QMAKE_CXXFLAGS += -Wno-unused -Werror=switch
 
 SOURCES += main.cpp\
         mainwindow.cpp \

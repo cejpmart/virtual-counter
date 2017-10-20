@@ -481,7 +481,7 @@ int HWPollPwmMeasurement(uint64_t* period_out, uint64_t* pulse_width_out) {
     return 1;
 }
 
-int HWStartIntervalMeasurement(void) {
+int HWStartIntervalMeasurement(int ch1_falling, int ch2_falling) {
     TIM_ClockConfigTypeDef sClockSourceConfig;
     TIM_IC_InitTypeDef sConfigIC;
 
@@ -496,11 +496,13 @@ int HWStartIntervalMeasurement(void) {
 
     // input capture
     // TODO: polarity
-    sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
+    sConfigIC.ICPolarity = ch1_falling ? TIM_INPUTCHANNELPOLARITY_FALLING : TIM_INPUTCHANNELPOLARITY_RISING;
     sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
     sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
     sConfigIC.ICFilter = 0;
     HAL_TIM_IC_ConfigChannel(&INPUT_CAPTURE_HTIM, &sConfigIC, INPUT_CAPTURE_CH1_CHAN);
+
+    sConfigIC.ICPolarity = ch2_falling ? TIM_INPUTCHANNELPOLARITY_FALLING : TIM_INPUTCHANNELPOLARITY_RISING;
     HAL_TIM_IC_ConfigChannel(&INPUT_CAPTURE_HTIM, &sConfigIC, INPUT_CAPTURE_CH2_CHAN);
 
     // start!
