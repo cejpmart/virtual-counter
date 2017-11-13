@@ -12,7 +12,7 @@
 #include <stdint.h>
 
 enum {
-    INSTRUMENT_VERSION = 1104,
+    INSTRUMENT_VERSION = 1105,
 };
 
 enum {
@@ -35,7 +35,7 @@ int instrumentStartMeasurePeriod(uint32_t num_periods, int with_pulse_width);
 int instrumentFinishMeasurePeriod(uint64_t* period_out, uint64_t* pulse_width_out);
 
 int instrumentStartMeasureInterval(int ch1_falling, int ch2_falling);
-int instrumentFinishMeasureInterval(uint32_t* period_out, int32_t* interval_out);
+int instrumentFinishMeasureInterval(uint32_t* period_out, uint32_t* interval_out);
 
 int instrumentStartMeasureFreqRatio(uint32_t iterations);
 int instrumentFinishMeasureFreqRatio(uint64_t* ratio_out);

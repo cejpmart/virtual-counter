@@ -117,7 +117,7 @@ int instrumentStartMeasureInterval(int ch1_falling, int ch2_falling) {
     return 1;
 }
 
-int instrumentFinishMeasureInterval(uint32_t* period_out, int32_t* interval_out) {
+int instrumentFinishMeasureInterval(uint32_t* period_out, uint32_t* interval_out) {
     if (s_instrument_state != STATE_MEASURING || s_measurement_state.mode != MEASUREMENT_INTERVAL)
         return -1;
 
@@ -128,10 +128,10 @@ int instrumentFinishMeasureInterval(uint32_t* period_out, int32_t* interval_out)
 
     *period_out = period;
 
-    if (pulse_width < period / 2)
+    if (pulse_width < period)
         *interval_out = pulse_width;
-    else
-        *interval_out = pulse_width - period;
+    //else
+    //    *interval_out = pulse_width - period;
 
 
     s_instrument_state = STATE_READY;

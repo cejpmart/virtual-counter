@@ -35,6 +35,9 @@ signals:
     void shouldSetMeasurementOptions(MeasurementOptions opts);
     void shouldSetPwm(size_t index, PwmParameters params);
 
+public slots:
+    void onInstrumentIsAlive();
+
 private slots:
     void onInstrumentConnected(InstrumentInfo info);
     void onInstrumentStatusSet(QString text);

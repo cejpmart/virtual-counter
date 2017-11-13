@@ -185,12 +185,12 @@ void MeasurementController::doMeasurementPhase(Edge edgeA, Edge edgeB)
     const double frequency = (result.period > 0) ? (1.0 / period) : 0.0;
 
     const double interval = result.interval * (1.0 / f_cpu);
-    double phase = (result.period > 0) ? (interval / period * 360) : 0.0;
+    double phase = -(result.period > 0) ? (interval / period * 360) : 0.0;
 
-    if (phase > 180)
-        phase -= 360;
+    //if (phase > 180)
+    //    phase -= 360;
 
-    emit measurementFinishedPhase(frequency, period, -interval, phase);
+    emit measurementFinishedPhase(frequency, period, interval, phase);
 }
 
 void MeasurementController::doMeasurementPeriod(unsigned int numPeriods, bool withPhase)
@@ -303,6 +303,8 @@ void MeasurementController::openInterface(QString path)
     // FIXME EEEE
     connect(this, SIGNAL (status(QString)), view, SLOT (onInstrumentStatusSet(QString)));
     connect(this, SIGNAL (errorSignal(QString)), view, SLOT (onInstrumentStatusSet(QString)));
+
+    connect(session.get(), SIGNAL(deviceIsAlive()), view, SLOT (onInstrumentIsAlive()));
 
     try {
         session->open(path.toLatin1().data());

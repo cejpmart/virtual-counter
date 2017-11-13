@@ -358,6 +358,15 @@ void MainWindow::onInstrumentConnected(InstrumentInfo info)
     onMeasurementMethodChanged();
 }
 
+void MainWindow::onInstrumentIsAlive()
+{
+    constexpr char chars[] = {'/', '-', '\\', '|'};
+    static int cnt;
+
+    ui->statusBar->showMessage(QString(chars[cnt]));
+    cnt = (cnt + 1) % 4;
+}
+
 void MainWindow::onInstrumentStatusSet(QString text)
 {
     ui->instrumentStatusLabel->setText(text);
@@ -524,7 +533,7 @@ void MainWindow::onPwmSet(size_t index, PwmParameters params)
     }
     else if (index == 1) {
         ui->pwm2FreqLabel->setText(QString::asprintf("%.2f Hz", params.freq));
-        ui->pwm2PhaseLabel->setText(QString::asprintf("%+d °", (int) params.phase));
+        ui->pwm2PhaseLabel->setText(QString::asprintf("%+d °", (int) -params.phase));
         ui->pwmBDutyLabel->setText(QString::asprintf("%d %%", (int)(100 * params.duty)));
     }
 
@@ -969,7 +978,7 @@ void MainWindow::on_pwm2DutySlider_valueChanged(int value)
 
 void MainWindow::on_pwm2Phase_valueChanged(int value)
 {
-    pwm[1].setpoint.phase = value;
+    pwm[1].setpoint.phase = -value;
 
     if (pwm[1].startSetting())
         emit shouldSetPwm(1, pwm[1].setpoint);

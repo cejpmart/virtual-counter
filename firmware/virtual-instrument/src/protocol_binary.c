@@ -206,7 +206,7 @@ void protocolBinaryHandle(const uint8_t* data, size_t length) {
 
             case MEASUREMENT_INTERVAL: {
                 uint32_t period;
-                int32_t interval;
+                uint32_t interval;
 
                 if ((rc = instrumentFinishMeasureInterval(&period, &interval)) > 0) {
                     reply_packet->tag = INFO_MEASUREMENT_DATA;

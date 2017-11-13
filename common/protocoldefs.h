@@ -84,7 +84,7 @@ typedef struct {
 
 typedef struct {
     uint32_t period;
-    int32_t interval;
+    uint32_t interval;
 } __attribute__((packed)) measurement_phase_result_t;
 
 typedef struct {
