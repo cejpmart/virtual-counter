@@ -115,7 +115,7 @@ static void doOneMeasurement() {
         }
 
 		uint32_t period;
-		int32_t interval;
+		uint32_t interval;
 		while (instrumentFinishMeasureInterval(&period, &interval) <= 0) {
 		}
 
