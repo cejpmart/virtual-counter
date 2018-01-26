@@ -63,3 +63,6 @@ win32 {
 }
 
 #QMAKE_POST_LINK += $$QMAKE_COPY $${PWD}/F042K6_Nucleo32.txt $${OUT_PWD}/
+
+RESOURCES += \
+    measurementtool.qrc

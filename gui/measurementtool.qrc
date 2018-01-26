@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>LOGO_CTU_AJ_bold.png</file>
+    </qresource>
+</RCC>

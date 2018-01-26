@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1265</width>
+    <width>1266</width>
     <height>876</height>
    </rect>
   </property>
@@ -956,7 +956,7 @@
      </widget>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,0,1">
+     <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,0,1,0">
       <item>
        <widget class="QGroupBox" name="groupBox_3">
         <property name="title">
@@ -1208,6 +1208,16 @@
       <item>
        <widget class="QtCharts::QChartView" name="pwmOutputPlot" native="true"/>
       </item>
+      <item>
+       <widget class="QLabel" name="label_25">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="pixmap">
+         <pixmap resource="measurementtool.qrc">:/LOGO_CTU_AJ_bold.png</pixmap>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
    </layout>
@@ -1217,7 +1227,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1265</width>
+     <width>1266</width>
      <height>25</height>
     </rect>
    </property>
@@ -1306,6 +1316,8 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="measurementtool.qrc"/>
+ </resources>
  <connections/>
 </ui>
