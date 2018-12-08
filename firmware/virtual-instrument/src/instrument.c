@@ -130,9 +130,11 @@ int instrumentFinishMeasureInterval(uint32_t* period_out, uint32_t* interval_out
 
     if (pulse_width < period)
         *interval_out = pulse_width;
-    //else
-    //    *interval_out = pulse_width - period;
-
+    else {
+        // This weird behavior should be investigated, documented and mitigated (in a better way). Any volunteers?
+        // To start digging into this, just remove the subtraction and watch what happens when measuring two in-phase signals.
+        *interval_out = pulse_width - period;
+    }
 
     s_instrument_state = STATE_READY;
     return 1;
