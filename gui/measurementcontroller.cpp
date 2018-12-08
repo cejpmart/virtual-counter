@@ -187,8 +187,8 @@ void MeasurementController::doMeasurementPhase(Edge edgeA, Edge edgeB)
     const double interval = result.interval * (1.0 / f_cpu);
     double phase = -(result.period > 0) ? (interval / period * 360) : 0.0;
 
-    //if (phase > 180)
-    //    phase -= 360;
+    if (phase > 180)
+        phase -= 360;
 
     emit measurementFinishedPhase(frequency, period, interval, phase);
 }
