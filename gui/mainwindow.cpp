@@ -946,10 +946,17 @@ void MainWindow::on_pwmBEnabled_toggled(bool checked)
 
 void MainWindow::on_pwmBFreqSpinner_valueChanged(double arg1)
 {
-    pwm[1].setpoint.freq = arg1;
+    ui->statusBar->showMessage("Value changed. Press Enter to apply.");;
+}
+
+void MainWindow::on_pwmBFreqSpinner_editingFinished()
+{
+    pwm[1].setpoint.freq = ui->pwmBFreqSpinner->value();
 
     if (pwm[1].startSetting())
         emit shouldSetPwm(1, pwm[1].setpoint);
+
+    ui->statusBar->showMessage("Changes applied.");
 }
 
 void MainWindow::on_pwm1DutySlider_valueChanged(int value)
@@ -962,10 +969,17 @@ void MainWindow::on_pwm1DutySlider_valueChanged(int value)
 
 void MainWindow::on_pwm1FreqSpinner_valueChanged(double arg1)
 {
-    pwm[0].setpoint.freq = arg1;
+    ui->statusBar->showMessage("Value changed. Press Enter to apply.");
+}
+
+void MainWindow::on_pwm1FreqSpinner_editingFinished()
+{
+    pwm[0].setpoint.freq = ui->pwm1FreqSpinner->value();
 
     if (pwm[0].startSetting())
         emit shouldSetPwm(0, pwm[0].setpoint);
+
+    ui->statusBar->showMessage("Changes applied.");
 }
 
 void MainWindow::on_pwm2DutySlider_valueChanged(int value)

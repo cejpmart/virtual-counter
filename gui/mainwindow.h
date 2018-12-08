@@ -100,6 +100,10 @@ private slots:
 
     void on_plotWindowSelect_currentIndexChanged(int index);
 
+    void on_pwm1FreqSpinner_editingFinished();
+
+    void on_pwmBFreqSpinner_editingFinished();
+
 private:
     double getCountingGateTimeSeconds();
     int getReciprocalIterations();
