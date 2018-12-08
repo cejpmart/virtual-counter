@@ -81,3 +81,31 @@ def test_period_measurement():
 
         freq = freq * steps[0]
         steps = steps[1:] + steps[:1]
+
+#@pytest.mark.skip()
+def test_phase_measurement():
+    '''
+    Required hardware setup for Nucleo-F303RE:
+     - bridge pin A0 to D12
+     - bridge pin A1 to D11
+    '''
+
+    instrument = Instrument.open_serial_port(port=PORT, baudrate=BAUDRATE, timeout=1)
+    generator = instrument.get_pwm_channel(0)
+    generator2 = instrument.get_pwm_channel(1)
+    meas = instrument.get_phase_measurement_function()
+
+    t = Table([('frequency [Hz]',   8,  '%d'),
+               ('measured [Hz]' ,   8,  '%d'),
+               ('phase [deg]',      4,  '%3.0f'),
+               ('measured [deg]',   4,  '%3.0f'),
+               ])
+
+    for freq in [100, 1000, 10000]:
+        for phase_deg in range(0, 360, 60):
+            generator.set_frequency(freq, phase_deg=0)
+            generator2.set_frequency(freq, phase_deg=-phase_deg)
+
+            measured_period, measured_phase = meas.measure_period_and_phase()
+
+            t.row(freq, round(1 / measured_period), phase_deg, int(measured_phase))

@@ -11,6 +11,7 @@ CMD_PROTOCOL_SET_BINARY = 0xF0
 
 MEASUREMENT_PULSE_COUNT = 0x01
 MEASUREMENT_PERIOD = 0x02
+MEASUREMENT_INTERVAL = 0x04
 
 INFO_RESULT_CODE = 0x10
 INFO_MEASUREMENT_DATA = 0x20
@@ -199,6 +200,27 @@ class PeriodMeasurementFunction:
     def suggest_num_periods(self, period, desired_relative_error):
         return math.ceil(1 / self.instrument.get_f_cpu() / period / desired_relative_error)
 
+class PhaseMeasurementFunction:
+    def __init__(self, instrument):
+        self.instrument = instrument
+
+    def measure_period_and_phase(self, num_periods: int = 1):
+        assert num_periods > 0
+
+        #measurement_phase_request_t request;
+        ch1_falling = 0
+        ch2_falling = 0
+        request = struct.pack('<BB', ch1_falling, ch2_falling)
+
+        #measurement_phase_result_t result;
+        result = self.instrument.doMeasurement(MEASUREMENT_INTERVAL, request)
+        period_ticks, interval_ticks = struct.unpack('<II', result)
+
+        period = period_ticks / self.instrument.get_f_cpu()
+        phase = 360 * interval_ticks / period_ticks
+
+        return period, phase
+
 class PwmChannel:
     def __init__(self, instrument, chan: int):
         self.instrument = instrument
@@ -306,6 +328,10 @@ class Instrument:
 
     def get_period_measurement_function(self):
         return PeriodMeasurementFunction(self)
+
+    def get_phase_measurement_function(self):
+        return PhaseMeasurementFunction(self)
+
 
     def get_pwm_channel(self, chan: int):
         assert chan >= 0 and chan <= 2
