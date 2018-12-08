@@ -143,7 +143,7 @@ class CountingFrequencyMeasurementFunction:
 
     def do_measurement(self, gate_time=1):
         gate_time_ms = int(gate_time * 1000)
-        assert gate_time_ms >= 10
+        assert gate_time_ms >= 1
 
         #measurement_pulse_count_request_t request;
         request = struct.pack('<I', gate_time_ms)
@@ -170,7 +170,7 @@ class CountingFrequencyMeasurementFunction:
                                 # for 16-bit timer: max_gate_time = 2^32 / f_cpu
                                 # for 32-bit timer: max_gate_time = 2^64 / f_cpu
                                 # However, when using nearly full range, decomposition into <prescaler, cycles> may be non-trivial!
-        return min(max(1 / frequency / required_error, 0.01), max_gate_time)
+        return min(max(1 / frequency / required_error, 0.001), max_gate_time)
 
 class PwmChannel:
     def __init__(self, instrument, chan: int):

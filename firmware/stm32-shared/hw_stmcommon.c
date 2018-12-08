@@ -275,9 +275,9 @@ static int ConfigureSlaveExt1(TIM_TypeDef* tim, uint32_t input_trigger) {
     return ConfigureSlave(tim, TIM_CLOCKSOURCE_INTERNAL, TIM_SLAVEMODE_EXTERNAL1, input_trigger);
 }
 
-static void StartGateTime(uint32_t num_prescaled_cycles) {
+static void StartGateTime(uint32_t num_prescaled_ticks) {
     TIMEFRAME_TIM->CNT = 0;
-    TIMEFRAME_CCR = num_prescaled_cycles;                       // gate time
+    TIMEFRAME_CCR = num_prescaled_ticks;
     TIMEFRAME_TIM->CCMR1 = (0b101 << TIM_CCMR1_OC2M_Pos);       // force to 1
     TIMEFRAME_TIM->CCMR1 = (0b010 << TIM_CCMR1_OC2M_Pos);       // clear when CNT == CCR
 
@@ -357,7 +357,7 @@ int HWStartPulseCountMeasurement(uint32_t gate_time_ms) {
 
     if (TIMEFRAME_BITS < 32) {
         while (prescaler - 1 > (1 << TIMEFRAME_BITS) - 1) {
-            if (gate_ticks >= UINT32_MAX / 2) {
+            if (gate_ticks >= UINT32_MAX / 2 || prescaler % 2 != 0) {
                 // Cannot achieve desired configuration easily
                 // TODO: A more sophisticated search might work
                 return -1;
@@ -368,7 +368,7 @@ int HWStartPulseCountMeasurement(uint32_t gate_time_ms) {
         }
 
         while (gate_ticks > (1 << TIMEFRAME_BITS) - 1) {
-            if (2 * prescaler - 1 > (1 << TIMEFRAME_BITS) - 1) {
+            if (2 * prescaler - 1 > (1 << TIMEFRAME_BITS) - 1 || gate_ticks % 2 != 0) {
                 // Cannot achieve desired configuration easily
                 // TODO: A more sophisticated search might work
                 return -1;

@@ -1,3 +1,4 @@
+from .drawtable import Table
 from .instrument import Instrument
 import time
 
@@ -19,6 +20,13 @@ def test_counting_mode_measurement():
     freq = 1
     steps = [2/1, 5/2, 10/5]
 
+    t = Table([('expected [Hz]',    8,  '%d'),
+               ('measured [Hz]',    8,  '%d'),
+               ('error [%]',        6,  '%6.2f'),
+               ('gate time [s]',    6,  '%6.3f'),
+               ('duration [s]',     6,  '%6.3f')
+               ])
+
     # loop over frequencies 1, 2, 5, 10, 20, ...
     while freq < max:
         generator.set_frequency(freq)
@@ -29,11 +37,7 @@ def test_counting_mode_measurement():
         end = time.time()
 
         error = abs(measured_freq - freq) / freq
-        print(f'expected: {int(freq):8} Hz\t' +
-              f'measured: {int(measured_freq):8} Hz\t' +
-              f'error: {int(error*100):3} %\t' +
-              f'gate time: {gate_time:5.2f} s\t' +
-              f'duration: {end - start:6.3f} s')
+        t.row(int(freq), int(measured_freq), error * 100, gate_time, end - start)
 
         freq = freq * steps[0]
         steps = steps[1:] + steps[:1]
