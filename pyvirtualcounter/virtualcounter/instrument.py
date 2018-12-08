@@ -10,6 +10,7 @@ CMD_QUERY_INSTRUMENT = 0xA1
 CMD_PROTOCOL_SET_BINARY = 0xF0
 
 MEASUREMENT_PULSE_COUNT = 0x01
+MEASUREMENT_PERIOD = 0x02
 
 INFO_RESULT_CODE = 0x10
 INFO_MEASUREMENT_DATA = 0x20
@@ -137,11 +138,12 @@ class PacketIO:
 
         raise Exception('Unexpected response packet')
 
-class CountingFrequencyMeasurementFunction:
+
+class FrequencyMeasurementFunction:
     def __init__(self, instrument):
         self.instrument = instrument
 
-    def do_measurement(self, gate_time=1):
+    def measure_frequency(self, gate_time=1):
         gate_time_ms = int(gate_time * 1000)
         assert gate_time_ms >= 1
 
@@ -162,15 +164,40 @@ class CountingFrequencyMeasurementFunction:
 
         return frequency
 
-    def get_range(self):
-        return 0, self.instrument.get_f_cpu() / 2 - 1
+    def get_frequency_range(self):
+        return (0, self.instrument.get_f_cpu() / 2 - 1)
 
-    def suggest_gate_time(self, frequency, required_error):
+    def suggest_gate_time(self, frequency, desired_relative_error):
         max_gate_time = 25      # FIXME: this needs to be queried from device
                                 # for 16-bit timer: max_gate_time = 2^32 / f_cpu
                                 # for 32-bit timer: max_gate_time = 2^64 / f_cpu
                                 # However, when using nearly full range, decomposition into <prescaler, cycles> may be non-trivial!
-        return min(max(1 / frequency / required_error, 0.001), max_gate_time)
+        return min(max(1 / frequency / desired_relative_error, 0.001), max_gate_time)
+
+
+class PeriodMeasurementFunction:
+    def __init__(self, instrument):
+        self.instrument = instrument
+
+    def measure_period(self, num_periods: int = 1):
+        assert num_periods > 0
+
+        #measurement_period_request_t request;
+        request = struct.pack('<I', num_periods)
+
+        #measurement_period_result_t result;
+        result = self.instrument.doMeasurement(MEASUREMENT_PERIOD, request)
+        period_ticks, _ = struct.unpack('<QQ', result)
+
+        period = period_ticks / self.instrument.get_f_cpu() * (2.0 ** -32)
+
+        return period
+
+    def get_frequency_range(self):
+        return (0.02, self.instrument.get_f_cpu() / 2 - 1)
+
+    def suggest_num_periods(self, period, desired_relative_error):
+        return math.ceil(1 / self.instrument.get_f_cpu() / period / desired_relative_error)
 
 class PwmChannel:
     def __init__(self, instrument, chan: int):
@@ -271,12 +298,14 @@ class Instrument:
         result = self.awaitMeasurementResult(which)
         return result
 
-    # TODO: a method to list ALL frequency measurement functions
     def get_frequency_measurement_function(self):
-        return CountingFrequencyMeasurementFunction(self)
+        return FrequencyMeasurementFunction(self)
 
     def get_f_cpu(self):
         return self.info['f_cpu']
+
+    def get_period_measurement_function(self):
+        return PeriodMeasurementFunction(self)
 
     def get_pwm_channel(self, chan: int):
         assert chan >= 0 and chan <= 2
