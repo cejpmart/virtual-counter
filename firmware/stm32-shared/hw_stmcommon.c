@@ -275,12 +275,9 @@ static int ConfigureSlaveExt1(TIM_TypeDef* tim, uint32_t input_trigger) {
     return ConfigureSlave(tim, TIM_CLOCKSOURCE_INTERNAL, TIM_SLAVEMODE_EXTERNAL1, input_trigger);
 }
 
-static void StartGateTime(uint32_t duration) {
-    // TODO: this should be more flexible and not need TIMEFRAME_PRESCALER,
-    // TODO: deriving the necessary values from SystemCoreClock instead
-
+static void StartGateTime(uint32_t num_prescaled_cycles) {
     TIMEFRAME_TIM->CNT = 0;
-    TIMEFRAME_CCR = duration / TIMEFRAME_PRESCALER;             // gate time
+    TIMEFRAME_CCR = num_prescaled_cycles;                       // gate time
     TIMEFRAME_TIM->CCMR1 = (0b101 << TIM_CCMR1_OC2M_Pos);       // force to 1
     TIMEFRAME_TIM->CCMR1 = (0b010 << TIM_CCMR1_OC2M_Pos);       // clear when CNT == CCR
 
@@ -354,15 +351,42 @@ int HWStartPulseCountMeasurement(uint32_t gate_time_ms) {
     ResetTimer(COUNTER_TIM);
     ResetTimer(TIMEFRAME_TIM);
 
-    int prescaler = SystemCoreClock / 4000 - 1;
-    if (ConfigureGate(GATE_MODE_TIME, prescaler, 65535) <= 0)
+    // Attempt to decompose gate time into (prescaler, gate_ticks)
+    uint32_t prescaler = SystemCoreClock / 1000 / TIMEFRAME_CLK_TO_FCPU;
+    uint32_t gate_ticks = gate_time_ms;
+
+    if (TIMEFRAME_BITS < 32) {
+        while (prescaler - 1 > (1 << TIMEFRAME_BITS) - 1) {
+            if (gate_ticks >= UINT32_MAX / 2) {
+                // Cannot achieve desired configuration easily
+                // TODO: A more sophisticated search might work
+                return -1;
+            }
+
+            gate_ticks *= 2;
+            prescaler /= 2;
+        }
+
+        while (gate_ticks > (1 << TIMEFRAME_BITS) - 1) {
+            if (2 * prescaler - 1 > (1 << TIMEFRAME_BITS) - 1) {
+                // Cannot achieve desired configuration easily
+                // TODO: A more sophisticated search might work
+                return -1;
+            }
+
+            prescaler *= 2;
+            gate_ticks /= 2;
+        }
+    }
+
+    if (ConfigureGate(GATE_MODE_TIME, prescaler - 1, 65535) <= 0)
         return -1;
 
     if (ConfigureSlave(COUNTER_TIM, TIM_CLOCKSOURCE_ETRMODE2, TIM_SLAVEMODE_GATED, COUNTER_TIM_GATE_IT) <= 0)
         return -1;
 
     StartTimer(COUNTER_TIM);
-    StartGateTime(gate_time_ms * 4);
+    StartGateTime(gate_ticks);
     return 1;
 }
 

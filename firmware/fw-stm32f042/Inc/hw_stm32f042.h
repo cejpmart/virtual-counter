@@ -15,7 +15,8 @@
 
 #define TIMEFRAME_TIM               TIM3
 #define TIMEFRAME_HTIM              htim3
-#define TIMEFRAME_PRESCALER         1
+#define TIMEFRAME_CLK_TO_FCPU       1
+#define TIMEFRAME_BITS              16
 
 #define TIMEFRAME_CHAN              TIM_CHANNEL_2
 #define TIMEFRAME_CCR               TIMEFRAME_TIM->CCR2
