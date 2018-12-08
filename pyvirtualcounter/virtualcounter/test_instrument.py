@@ -109,3 +109,34 @@ def test_phase_measurement():
             measured_period, measured_phase = meas.measure_period_and_phase()
 
             t.row(freq, round(1 / measured_period), phase_deg, int(measured_phase))
+
+#@pytest.mark.skip()
+def test_frequency_ratio_measurement():
+    '''
+    Required hardware setup for Nucleo-F303RE:
+     - bridge pin A0 to D12
+     - bridge pin D5 to D11
+    '''
+
+    instrument = Instrument.open_serial_port(port=PORT, baudrate=BAUDRATE, timeout=1)
+    generator = instrument.get_pwm_channel(0)
+    generator2 = instrument.get_pwm_channel(1)
+    meas = instrument.get_frequency_ratio_measurement_function()
+
+    t = Table([('frequency A [Hz]', 8,  '%d'),
+               ('frequency B [Hz]', 8,  '%d'),
+               ('ratio',            11, '%11.6f'),
+               ('measured',         11, '%11.6f'),
+               ('error [%]',        6,  '%6.2f'),
+               ])
+
+    for freq, freq2 in [(100, 10000), (10000, 10)]:
+        generator.set_frequency(freq)
+        generator2.set_frequency(freq2)
+
+        ratio = freq / freq2
+        measured_ratio = meas.measure_frequency_ratio(100)
+
+        error = abs(measured_ratio - ratio) * ratio
+        t.row(freq, freq2, ratio, measured_ratio, error * 100)
+        assert error < 0.01

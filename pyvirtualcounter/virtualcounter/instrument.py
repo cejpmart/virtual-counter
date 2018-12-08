@@ -12,6 +12,7 @@ CMD_PROTOCOL_SET_BINARY = 0xF0
 MEASUREMENT_PULSE_COUNT = 0x01
 MEASUREMENT_PERIOD = 0x02
 MEASUREMENT_INTERVAL = 0x04
+MEASUREMENT_FREQ_RATIO = 0x05
 
 INFO_RESULT_CODE = 0x10
 INFO_MEASUREMENT_DATA = 0x20
@@ -176,6 +177,23 @@ class FrequencyMeasurementFunction:
         return min(max(1 / frequency / desired_relative_error, 0.001), max_gate_time)
 
 
+class FrequencyRatioMeasurementFunction:
+    def __init__(self, instrument):
+        self.instrument = instrument
+
+    def measure_frequency_ratio(self, num_periods: int):
+        # TODO: document num_periods
+
+        #measurement_freq_ratio_request_t request;
+        request = struct.pack('<I', num_periods)
+
+        #measurement_freq_ratio_result_t result;
+        result = self.instrument.doMeasurement(MEASUREMENT_FREQ_RATIO, request)
+        ratio, = struct.unpack('<Q', result)
+
+        return ratio * 2.0**-16
+
+
 class PeriodMeasurementFunction:
     def __init__(self, instrument):
         self.instrument = instrument
@@ -322,6 +340,9 @@ class Instrument:
 
     def get_frequency_measurement_function(self):
         return FrequencyMeasurementFunction(self)
+
+    def get_frequency_ratio_measurement_function(self):
+        return FrequencyRatioMeasurementFunction(self)
 
     def get_f_cpu(self):
         return self.info['f_cpu']
