@@ -33,14 +33,24 @@ def test_frequency_measurement():
     while freq < max:
         generator.set_frequency(freq)
 
+        # use recommended gate time for the desired precision
         gate_time = meas.suggest_gate_time(frequency=freq, desired_relative_error=0.01)
+
+        # perform the measurement, and also take note of true measurement time
+        # (to check that the gate timer is being configured correctly)
         start = time.time()
         measured_freq = meas.measure_frequency(gate_time)
         end = time.time()
 
+        # calculate measurement error, display in table
         error = abs(measured_freq - freq) / freq
         t.row(int(freq), int(measured_freq), error * 100, gate_time, end - start)
 
+        # for high frequencies, the PWM resolution limits what we can test without additional equipment
+        if freq <= 2_000_000:
+            assert error <= 0.01
+
+        # generate next frequency in the series
         freq = freq * steps[0]
         steps = steps[1:] + steps[:1]
 
@@ -62,23 +72,29 @@ def test_period_measurement():
 
     t = Table([('expected [s]',     9,  '%.7f'),
                ('measured [s]' ,    9,  '%.7f'),
-               ('error [%]',        6,  '%6.2f'),
+               ('error [%]',        7,  '%7.3f'),
                ('periods measured', 6,  '%d'),
                ('duration [s]',     6,  '%6.3f')
                ])
 
     # loop over frequencies 1, 2, 5, 10, 20, ...
-    while freq <= 10000000:
+    while freq <= 10_000_000:
         generator.set_frequency(freq)
 
-        num_periods = meas.suggest_num_periods(period=1 / freq, desired_relative_error=0.01)
+        num_periods = meas.suggest_num_periods(period=1 / freq, desired_relative_error=0.001)
         start = time.time()
         measured_period = meas.measure_period(num_periods)
         end = time.time()
 
+        # calculate measurement error, display in table
         error = abs(measured_period - 1 / freq) * freq
         t.row(1 / freq, measured_period, error * 100, num_periods, end - start)
 
+        # for high frequencies, the PWM resolution limits what we can test without additional equipment
+        if freq <= 2_000_000:
+            assert error <= 0.001
+
+        # generate next frequency in the series
         freq = freq * steps[0]
         steps = steps[1:] + steps[:1]
 
@@ -96,19 +112,24 @@ def test_phase_measurement():
     meas = instrument.get_phase_measurement_function()
 
     t = Table([('frequency [Hz]',   8,  '%d'),
-               ('measured [Hz]' ,   8,  '%d'),
-               ('phase [deg]',      4,  '%3.0f'),
-               ('measured [deg]',   4,  '%3.0f'),
+               ('measured [Hz]',    8,  '%d'),
+               ('phase [deg]',      6,  '%7.3f'),
+               ('measured [deg]',   6,  '%7.3f'),
+               ('error [deg]',      6,  '%7.3f'),
                ])
 
-    for freq in [100, 1000, 10000]:
+    for freq in [5, 1000, 20_000]:
         for phase_deg in range(0, 360, 60):
             generator.set_frequency(freq, phase_deg=0)
             generator2.set_frequency(freq, phase_deg=-phase_deg)
 
             measured_period, measured_phase = meas.measure_period_and_phase()
 
-            t.row(freq, round(1 / measured_period), phase_deg, int(measured_phase))
+            # calculate measurement error, display in table
+            error = abs(measured_phase - phase_deg)
+            t.row(freq, round(1 / measured_period), phase_deg, measured_phase, error)
+
+            assert error < 1
 
 #@pytest.mark.skip()
 def test_frequency_ratio_measurement():
@@ -139,4 +160,4 @@ def test_frequency_ratio_measurement():
 
         error = abs(measured_ratio - ratio) * ratio
         t.row(freq, freq2, ratio, measured_ratio, error * 100)
-        assert error < 0.01
+        assert error <= 0.01
