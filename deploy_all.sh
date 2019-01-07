@@ -35,7 +35,7 @@ mkdir ${OUTDIR}
 
 unzip ${ZIPPED} -d ${OUTDIR}
 
-cp SOURCE_CODE.txt ${OUTDIR}/
+cp doc/manual.pdf ${OUTDIR}/
 
 mkdir ${FW_DIR}
 cp build-stm32f042f6-usb_cdc/*.bin ${FW_DIR}

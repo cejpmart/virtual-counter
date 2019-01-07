@@ -18,6 +18,8 @@ constexpr int MEASUREMENT_PWM_RANGE_COEFF = 24;
 
 constexpr char OPTIONS_FILE_NAME[] = "options.ini";
 
+constexpr char DISPLAY_VERSION[] = "git_master";
+
 // http://stackoverflow.com/a/13094362
 static double round_to_digits(double value, int digits)
 {
@@ -834,11 +836,14 @@ void MainWindow::on_menuHelpAbout_triggered()
 {
     QMessageBox msgBox;
     msgBox.setIcon(QMessageBox::Icon::Information);
-    msgBox.setText(QString::asprintf("Measurement Tool %d\n"
+    msgBox.setText(QString::asprintf("Measurement Tool %s\n"
                    "\n"
                    "Developed at Laboratory of Videometry, Department of Measurement, Faculty of Electrical Engineering, Czech Technical University in Prague.\n"
                    "\n"
-                   "Copyright (c) 2017 Martin Cejp", VERSION));
+                   "Copyright (c) 2017, 2018 Martin Cejp\n"
+                   "\n"
+                   "https://github.com/cejpmart/virtual-counter",
+                   DISPLAY_VERSION));
     msgBox.setWindowTitle("About Measurement Tool");
     msgBox.exec();
 }
