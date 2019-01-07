@@ -18,7 +18,7 @@ constexpr int MEASUREMENT_PWM_RANGE_COEFF = 24;
 
 constexpr char OPTIONS_FILE_NAME[] = "options.ini";
 
-constexpr char DISPLAY_VERSION[] = "git_master";
+constexpr char DISPLAY_VERSION[] = "19.01";
 
 // http://stackoverflow.com/a/13094362
 static double round_to_digits(double value, int digits)
