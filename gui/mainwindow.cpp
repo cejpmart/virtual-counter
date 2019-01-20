@@ -490,7 +490,12 @@ void MainWindow::onMeasurementMethodChanged()
 
     ui->recommendedMeasurementModeInfo->setText("");
 
+    // TODO: the following should be wrapped in a single function
     measurementController->pleaseAbortMeasurement();
+    if (continuousMeasurement) {
+        on_continuousMeasurementToggle_clicked();
+    }
+    ui->measureButton->setEnabled(true);
 
     updateMeasurementFrequencyInfo();
 }

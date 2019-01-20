@@ -29,6 +29,7 @@ bool MeasurementController::awaitMeasurementResult(uint8_t which, uint8_t const*
     for (;;) {
         if (measurementAborted) {
             doAbortMeasurement(which);
+            break;
         }
 
         uint8_t payload[1];
