@@ -10,6 +10,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = MeasurementTool
 TEMPLATE = app
+CONFIG += warn_off
 CONFIG += c++14
 INCLUDEPATH += qcustomplot
 DEFINES += QT_NO_PRINTER QT_NO_PRINTDIALOG QT_NO_PRINTPREVIEWWIDGET

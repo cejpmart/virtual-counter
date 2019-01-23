@@ -17,6 +17,8 @@ static size_t s_rx_have;
 
 static uint8_t reply_buffer[32];
 
+static struct DgenOptions s_dgen_options[2];
+
 struct packet {
     uint8_t tag;
     uint8_t length;
@@ -240,15 +242,29 @@ void protocolBinaryHandle(const uint8_t* data, size_t length) {
             sendpacket(reply_packet);
             break;
 
-        case CMD_SET_PWM: {
-            set_pwm_request_t request;
+        case CMD_DGEN_OPTIONS: {
+            set_dgen_options_request_t request;
 
             if (packet->length != sizeof(request))
                 break;
 
             memcpy(&request, &packet->data[0], sizeof(request));
 
-            int rc = instrumentSetPwm(request.index, request.prescaler, request.period, request.pulse_width, request.phase);
+            s_dgen_options[request.index].mode = (enum DgenMode) request.mode;
+            s_dgen_options[request.index].prescaler = request.prescaler;
+            s_dgen_options[request.index].period = request.period;
+            s_dgen_options[request.index].pulse_width = request.pulse_width;
+            s_dgen_options[request.index].phase = request.phase;
+
+            reply_packet->tag = INFO_RESULT_CODE;
+			reply_packet->length = 1;
+			reply_packet->data[0] = 0;
+			sendpacket(reply_packet);
+			break;
+		}
+
+        case CMD_APPLY_DGEN_OPTIONS: {
+            int rc = instrumentSetPwm(&s_dgen_options[0]);
 
             reply_packet->tag = INFO_RESULT_CODE;
             reply_packet->length = 1;

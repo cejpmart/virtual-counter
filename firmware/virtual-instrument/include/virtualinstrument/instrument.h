@@ -12,13 +12,27 @@
 #include <stdint.h>
 
 enum {
-    INSTRUMENT_VERSION = 1105,
+    INSTRUMENT_VERSION = 1106,
+};
+
+enum DgenMode {
+    DGEN_MODE_ALWAYS_0_,
+    DGEN_MODE_ALWAYS_1_,
+    DGEN_MODE_PWM_,
 };
 
 enum {
     STATE_READY =               1,
     STATE_MEASURING =           2,
     STATE_RESULT_PENDING =      3,
+};
+
+struct DgenOptions {
+	enum DgenMode mode;
+	uint16_t prescaler;
+	uint16_t period;
+	uint16_t pulse_width;
+	uint16_t phase;
 };
 
 // Instrument lifecycle
@@ -41,6 +55,6 @@ int instrumentStartMeasureFreqRatio(uint32_t iterations);
 int instrumentFinishMeasureFreqRatio(uint64_t* ratio_out);
 
 // PWM
-int instrumentSetPwm(size_t index, uint16_t prescaler, uint16_t period, uint16_t pulse_width, uint16_t phase);
+int instrumentSetPwm(struct DgenOptions options[2]);
 
 #endif /* VIRTUALINSTRUMENT_INSTRUMENT_H_ */

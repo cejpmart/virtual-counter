@@ -16,7 +16,7 @@ public:
     explicit PwmOutputPlotView(InstrumentParameterMap& ipm) : ipm(ipm) {}
     void init(QtCharts::QChartView* view);
 
-    void redraw(const PwmParameters& pwm1, const PwmParameters& pwm2);
+    void redraw(const AllDgenOptions& options);
     void resetInstrument();
 
 signals:

@@ -4,7 +4,7 @@
 
 #include <QLayout>
 
-static bool renderWaveform(double period_us, QtCharts::QXYSeries& series, const PwmParameters& params) {
+static bool renderWaveform(double period_us, QtCharts::QXYSeries& series, const DgenOptions& params) {
     double period = (1.0 / params.freq) * 1000000;
 
     double t = -period * params.phase / 360;
@@ -64,29 +64,28 @@ void PwmOutputPlotView::init(QtCharts::QChartView* view) {
     view->setChart(chart);
 }
 
-void PwmOutputPlotView::redraw(const PwmParameters& pwm1, const PwmParameters& pwm2)
+void PwmOutputPlotView::redraw(const AllDgenOptions& options)
 {
     if (!chart)
         return;
 
-    double pwm1period_us = (pwm1.enabled) ? (1.0 / pwm1.freq) * 1000000 : 1e-9;
-    double pwm2period_us = (pwm2.enabled) ? (1.0 / pwm2.freq) * 1000000 : 1e-9;
+    double totalPeriod_us = 1e-6;
 
-    double totalPeriod_us = std::max(pwm1period_us * 3, pwm2period_us * 3);
+    for (size_t channel = 0; channel < options.size(); channel++) {
+        double period_us = (options[channel].enabled) ? (1.0 / options[channel].freq) * 1000000 : 1e-9;
 
-    if (pwm1.enabled) {
-        pwmGraphs[0]->clear();
-        pwmGraphs[0]->setVisible(renderWaveform(totalPeriod_us, *pwmGraphs[0], pwm1));
+        totalPeriod_us = std::max(totalPeriod_us, period_us * 3);
     }
-    else
-        pwmGraphs[0]->setVisible(false);
 
-    if (pwm2.enabled) {
-        pwmGraphs[1]->clear();
-        pwmGraphs[1]->setVisible(renderWaveform(totalPeriod_us, *pwmGraphs[1], pwm2));
+    for (size_t channel = 0; channel < options.size(); channel++) {
+        if (options[channel].enabled) {
+            pwmGraphs[channel]->clear();
+            pwmGraphs[channel]->setVisible(renderWaveform(totalPeriod_us, *pwmGraphs[channel], options[channel]));
+        }
+        else {
+            pwmGraphs[channel]->setVisible(false);
+        }
     }
-    else
-        pwmGraphs[1]->setVisible(false);
 
     if (totalPeriod_us > 1e-6)
         chart->axisX()->setRange(0, totalPeriod_us);

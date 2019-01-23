@@ -150,7 +150,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     measurementPlotView = std::make_unique<MeasurementPlotView>(ui->measurementChart);
     pwmOutputPlotView.init(ui->pwmOutputPlot);
-    pwmOutputPlotView.redraw(pwmActual[0], pwmActual[1]);
+    pwmOutputPlotView.redraw(dgenActual);
 
     onMeasurementMethodChanged();
     ui->instrumentDeviceLabel->setText("Not connected");
@@ -191,7 +191,8 @@ MainWindow::MainWindow(QWidget *parent) :
             this, SLOT (onMeasurementFinishedPeriod(double, double, double, double, double)));
     connect(measurementController, SIGNAL (measurementFinishedPhase(double, double, double, double)),
             this, SLOT (onMeasurementFinishedPhase(double, double, double, double)));
-    connect(measurementController, SIGNAL (didSetPwm(size_t, PwmParameters)), this, SLOT (onPwmSet(size_t, PwmParameters)));
+    connect(measurementController, SIGNAL (didConfigureDigitalGenerators(AllDgenOptions)),
+            this, SLOT (didConfigureDigitalGenerators(AllDgenOptions)));
     connect(measurementController, SIGNAL (measurementFinishedFreqRatio(double, double)),
             this, SLOT (onMeasurementFinishedFreqRatio(double, double)));
     connect(measurementController, SIGNAL (measurementTimedOut()), this, SLOT (onMeasurementTimedOut()));
@@ -202,7 +203,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, SIGNAL (measurementShouldStartFreqRatio(unsigned int)), measurementController, SLOT (doMeasurementFreqRatio(unsigned int)));
     connect(this, SIGNAL (shouldOpenInterface(QString)), measurementController, SLOT (openInterface(QString)));
     connect(this, SIGNAL (shouldSetMeasurementOptions(MeasurementOptions)), measurementController, SLOT (setMeasurementOptions(MeasurementOptions)));
-    connect(this, SIGNAL (shouldSetPwm(size_t, PwmParameters)), measurementController, SLOT (setPwm(size_t, PwmParameters)));
+    connect(this, SIGNAL (shouldConfigureDigitalGenerators(AllDgenOptions)), measurementController, SLOT (configureDigitalGenerators(AllDgenOptions)));
 
     emit onOptionsUpdated();
 
@@ -333,12 +334,11 @@ void MainWindow::onInstrumentConnected(InstrumentInfo info)
     loadIpm(info.board);
     pwmOutputPlotView.resetInstrument();
 
-    pwm[0].setpoint = {true, (float) ui->pwm1FreqSpinner->value(), ui->pwm1DutySlider->value() / 100.0f, 0};
-    pwm[1].setpoint = {true, (float) ui->pwmBFreqSpinner->value(), ui->pwm2DutySlider->value() / 100.0f, (float) ui->pwm2Phase->value()};
+    dgen.setpoint[0] = {true, (float) ui->pwm1FreqSpinner->value(), ui->pwm1DutySlider->value() / 100.0f, 0};
+    dgen.setpoint[1] = {true, (float) ui->pwmBFreqSpinner->value(), ui->pwm2DutySlider->value() / 100.0f, (float) ui->pwm2Phase->value()};
 
-    for (size_t i = 0; i < NUM_PWM; i++) {
-        if (pwm[i].startSetting())
-            emit shouldSetPwm(i, pwm[i].setpoint);
+    if (dgen.canStartSetting()) {
+        emit shouldConfigureDigitalGenerators(dgen.setpoint);
     }
 
     QString timebaseInfoText;
@@ -532,23 +532,20 @@ void MainWindow::onOptionsUpdated()
     emit shouldSetMeasurementOptions(opts);
 }
 
-void MainWindow::onPwmSet(size_t index, PwmParameters params)
+void MainWindow::didConfigureDigitalGenerators(AllDgenOptions options)
 {
-    if (index == 0) {
-        ui->pwm1FreqLabel->setText(QString::asprintf("%.2f Hz", params.freq));
-        ui->pwmADutyLabel->setText(QString::asprintf("%d %%", (int)(100 * params.duty)));
-    }
-    else if (index == 1) {
-        ui->pwm2FreqLabel->setText(QString::asprintf("%.2f Hz", params.freq));
-        ui->pwm2PhaseLabel->setText(QString::asprintf("%+d °", (int) -params.phase));
-        ui->pwmBDutyLabel->setText(QString::asprintf("%d %%", (int)(100 * params.duty)));
-    }
+    ui->pwm1FreqLabel->setText(QString::asprintf("%.2f Hz", options[0].freq));
+    ui->pwmADutyLabel->setText(QString::asprintf("%d %%", (int)(100 * options[0].duty)));
 
-    if (pwm[index].continuePending())
-        emit shouldSetPwm(index, pwm[index].setpoint);
+    ui->pwm2FreqLabel->setText(QString::asprintf("%.2f Hz", options[1].freq));
+    ui->pwm2PhaseLabel->setText(QString::asprintf("%+d °", (int) -options[1].phase));
+    ui->pwmBDutyLabel->setText(QString::asprintf("%d %%", (int)(100 * options[1].duty)));
 
-    pwmActual[index] = params;
-    pwmOutputPlotView.redraw(pwmActual[0], pwmActual[1]);
+    if (dgen.canContinuePending())
+        emit shouldConfigureDigitalGenerators(dgen.setpoint);
+
+    dgenActual = options;
+    pwmOutputPlotView.redraw(dgenActual);
 }
 
 void MainWindow::saveOptions(QString fileName)
@@ -940,18 +937,18 @@ void MainWindow::on_plotWindowSelect_currentIndexChanged(int index)
 
 void MainWindow::on_pwmAEnabled_toggled(bool checked)
 {
-    pwm[0].setpoint.enabled = checked;
+    dgen.setpoint[0].enabled = checked;
 
-    if (pwm[0].startSetting())
-        emit shouldSetPwm(0, pwm[0].setpoint);
+    if (dgen.canStartSetting())
+        emit shouldConfigureDigitalGenerators(dgen.setpoint);
 }
 
 void MainWindow::on_pwmBEnabled_toggled(bool checked)
 {
-    pwm[1].setpoint.enabled = checked;
+    dgen.setpoint[1].enabled = checked;
 
-    if (pwm[1].startSetting())
-        emit shouldSetPwm(1, pwm[1].setpoint);
+    if (dgen.canStartSetting())
+        emit shouldConfigureDigitalGenerators(dgen.setpoint);
 }
 
 void MainWindow::on_pwmBFreqSpinner_valueChanged(double arg1)
@@ -961,20 +958,20 @@ void MainWindow::on_pwmBFreqSpinner_valueChanged(double arg1)
 
 void MainWindow::on_pwmBFreqSpinner_editingFinished()
 {
-    pwm[1].setpoint.freq = ui->pwmBFreqSpinner->value();
+    dgen.setpoint[1].freq = ui->pwmBFreqSpinner->value();
 
-    if (pwm[1].startSetting())
-        emit shouldSetPwm(1, pwm[1].setpoint);
+    if (dgen.canStartSetting())
+        emit shouldConfigureDigitalGenerators(dgen.setpoint);
 
     ui->statusBar->showMessage("Changes applied.");
 }
 
 void MainWindow::on_pwm1DutySlider_valueChanged(int value)
 {
-    pwm[0].setpoint.duty = value / 100.0f;
+    dgen.setpoint[0].duty = value / 100.0f;
 
-    if (pwm[0].startSetting())
-        emit shouldSetPwm(0, pwm[0].setpoint);
+    if (dgen.canStartSetting())
+        emit shouldConfigureDigitalGenerators(dgen.setpoint);
 }
 
 void MainWindow::on_pwm1FreqSpinner_valueChanged(double arg1)
@@ -984,26 +981,26 @@ void MainWindow::on_pwm1FreqSpinner_valueChanged(double arg1)
 
 void MainWindow::on_pwm1FreqSpinner_editingFinished()
 {
-    pwm[0].setpoint.freq = ui->pwm1FreqSpinner->value();
+    dgen.setpoint[0].freq = ui->pwm1FreqSpinner->value();
 
-    if (pwm[0].startSetting())
-        emit shouldSetPwm(0, pwm[0].setpoint);
+    if (dgen.canStartSetting())
+        emit shouldConfigureDigitalGenerators(dgen.setpoint);
 
     ui->statusBar->showMessage("Changes applied.");
 }
 
 void MainWindow::on_pwm2DutySlider_valueChanged(int value)
 {
-    pwm[1].setpoint.duty = value / 100.0f;
+    dgen.setpoint[1].duty = value / 100.0f;
 
-    if (pwm[1].startSetting())
-        emit shouldSetPwm(1, pwm[1].setpoint);
+    if (dgen.canStartSetting())
+        emit shouldConfigureDigitalGenerators(dgen.setpoint);
 }
 
 void MainWindow::on_pwm2Phase_valueChanged(int value)
 {
-    pwm[1].setpoint.phase = -value;
+    dgen.setpoint[1].phase = -value;
 
-    if (pwm[1].startSetting())
-        emit shouldSetPwm(1, pwm[1].setpoint);
+    if (dgen.canStartSetting())
+        emit shouldConfigureDigitalGenerators(dgen.setpoint);
 }

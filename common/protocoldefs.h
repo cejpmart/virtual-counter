@@ -3,6 +3,10 @@
 
 #include <stdint.h>
 
+enum { NUM_DGEN = 2 };
+
+enum { PROTOCOL_VERSION = 1106 };
+
 enum {
     CMD_SET_MODE_COUNTING =     'q',
 
@@ -10,7 +14,8 @@ enum {
     CMD_POLL_MEASUREMENT =      'p',
     CMD_ABORT_MEASUREMENT =     'a',
 
-    CMD_SET_PWM =               0x80,
+    CMD_DGEN_OPTIONS =          0x80,
+    CMD_APPLY_DGEN_OPTIONS =    0x81,
     CMD_RESET_INSTRUMENT =      0xA0,
     CMD_QUERY_INSTRUMENT =      0xA1,
 
@@ -45,6 +50,12 @@ enum {
     BOARD_F303_NUCLEO64 =       0x0300,
     BOARD_F411_NUCLEO64 =       0x0400,
     BOARD_F373_EVAL =           0x0500,
+};
+
+enum {
+    DGEN_MODE_ALWAYS_0 = 0,
+    DGEN_MODE_ALWAYS_1 = 1,
+    DGEN_MODE_PWM = 2,
 };
 
 enum {
@@ -100,11 +111,12 @@ typedef struct {
 } __attribute__((packed)) abort_measurement_request_t;
 
 typedef struct {
-    uint16_t index;             // 0 or 1
+    uint16_t index;             // 0 or NUM_DGEN
+    uint16_t mode;              // enum
     uint16_t prescaler;         // in CPU units
     uint16_t period;            // in CPU units
     uint16_t pulse_width;       // in CPU units
     uint16_t phase;             // in CPU units (0..period-1)
-} __attribute__((packed)) set_pwm_request_t;
+} __attribute__((packed)) set_dgen_options_request_t;
 
 #endif // PROTOCOLDEFS_H

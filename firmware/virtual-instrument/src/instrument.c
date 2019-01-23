@@ -5,8 +5,6 @@
 
 static int s_instrument_state;
 
-static int s_pwm_phase;
-
 static struct {
 	int mode;
 	int gate_time;
@@ -163,15 +161,16 @@ int instrumentFinishMeasureFreqRatio(uint64_t* ratio_out) {
     return 1;
 }
 
-int instrumentSetPwm(size_t index, uint16_t prescaler, uint16_t period, uint16_t pulse_width, uint16_t phase) {
-    if (index == 1)
-        s_pwm_phase = phase;
+int instrumentSetPwm(struct DgenOptions options[2]) {
+	for (int i = 0; i < 2; i++) {
+		if (HWSetPwm(i, options[i].mode, options[i].prescaler, options[i].period, options[i].pulse_width, options[i].phase) <= 0) {
+			return -1;
+		}
+	}
 
-    if (HWSetPwm(index, prescaler, period, pulse_width, phase) <= 0)
+	if (HWSetPwmPhase(options[1].phase - options[0].phase) <= 0) {
         return -1;
-
-    if (HWSetPwmPhase(s_pwm_phase) <= 0)
-        return -1;
+	}
 
     return 0;
 }

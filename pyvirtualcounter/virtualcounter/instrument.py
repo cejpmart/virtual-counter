@@ -4,10 +4,15 @@ import time
 
 CMD_POLL_MEASUREMENT = ord(b'p')
 CMD_START_MEASUREMENT = ord(b's')
-CMD_SET_PWM = 0x80
+CMD_DGEN_OPTIONS = 0x80
+CMD_APPLY_DGEN_OPTIONS = 0x81
 CMD_RESET_INSTRUMENT = 0xA0
 CMD_QUERY_INSTRUMENT = 0xA1
 CMD_PROTOCOL_SET_BINARY = 0xF0
+
+DGEN_MODE_ALWAYS_0 = 0
+DGEN_MODE_ALWAYS_1 = 1
+DGEN_MODE_PWM = 2
 
 MEASUREMENT_PULSE_COUNT = 0x01
 MEASUREMENT_PERIOD = 0x02
@@ -20,7 +25,7 @@ INFO_INSTRUMENT_INFO = 0xA1
 
 DEBUG = False
 TIMEOUT = 1
-VERSION = 1105
+VERSION = 1106
 
 class PacketIO:
     def __init__(self, stream):
@@ -261,14 +266,19 @@ class PwmChannel:
             prescaler += 1
             prescaled = round(period / prescaler)
 
-        request = struct.pack('<HHHHH',
+        request = struct.pack('<HHHHHH',
                               self.chan,
+                              DGEN_MODE_PWM,
                               prescaler - 1,
                               prescaled - 1,
                               math.ceil(pulse_width / prescaler),
                               round(phase_deg * period / prescaler / 360))
 
-        rc = self.instrument.io.sendPacketAndExpectResultCode(CMD_SET_PWM, request)
+        rc = self.instrument.io.sendPacketAndExpectResultCode(CMD_DGEN_OPTIONS, request)
+        if DEBUG:
+            print('rc=', rc)
+
+        rc = self.instrument.io.sendPacketAndExpectResultCode(CMD_APPLY_DGEN_OPTIONS, None)
         if DEBUG:
             print('rc=', rc)
 

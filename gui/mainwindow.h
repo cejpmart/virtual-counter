@@ -8,8 +8,6 @@
 #include "measurementplotview.h"
 #include "pwmoutputplotview.h"
 
-constexpr size_t NUM_PWM = 2;
-
 namespace Ui {
 class MainWindow;
 }
@@ -33,7 +31,7 @@ signals:
     void measurementShouldStartFreqRatio(unsigned int periods);
 
     void shouldSetMeasurementOptions(MeasurementOptions opts);
-    void shouldSetPwm(size_t index, PwmParameters params);
+    void shouldConfigureDigitalGenerators(AllDgenOptions options);
 
 public slots:
     void onInstrumentIsAlive();
@@ -48,7 +46,7 @@ private slots:
     void onMeasurementFinishedFreqRatio(double freqRatio, double freqRatioError);
     void onMeasurementTimedOut();
     void onOpenInterfaceTriggered(QAction* action);
-    void onPwmSet(size_t index, PwmParameters params);
+    void didConfigureDigitalGenerators(AllDgenOptions options);
 
     void on_measureButton_clicked();
 
@@ -144,8 +142,8 @@ private:
     PwmOutputPlotView pwmOutputPlotView;
     std::unique_ptr<MeasurementPlotView> measurementPlotView;
 
-    Parameter<PwmParameters> pwm[NUM_PWM];
-    PwmParameters pwmActual[NUM_PWM];
+    Parameter<AllDgenOptions> dgen;
+    AllDgenOptions dgenActual;
 };
 
 #endif // MAINWINDOW_H

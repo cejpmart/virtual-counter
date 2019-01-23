@@ -1,8 +1,6 @@
 #include "mainwindow.h"
 #include "measurementcontroller.h"
 
-#include "../common/protocoldefs.h"
-
 constexpr const char* BOARDS[] {
     "Unknown",
     "F042F6",
@@ -17,10 +15,11 @@ static volatile bool measurementAborted = false;
 
 MeasurementController::MeasurementController(MainWindow* view) : view(view)
 {
+    qRegisterMetaType<AllDgenOptions>("AllDgenOptions");
+    qRegisterMetaType<DgenOptions>("DgenOptions");
     qRegisterMetaType<Edge>("Edge");
     qRegisterMetaType<InstrumentInfo>("InstrumentInfo");
     qRegisterMetaType<MeasurementOptions>("MeasurementOptions");
-    qRegisterMetaType<PwmParameters>("PwmParameters");
 }
 
 bool MeasurementController::awaitMeasurementResult(uint8_t which, uint8_t const** reply_payload_out, size_t* reply_length_out) {
@@ -248,7 +247,7 @@ bool MeasurementController::getInstrumentInfo(InstrumentInfo& info_out)
 
     qInfo("board_id=%04X, fw_ver=%d, f_cpu=%d", iinfo.board_id, iinfo.fw_ver, iinfo.f_cpu);
 
-    if (iinfo.fw_ver != VERSION) {
+    if (iinfo.fw_ver != PROTOCOL_VERSION) {
         error("Firmware version mismatch");
         return false;
     }
@@ -372,45 +371,59 @@ void MeasurementController::setMeasurementOptions(MeasurementOptions opts)
     options = opts;
 }
 
-void MeasurementController::setPwm(size_t index, PwmParameters params)
+void MeasurementController::configureDigitalGenerators(AllDgenOptions options)
 {
     if (!session)
         return;
 
-    auto period = f_cpu / params.freq;
-    auto pulse_width = period * params.duty;
+    // Process each channel
+    for (size_t channel = 0; channel < options.size(); channel++) {
+        auto& params = options[channel];
 
-    while (params.phase < 0)
-        params.phase += 360;
+        auto period = f_cpu / params.freq;
+        auto pulse_width = period * params.duty;
 
-    unsigned int prescaler = 1;
-    unsigned int prescaled = (unsigned int)round(period);
+        while (params.phase < 0)
+            params.phase += 360;
 
-    while (prescaled >= 65535) {
-        prescaler++;
-        prescaled = (unsigned int)round(period / prescaler);
+        unsigned int prescaler = 1;
+        unsigned int prescaled = (unsigned int)round(period);
+
+        while (prescaled >= 65535) {
+            prescaler++;
+            prescaled = (unsigned int)round(period / prescaler);
+        }
+
+        set_dgen_options_request_t request;
+        request.index = channel;
+        request.mode = params.enabled ? DGEN_MODE_PWM : DGEN_MODE_ALWAYS_0;
+        request.prescaler = prescaler - 1;
+        request.period = prescaled - 1;
+        request.pulse_width = (unsigned int)ceil((float)pulse_width / prescaler);
+        request.phase = (unsigned int)round(params.phase * period / prescaler / 360);
+
+        int rc;
+        if (!sendPacketAndAwaitResultCode(CMD_DGEN_OPTIONS, (const uint8_t*) &request, sizeof(request), &rc)) {
+            communicationError();
+            return;
+        }
+        // TODO: assert rc == OK
+
+        // Calculate actual frequency
+        params.freq = f_cpu / (prescaler * prescaled);
+        params.duty = (float)request.pulse_width / request.period;
+        params.phase = (float)request.phase / request.period * 360;
+
+        if (params.phase > 180)
+            params.phase -= 360;
     }
 
-    set_pwm_request_t request;
-    request.index = index;
-    request.prescaler = prescaler - 1;
-    request.period = prescaled - 1;
-    request.pulse_width = (unsigned int)ceil((float)pulse_width / prescaler);
-    request.phase = (unsigned int)round(params.phase * period / prescaler / 360);
-
     int rc;
-    if (!sendPacketAndAwaitResultCode(CMD_SET_PWM, (const uint8_t*) &request, sizeof(request), &rc)) {
+    if (!sendPacketAndAwaitResultCode(CMD_APPLY_DGEN_OPTIONS, nullptr, 0, &rc)) {
         communicationError();
         return;
     }
+    // TODO: assert rc == OK
 
-    // Calculate actual frequency
-    params.freq = f_cpu / (prescaler * prescaled);
-    params.duty = (float)request.pulse_width / request.period;
-    params.phase = (float)request.phase / request.period * 360;
-
-    if (params.phase > 180)
-        params.phase -= 360;
-
-    emit didSetPwm(index, params);
+    emit didConfigureDigitalGenerators(options);
 }

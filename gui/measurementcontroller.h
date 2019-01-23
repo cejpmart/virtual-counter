@@ -36,7 +36,7 @@ signals:
     void measurementFinishedFreqRatio(double freqRatio, double freqRatioError);
     void measurementTimedOut();
 
-    void didSetPwm(size_t index, PwmParameters params);
+    void didConfigureDigitalGenerators(AllDgenOptions options);
 
     void status(QString status);
     void errorSignal(QString err);
@@ -48,7 +48,7 @@ public slots:
     void doMeasurementFreqRatio(unsigned int periods);
 
     void setMeasurementOptions(MeasurementOptions opts);
-    void setPwm(size_t index, PwmParameters params);
+    void configureDigitalGenerators(AllDgenOptions options);
 
     void openInterface(QString path);
 

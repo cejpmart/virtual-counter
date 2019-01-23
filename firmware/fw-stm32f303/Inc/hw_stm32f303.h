@@ -7,11 +7,15 @@
 #define PWM1_HTIM       htim16
 #define PWM1_CCR        (TIM16->CCR1)
 #define PWM1_CHANNEL    TIM_CHANNEL_1
+#define PWM1_CCMR       (TIM16->CCMR1)
+#define PWM1_OCxM_Pos   TIM_CCMR1_OC1M_Pos
 
 #define PWM2_TIM        TIM17
 #define PWM2_HTIM       htim17
 #define PWM2_CCR        (TIM17->CCR1)
 #define PWM2_CHANNEL    TIM_CHANNEL_1
+#define PWM2_CCMR       (TIM17->CCMR1)
+#define PWM2_OCxM_Pos   TIM_CCMR1_OC1M_Pos
 
 #define TIMEFRAME_TIM               TIM3
 #define TIMEFRAME_HTIM              htim3

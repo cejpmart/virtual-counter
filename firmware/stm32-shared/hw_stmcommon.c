@@ -1,4 +1,5 @@
 #include "virtualinstrument/hw.h"
+#include "virtualinstrument/instrument.h"
 
 #ifdef STM32F042x6
 #include "hw_stm32f042.h"
@@ -545,6 +546,7 @@ int HWPollIntervalMeasurement(uint32_t* period_out, uint32_t* pulse_width_out) {
 
     enum { start = 2 };
 
+    // BAD: this assumes a certain setup of INPUT_CAPTURE_CH*_CHAN
     if (dmabuf[start + 3] > dmabuf[start]) {
         *period_out = dmabuf[start + 2] - dmabuf[start];
         *pulse_width_out = dmabuf[start + 3] - dmabuf[start];
@@ -586,19 +588,45 @@ int HWPollFreqRatioMeasurement(uint64_t* ratio_out) {
     return 1;
 }
 
-int HWSetPwm(size_t index, uint16_t prescaler, uint16_t period, uint16_t pulse_time, int phase) {
+int HWSetPwm(size_t index, enum DgenMode mode, uint16_t prescaler, uint16_t period, uint16_t pulse_time, int phase) {
     // TODO: we should do our own init of PWM -- or not?
     if (index == 0) {
-        PWM1_TIM->PSC = prescaler;
-        PWM1_TIM->ARR = period;
-        PWM1_CCR = pulse_time;
-        PWM1_TIM->EGR |= TIM_EGR_UG;
+        switch (mode) {
+        case DGEN_MODE_ALWAYS_0_:
+            PWM1_CCMR = (PWM1_CCMR & ~(0b111 << PWM1_OCxM_Pos)) | (0b100 << PWM1_OCxM_Pos);
+            break;
+
+        case DGEN_MODE_ALWAYS_1_:
+            PWM1_CCMR = (PWM1_CCMR & ~(0b111 << PWM1_OCxM_Pos)) | (0b101 << PWM1_OCxM_Pos);
+            break;
+
+        case DGEN_MODE_PWM_:
+            PWM1_CCMR = (PWM1_CCMR & ~(0b111 << PWM1_OCxM_Pos)) | (0b110 << PWM1_OCxM_Pos);
+            PWM1_TIM->PSC = prescaler;
+            PWM1_TIM->ARR = period;
+            PWM1_CCR = pulse_time;
+            PWM1_TIM->EGR |= TIM_EGR_UG;
+            break;
+        }
     }
     else if (index == 1) {
-        PWM2_TIM->PSC = prescaler;
-        PWM2_TIM->ARR = period;
-        PWM2_CCR = pulse_time;
-        PWM2_TIM->EGR |= TIM_EGR_UG;
+        switch (mode) {
+        case DGEN_MODE_ALWAYS_0_:
+            PWM2_CCMR = (PWM2_CCMR & ~(0b111 << PWM2_OCxM_Pos)) | (0b100 << PWM2_OCxM_Pos);
+            break;
+
+        case DGEN_MODE_ALWAYS_1_:
+            PWM2_CCMR = (PWM2_CCMR & ~(0b111 << PWM2_OCxM_Pos)) | (0b101 << PWM2_OCxM_Pos);
+            break;
+
+        case DGEN_MODE_PWM_:
+            PWM2_CCMR = (PWM2_CCMR & ~(0b111 << PWM2_OCxM_Pos)) | (0b110 << PWM2_OCxM_Pos);
+            PWM2_TIM->PSC = prescaler;
+            PWM2_TIM->ARR = period;
+            PWM2_CCR = pulse_time;
+            PWM2_TIM->EGR |= TIM_EGR_UG;
+            break;
+        }
     }
     else
         return -1;

@@ -219,17 +219,34 @@ void protocolAsciiHandle(const uint8_t* data, size_t length) {
 		case 'f': s_num_periods = 1000; printCurrentConfig(); break;
 		case 'g': s_num_periods = 10000; printCurrentConfig(); break;
 
-		case 'n':
-            instrumentSetPwm(0, SystemCoreClock / 1000000 - 1, 1000 - 1, 0, 0);
-            instrumentSetPwm(1, SystemCoreClock / 1000000 - 1, 1000 - 1, 0, 250);
+		case 'n': {
+			// size_t index, uint16_t prescaler, uint16_t period, uint16_t pulse_time, int phase
+			struct DgenOptions options[2];
+			options[0].mode = DGEN_MODE_ALWAYS_0_;
+			options[1].mode = DGEN_MODE_ALWAYS_0_;
+			instrumentSetPwm(options);
             break;
+		}
 
-		case 'm':
-		    instrumentSetPwm(0, SystemCoreClock / 1000000 - 1, 1000 - 1, 500, 0);
-		    instrumentSetPwm(1, SystemCoreClock / 1000000 - 1, 1000 - 1, 500, 250);
+		case 'm': {
+			// size_t index, uint16_t prescaler, uint16_t period, uint16_t pulse_time, int phase
+			struct DgenOptions options[2];
+			options[0].mode = DGEN_MODE_PWM_;
+			options[0].prescaler = SystemCoreClock / 1000000 - 1;
+			options[0].period = 1000 - 1;
+			options[0].pulse_width = 500;
+			options[0].phase = 0;
+			options[1].mode = DGEN_MODE_PWM_;
+			options[1].prescaler = SystemCoreClock / 1000000 - 1;
+			options[1].period = 1000 - 1;
+			options[1].pulse_width = 500;
+			options[1].phase = 250;
+		    instrumentSetPwm(options);
+
 			sprintf(outbuf, "Output pins: %s, %s\r\n", s_options->port_out_pwm_a, s_options->port_out_pwm_b);
 			putstr(outbuf);
 		    break;
+		}
 
 		case 'z':
 			doOneMeasurement();

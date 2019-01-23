@@ -1,6 +1,8 @@
 #ifndef VIRTUALINSTRUMENT_HW_H_
 #define VIRTUALINSTRUMENT_HW_H_
 
+#include "instrument.h"
+
 #include <stddef.h>
 #include <stdint.h>
 
@@ -28,7 +30,7 @@ int     HWStartFreqRatioMeasurement(size_t num_periods);
 int     HWPollFreqRatioMeasurement(uint64_t* ratio_out);
 
 // PWM
-int     HWSetPwm(size_t index, uint16_t prescaler, uint16_t period, uint16_t pulse_time, int phase);
+int     HWSetPwm(size_t index, enum DgenMode mode, uint16_t prescaler, uint16_t period, uint16_t pulse_time, int phase);
 int     HWSetPwmPhase(uint32_t phase);
 
 void    utilDelayMs(uint32_t milliseconds);
