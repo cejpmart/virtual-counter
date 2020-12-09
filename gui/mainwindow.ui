@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1266</width>
+    <width>1309</width>
     <height>876</height>
    </rect>
   </property>
@@ -129,13 +129,6 @@
             </widget>
            </item>
            <item>
-            <widget class="QRadioButton" name="measurementMethodInterval">
-             <property name="text">
-              <string>interval/phase</string>
-             </property>
-            </widget>
-           </item>
-           <item>
             <widget class="QRadioButton" name="measurementMethodFreqRatio">
              <property name="text">
               <string>frequency ratio</string>
@@ -236,52 +229,6 @@
               </size>
              </property>
             </spacer>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QVBoxLayout" name="verticalLayout_3">
-           <item>
-            <widget class="QLabel" name="label_5">
-             <property name="text">
-              <string>Channel A</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QComboBox" name="measurementEdgeSelectA">
-             <item>
-              <property name="text">
-               <string>rising edge</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>falling edge</string>
-              </property>
-             </item>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="label_23">
-             <property name="text">
-              <string>Channel B</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QComboBox" name="measurementEdgeSelectB">
-             <item>
-              <property name="text">
-               <string>rising edge</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>falling edge</string>
-              </property>
-             </item>
-            </widget>
            </item>
           </layout>
          </item>
@@ -1227,8 +1174,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1266</width>
-     <height>25</height>
+     <width>1309</width>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

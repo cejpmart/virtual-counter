@@ -435,11 +435,13 @@ void MainWindow::onMeasurementMethodChanged()
         ui->intervalMeasurementRack->hide();
         ui->freqRatioMeasurementRack->hide();
     }
+#ifdef ENABLE_MEASUREMENT_PHASE
     else if (ui->measurementMethodInterval->isChecked()) {
         ui->frequencyMeasurementRack->hide();
         ui->intervalMeasurementRack->show();
         ui->freqRatioMeasurementRack->hide();
     }
+#endif
     else if (ui->measurementMethodFreqRatio->isChecked()) {
         ui->frequencyMeasurementRack->hide();
         ui->intervalMeasurementRack->hide();
@@ -468,8 +470,10 @@ void MainWindow::onMeasurementMethodChanged()
         }
     }
 
+#ifdef ENABLE_MEASUREMENT_PHASE
     ui->measurementEdgeSelectA->setEnabled(ui->measurementMethodInterval->isChecked());
     ui->measurementEdgeSelectB->setEnabled(ui->measurementMethodInterval->isChecked());
+#endif
 
     // Port labels (TODO)
     if (ui->measurementMethodCounting->isChecked()) {
@@ -481,9 +485,11 @@ void MainWindow::onMeasurementMethodChanged()
         else
             ui->instrumentStatusLabel->setText("Ports: " + ipm.value("port.period_pwm_1") + ", " + ipm.value("port.period_pwm_2"));
     }
+#ifdef ENABLE_MEASUREMENT_PHASE
     else if (ui->measurementMethodInterval->isChecked()) {
         ui->instrumentStatusLabel->setText("Ports: " + ipm.value("port.interval_a") + ", " + ipm.value("port.interval_b"));
     }
+#endif
     else if (ui->measurementMethodFreqRatio->isChecked()) {
         ui->instrumentStatusLabel->setText("Ports: " + ipm.value("port.freq_ratio_a") + ", " + ipm.value("port.freq_ratio_b"));
     }
@@ -767,11 +773,13 @@ void MainWindow::on_measureButton_clicked()
     else if (ui->measurementMethodPeriod->isChecked()) {
         emit measurementShouldStartPeriod(getReciprocalIterations(), ui->measurementPulseWidthEnable->isChecked());
     }
+#ifdef ENABLE_MEASUREMENT_PHASE
     else if (ui->measurementMethodInterval->isChecked()) {
         auto edgeA = ui->measurementEdgeSelectA->currentIndex() == 0 ? Edge::rising : Edge::falling;
         auto edgeB = ui->measurementEdgeSelectB->currentIndex() == 0 ? Edge::rising : Edge::falling;
         emit measurementShouldStartPhase(edgeA, edgeB);
     }
+#endif
     else if (ui->measurementMethodFreqRatio->isChecked()) {
         emit measurementShouldStartFreqRatio(getReciprocalIterations());
     }
