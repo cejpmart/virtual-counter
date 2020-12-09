@@ -1,18 +1,18 @@
 #!/bin/bash
 
-if [[ $# -eq 0 ]] ; then
-    echo 'usage: deploy_all.sh DESTDIR'
+if [[ $# -ne 2 ]] ; then
+    echo 'usage: deploy_all.sh DESTDIR GUI_BUILD_ZIP'
     exit 1
 fi
 
 set -e
 
+# TODO: auto-grab GUI build from AppVeyor ?
 OUTDIR=$1
+ZIPPED=$2
 FW_DIR=${OUTDIR}/Firmware
 
-ARM_NONE_EABI_GCC=/opt/gcc-arm-none-eabi-6-2017-q1-update
-# TODO: grab GUI build from AppVeyor
-ZIPPED=~/Downloads/MeasurementTool.zip
+ARM_NONE_EABI_GCC=/opt/gcc-arm-none-eabi-8-2018-q4-major
 
 MAKE_FLAGS=-j5
 
@@ -35,7 +35,7 @@ mkdir ${OUTDIR}
 
 unzip ${ZIPPED} -d ${OUTDIR}
 
-cp doc/manual.pdf ${OUTDIR}/
+#cp doc/manual.pdf ${OUTDIR}/
 
 mkdir ${FW_DIR}
 cp build-stm32f042f6-usb_cdc/*.bin ${FW_DIR}
