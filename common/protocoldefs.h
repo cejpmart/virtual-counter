@@ -62,6 +62,9 @@ enum {
     TIMEBASE_SOURCE_INTERNAL =  0,
     TIMEBASE_SOURCE_EXTERNAL =  1,
     TIMEBASE_SOURCE_USB20 =     2,
+
+    // protocol 1107+
+    TIMEBASE_SOURCE_ONBOARD_CRYSTAL =   3,
 };
 
 typedef struct {

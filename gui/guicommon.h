@@ -44,7 +44,7 @@ struct Parameter {
     }
 };
 
-enum class TimebaseSource { external, internal, usb20 };
+enum class TimebaseSource { external, internal, usb20, onboardCrystal };
 
 struct InstrumentInfo {
     QString port;

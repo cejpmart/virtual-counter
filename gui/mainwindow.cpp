@@ -347,6 +347,7 @@ void MainWindow::onInstrumentConnected(InstrumentInfo info)
     case TimebaseSource::external: timebaseInfoText = "external timebase"; break;
     case TimebaseSource::internal: timebaseInfoText = "internal timebase"; break;
     case TimebaseSource::usb20: timebaseInfoText = "USB 2.0 timebase (500ppm)"; break;
+    case TimebaseSource::onboardCrystal: timebaseInfoText = "on-board crystal"; break;
     }
 
     ui->instrumentDeviceLabel->setText("Connected (" + info.port + "), " + timebaseInfoText);

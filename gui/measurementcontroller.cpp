@@ -260,6 +260,7 @@ bool MeasurementController::getInstrumentInfo(InstrumentInfo& info_out)
     case TIMEBASE_SOURCE_INTERNAL: info_out.timebaseSource = TimebaseSource::internal; break;
     case TIMEBASE_SOURCE_EXTERNAL: info_out.timebaseSource = TimebaseSource::external; break;
     case TIMEBASE_SOURCE_USB20: info_out.timebaseSource = TimebaseSource::usb20; break;
+    case TIMEBASE_SOURCE_ONBOARD_CRYSTAL: info_out.timebaseSource = TimebaseSource::onboardCrystal; break;
 
     default:
         info_out.timebaseSource = TimebaseSource::internal;
@@ -276,6 +277,7 @@ double MeasurementController::getTimebaseRelativeError()
 {
     switch (timebaseSource) {
     case TimebaseSource::external: return options.externalTBError;
+    case TimebaseSource::onboardCrystal: return options.externalTBError;
     case TimebaseSource::internal: return options.internalTBError;
 
     // 500ppm for USB 2.0
