@@ -864,7 +864,7 @@ void MainWindow::on_menuHelpAbout_triggered()
                    "\n"
                    "Developed at Laboratory of Videometry, Department of Measurement, Faculty of Electrical Engineering, Czech Technical University in Prague.\n"
                    "\n"
-                   "Copyright (c) 2017, 2018 Martin Cejp\n"
+                   "Copyright (c) 2017-2021 Martin Cejp\n"
                    "\n"
                    "https://github.com/cejpmart/virtual-counter",
                    DISPLAY_VERSION));
