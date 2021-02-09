@@ -56,6 +56,8 @@ private slots:
 
     void on_measurementMethodPeriod_toggled(bool checked);
 
+    void on_measurementMethodPwm_toggled(bool checked);
+
     void on_actionQuit_triggered();
 
     void on_pwm1FreqSpinner_valueChanged(double arg1);

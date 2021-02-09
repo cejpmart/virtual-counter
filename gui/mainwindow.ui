@@ -129,6 +129,13 @@
             </widget>
            </item>
            <item>
+            <widget class="QRadioButton" name="measurementMethodPwm">
+             <property name="text">
+              <string>period &amp;&amp; pulse width</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QRadioButton" name="measurementMethodFreqRatio">
              <property name="text">
               <string>frequency ratio</string>
@@ -208,13 +215,6 @@
                <string>1</string>
               </property>
              </item>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="measurementPulseWidthEnable">
-             <property name="text">
-              <string>Measure pulse width</string>
-             </property>
             </widget>
            </item>
            <item>

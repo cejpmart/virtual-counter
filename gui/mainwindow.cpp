@@ -427,11 +427,11 @@ void MainWindow::onMeasurementFinishedPeriod(double frequency, double frequencyE
 void MainWindow::onMeasurementMethodChanged()
 {
     ui->measurementGateTimeSelect->setEnabled(ui->measurementMethodCounting->isChecked());
-    ui->measurementNumPeriodsSelect->setEnabled(ui->measurementMethodPeriod->isChecked() || ui->measurementMethodFreqRatio->isChecked());
-    ui->measurementPulseWidthEnable->setEnabled(ui->measurementMethodPeriod->isChecked());
+    ui->measurementNumPeriodsSelect->setEnabled(ui->measurementMethodPeriod->isChecked() ||
+                                                ui->measurementMethodFreqRatio->isChecked());
 
     // Racks
-    if (ui->measurementMethodCounting->isChecked() || ui->measurementMethodPeriod->isChecked()) {
+    if (ui->measurementMethodCounting->isChecked() || ui->measurementMethodPeriod->isChecked() || ui->measurementMethodPwm->isChecked()) {
         ui->frequencyMeasurementRack->show();
         ui->intervalMeasurementRack->hide();
         ui->freqRatioMeasurementRack->hide();
@@ -450,11 +450,13 @@ void MainWindow::onMeasurementMethodChanged()
     }
 
     // measurementNumPeriodsSelect
-    if (ui->measurementMethodPeriod->isChecked() && ui->measurementPulseWidthEnable->isChecked()) {
+    if (ui->measurementMethodPwm->isChecked()) {
         ui->measurementNumPeriodsSelect->clear();
         ui->measurementNumPeriodsSelect->addItem("1");
-        ui->measurementNumPeriodsSelect->addItem("10");
-        ui->measurementNumPeriodsSelect->addItem("100");
+
+        // These were additional options for PWM, but they are now disabled per issue #8
+//        ui->measurementNumPeriodsSelect->addItem("10");
+//        ui->measurementNumPeriodsSelect->addItem("100");
     }
     else {
         ui->measurementNumPeriodsSelect->clear();
@@ -481,10 +483,10 @@ void MainWindow::onMeasurementMethodChanged()
         ui->instrumentStatusLabel->setText("Port: " + ipm.value("port.pulse_count"));
     }
     else if (ui->measurementMethodPeriod->isChecked()) {
-        if (!ui->measurementPulseWidthEnable->isChecked())
-            ui->instrumentStatusLabel->setText("Port: " + ipm.value("port.period"));
-        else
-            ui->instrumentStatusLabel->setText("Ports: " + ipm.value("port.period_pwm_1") + ", " + ipm.value("port.period_pwm_2"));
+        ui->instrumentStatusLabel->setText("Port: " + ipm.value("port.period"));
+    }
+    else if (ui->measurementMethodPwm->isChecked()) {
+        ui->instrumentStatusLabel->setText("Ports: " + ipm.value("port.period_pwm_1") + ", " + ipm.value("port.period_pwm_2"));
     }
 #ifdef ENABLE_MEASUREMENT_PHASE
     else if (ui->measurementMethodInterval->isChecked()) {
@@ -751,10 +753,13 @@ void MainWindow::updateMeasurementFrequencyInfo()
         // FIXME: number formatting, correctnes
         ui->measurementResolutionInfo->setText(QString::number(1000000000.0 / f_cpu / getReciprocalIterations()) + " ns");
 
-        if (ui->measurementPulseWidthEnable->isChecked())
-            ui->measurementRangeInfo->setText(QString::asprintf("0 - %d Hz", f_cpu / MEASUREMENT_PWM_RANGE_COEFF));
-        else
-            ui->measurementRangeInfo->setText(QString::asprintf("0 - %d Hz", f_cpu / 2));
+        ui->measurementRangeInfo->setText(QString::asprintf("0 - %d Hz", f_cpu / 2));
+    }
+    else if (ui->measurementMethodPwm->isChecked()) {
+        // FIXME: number formatting, correctnes
+        ui->measurementResolutionInfo->setText(QString::number(1000000000.0 / f_cpu / getReciprocalIterations()) + " ns");
+
+        ui->measurementRangeInfo->setText(QString::asprintf("0 - %d Hz", f_cpu / MEASUREMENT_PWM_RANGE_COEFF));
     }
 }
 
@@ -772,7 +777,10 @@ void MainWindow::on_measureButton_clicked()
         emit measurementShouldStartCounting(getCountingGateTimeSeconds());
     }
     else if (ui->measurementMethodPeriod->isChecked()) {
-        emit measurementShouldStartPeriod(getReciprocalIterations(), ui->measurementPulseWidthEnable->isChecked());
+        emit measurementShouldStartPeriod(getReciprocalIterations(), false);
+    }
+    else if (ui->measurementMethodPwm->isChecked()) {
+        emit measurementShouldStartPeriod(getReciprocalIterations(), true);
     }
 #ifdef ENABLE_MEASUREMENT_PHASE
     else if (ui->measurementMethodInterval->isChecked()) {
@@ -807,6 +815,11 @@ void MainWindow::on_measurementMethodInterval_toggled(bool checked)
 }
 
 void MainWindow::on_measurementMethodPeriod_toggled(bool checked)
+{
+    onMeasurementMethodChanged();
+}
+
+void MainWindow::on_measurementMethodPwm_toggled(bool checked)
 {
     onMeasurementMethodChanged();
 }
